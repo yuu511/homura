@@ -1,0 +1,31 @@
+Build started at 2019-07-20T03:49:10.532523
+Main binary: /usr/bin/python
+Python system: Linux
+The Meson build system
+Version: 0.51.1
+Source dir: /home/elijah/etc/programs/homura
+Build dir: /home/elijah/etc/programs/homura/builddir
+Build type: native build
+Project name: homura
+Project version: undefined
+C++ compiler for the build machine: c++ (gcc 9.1.0 "c++ (GCC) 9.1.0")
+C++ compiler for the host machine: c++ (gcc 9.1.0 "c++ (GCC) 9.1.0")
+Build machine cpu family: x86_64
+Build machine cpu: x86_64
+Dependency threads found: YES (cached)
+Dependency libtorrent-rasterbar found: YES (cached)
+Build targets in project: 1
+Found ninja-1.9.0 at /usr/bin/ninja
+Running compile:
+Working directory:  /tmp/tmpqk8fkf4s
+Command line:  c++ /tmp/tmpqk8fkf4s/testfile.cpp -o /tmp/tmpqk8fkf4s/output.obj -pipe -c -D_FILE_OFFSET_BITS=64 -O0 -fpermissive --print-search-dirs 
+
+Code:
+ 
+Compiler stdout:
+ install: /usr/lib/gcc/x86_64-pc-linux-gnu/9.1.0/
+programs: =/usr/lib/gcc/x86_64-pc-linux-gnu/9.1.0/:/usr/lib/gcc/x86_64-pc-linux-gnu/9.1.0/:/usr/lib/gcc/x86_64-pc-linux-gnu/:/usr/lib/gcc/x86_64-pc-linux-gnu/9.1.0/:/usr/lib/gcc/x86_64-pc-linux-gnu/:/usr/lib/gcc/x86_64-pc-linux-gnu/9.1.0/../../../../x86_64-pc-linux-gnu/bin/x86_64-pc-linux-gnu/9.1.0/:/usr/lib/gcc/x86_64-pc-linux-gnu/9.1.0/../../../../x86_64-pc-linux-gnu/bin/
+libraries: =/usr/lib/gcc/x86_64-pc-linux-gnu/9.1.0/:/usr/lib/gcc/x86_64-pc-linux-gnu/9.1.0/../../../../x86_64-pc-linux-gnu/lib/x86_64-pc-linux-gnu/9.1.0/:/usr/lib/gcc/x86_64-pc-linux-gnu/9.1.0/../../../../x86_64-pc-linux-gnu/lib/../lib/:/usr/lib/gcc/x86_64-pc-linux-gnu/9.1.0/../../../x86_64-pc-linux-gnu/9.1.0/:/usr/lib/gcc/x86_64-pc-linux-gnu/9.1.0/../../../../lib/:/lib/x86_64-pc-linux-gnu/9.1.0/:/lib/../lib/:/usr/lib/x86_64-pc-linux-gnu/9.1.0/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-pc-linux-gnu/9.1.0/../../../../x86_64-pc-linux-gnu/lib/:/usr/lib/gcc/x86_64-pc-linux-gnu/9.1.0/../../../:/lib/:/usr/lib/
+
+Compiler stderr:
+ 
