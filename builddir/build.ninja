@@ -38,10 +38,10 @@ build PHONY: phony
 
 build homura@exe/src_main.cpp.o: cpp_COMPILER ../src/main.cpp
  DEPFILE = homura@exe/src_main.cpp.o.d
- ARGS = -Ihomura@exe -I. -I.. -I/usr/include/libtorrent -fdiagnostics-color=always -pipe -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -Wnon-virtual-dtor -g -DTORRENT_USE_OPENSSL -DBOOST_ASIO_HASH_MAP_BUCKETS=1021 -DBOOST_EXCEPTION_DISABLE -DBOOST_ASIO_ENABLE_CANCELIO -DTORRENT_LINKING_SHARED -pthread
+ ARGS = -Ihomura@exe -I. -I.. -I/usr/local/lib -I/usr/include/libtorrent -fdiagnostics-color=always -pipe -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -Wnon-virtual-dtor -g -DTORRENT_USE_OPENSSL -DBOOST_ASIO_HASH_MAP_BUCKETS=1021 -DBOOST_EXCEPTION_DISABLE -DBOOST_ASIO_ENABLE_CANCELIO -DTORRENT_LINKING_SHARED -pthread
 
-build homura: cpp_LINKER homura@exe/src_main.cpp.o | /usr/lib/libtorrent-rasterbar.so /usr/lib/libboost_system.so
- LINK_ARGS = -Wl,--no-undefined -Wl,--as-needed -pthread -Wl,--start-group /usr/lib/libtorrent-rasterbar.so /usr/lib/libboost_system.so -Wl,--end-group
+build homura: cpp_LINKER homura@exe/src_main.cpp.o | /usr/lib/libtorrent-rasterbar.so /usr/lib/libboost_system.so /usr/lib/libcurl.so /usr/local/lib/libmyhtml.so
+ LINK_ARGS = -Wl,--no-undefined -Wl,--as-needed -pthread -Wl,--start-group /usr/lib/libtorrent-rasterbar.so /usr/lib/libboost_system.so /usr/lib/libcurl.so /usr/local/lib/libmyhtml.so -Wl,--end-group -Wl,-rpath,/usr/local/lib -Wl,-rpath-link,/usr/local/lib
 
 # Test rules
 

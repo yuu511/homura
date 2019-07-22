@@ -1,23 +1,27 @@
-#include <libtorrent/session.hpp>
-#include <libtorrent/add_torrent_params.hpp>
-#include <libtorrent/torrent_handle.hpp>
-#include <libtorrent/magnet_uri.hpp>
-#include "homura.h"
-#include "errlib.h"
+#include <iostream>
+#include <string>
+#include <unistd.h>
+#include <libgen.h>
+#include <homura.h>
 
-int main(int argc, char const* argv[]) {
-  if (argc != 2) {
-          fprintf(stderr, "usage: %s <magnet-url>\n");
-          return 1;
-  }
-  lt::session ses;
-  lt::add_torrent_params atp;
-  // lt::parse_magnet_uri(argv[1],atp,);
-  // atp.save_path = "."; // save in current dir
-  // lt::torrent_handle h = ses.add_torrent(atp);
+void parseargs (int argc, char** argv){
+   int opt;
+   while ((opt = getopt(argc,argv,"v")) != -1 ){  
+     switch (opt){ 
+       case 'v':
+         ;
+       case '?':
+       std::cerr << "bad option: " << optopt << std::endl;
+       break;
+     }
+   }
+   if (optind > argc){
+     std::cerr << "usage: " << basename (argv[0]) << " [-v] " << std::endl;
+     exit(1);
+   }
+}
 
-  // ...
+int main (int argc, char ** argv){
+  parseargs(argc,argv);
   return 0;
 }
- 
-
