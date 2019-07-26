@@ -5,11 +5,10 @@
 #include <libgen.h>
 #include "homura.h"
 
-
 /* 
-   boost::format looks ugly but makes the printout look neat.
-   unfortunately, it has no operator similar to * in printf.
-   so, use %5s with a vacuous string to indent a line by 5 spaces.
+   print_usage: print out usage.
+   use %5s with a vacuous string to indent a line by 5 spaces.
+   (boost::format has no "*" printf-like operator)
 */
 
   //helper functions for print_usage
@@ -44,6 +43,7 @@
     printl("for more information about special search terms, go to https://nyaa.si/help");
     std::cout << std::endl;
     printl("OPTIONS:");
+    printopt("[-v,--verbose]",": enable verbose logging");
     printopt("[-t,--threads] THREADCOUNT",": use a pool of THREADCOUNT threads");
     printopt("[--help]",": print out usage message");
     std::cout << std::endl;
