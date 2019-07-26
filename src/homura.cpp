@@ -7,9 +7,12 @@
 #include <stdlib.h>
 #include "homura.h"
 
-// objective: write c for curl / html parsing part
-// write c++ for libtorrent part (after everything is parsed)
+// objective: write mostly* c for curl/parsing, c++ for libtorrent 
+// *multithreading (boost::asio) + string manipulation(stdio,string) will be done by c++
 
+/* terminate program immediately if curl reports an error */
+// @in CURLcode to parse
+// @in string to indicated the calling location
 // https://curl.haxx.se/libcurl/c/hiperfifo.html
 void sucess_or_exit(CURLcode code,std::string where){
   std::string s;
@@ -31,7 +34,7 @@ void sucess_or_exit(CURLcode code,std::string where){
   }
 }
 
-/* container for webpages */
+/* container for html data */
 struct memobject {
   char *ptr;
   size_t len;
@@ -70,23 +73,22 @@ struct memobject curl_one(CURL *&conn, std::string args){
   struct memobject store;
   memobject_init(&store);
   if (!conn) exit(EXIT_FAILURE);
+  // add URL to curl handle
   code = curl_easy_setopt(conn,CURLOPT_URL,args.c_str());
   sucess_or_exit(code,"curl_one: CURLOPT_URL");
+  // determine the function that will handle the data
   code = curl_easy_setopt(conn,CURLOPT_WRITEFUNCTION,WriteCallback);
   sucess_or_exit(code,"curl_one: CURLOPT_WRITEFUNCTION");
+  // determine the location that the data will be stored
   code = curl_easy_setopt(conn,CURLOPT_WRITEDATA,&store);
   sucess_or_exit(code,"curl_one: CURLOPT_WRITEDATA");
+  // some websites require a user-agent name.
   code = curl_easy_setopt(conn,CURLOPT_USERAGENT,"libcurl-agent/1.0");
   sucess_or_exit(code,"curl_one: CURLOPT_USERAGENT");
   // retrieve content
   code = curl_easy_perform(conn);
   sucess_or_exit(code,"curl_one: easy_preform");
   return store;
-}
-
-std::string parse_string (std::string name){
-  std::replace(name.begin(),name.end(),' ','+');
-  return name;
 }
 
 /* given a string, scrape all torrent names and magnets */
@@ -96,7 +98,8 @@ std::string parse_string (std::string name){
 void homura::query_packages(std::string args, int LOG_LEVEL, int threads = 1){
   /* nyaa.si has no official api, and we must manually
      find out how many pages to parse by sending a request */
-  std::string FIRST_ = "https://nyaa.si/?f=0&c=0_0&q=" + parse_string(args); 
+  std::replace(args.begin(),args.end(),' ','+');
+  std::string FIRST_ = "https://nyaa.si/?f=0&c=0_0&q=" + args; 
   CURL *curl;
   curl_global_init(CURL_GLOBAL_ALL);
   struct memobject FIRST_PAGE = curl_one(curl,FIRST_);
