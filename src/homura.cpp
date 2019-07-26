@@ -1,5 +1,6 @@
 #include <string>
 #include <iostream>
+#include <algorithm>
 #include <boost/format.hpp>
 #include <curl/curl.h>
 #include <string.h>
@@ -34,12 +35,13 @@ bool curl_or_die(CURLcode code,std::string where){
   return true;
 }
 
+/* container for webpages */
 struct memobject {
   char *ptr;
   size_t len;
 }; 
 
-void init_memobject(struct memobject *s){
+void memobject_init(struct memobject *s){
   s->len = 0;
   s->ptr = (char *) malloc(1);
   if (s->ptr == nullptr){
@@ -49,6 +51,7 @@ void init_memobject(struct memobject *s){
   s->ptr[0] = '\0';
 }
 
+/* callback function write webpage to memory */
 static size_t
 WriteCallback(void *ptr, size_t size, size_t nmemb, struct memobject *s) {
   size_t realsize = s->len + size * nmemb;
@@ -63,11 +66,14 @@ WriteCallback(void *ptr, size_t size, size_t nmemb, struct memobject *s) {
   return size * nmemb;
 }
 
+/* download one webpage */
+// @in curl handle
+// @in name of webpage to download
 struct memobject curl_one(CURL *&conn, std::string args){
   CURLcode code;
   conn = curl_easy_init();
   struct memobject store;
-  init_memobject(&store);
+  memobject_init(&store);
   if (!conn) exit(EXIT_FAILURE);
   code = curl_easy_setopt(conn,CURLOPT_URL,args.c_str());
   if (!curl_or_die(code,"curl_one: CURLOPT_URL")) exit(EXIT_FAILURE); 
@@ -83,17 +89,26 @@ struct memobject curl_one(CURL *&conn, std::string args){
   return store;
 }
 
+std::string parse_string (std::string name){
+  std::replace(name.begin(),name.end(),' ','+');
+  return name;
+}
+
 /* given a string, scrape all torrent names and magnets */
 // @in: args : name of item to be searched
 // @in: print : verbose logging
 // @in: threads : how many threads to utilize in our program
-void homura::query_packages(std::string args, bool print){
+void homura::query_packages(std::string args, bool verbose, int threads = 1){
   /* nyaa.si has no official api, and we must manually
      find out how many pages to parse by sending a request */
-  std::string FIRST_ = "https://nyaa.si/?f=0&c=0_0&q=" + args;
+  std::string FIRST_ = "https://nyaa.si/?f=0&c=0_0&q=" + parse_string(args); 
   CURL *curl;
   curl_global_init(CURL_GLOBAL_ALL);
   struct memobject FIRST_PAGE = curl_one(curl,FIRST_);
+  if (verbose){
+    std::cout << " == FIRST_PAGE_URL == \n";
+    std::cout << FIRST_ << std::endl;
+  }
   free(FIRST_PAGE.ptr);
   curl_easy_cleanup(curl);
   curl_global_cleanup();

@@ -7,6 +7,6 @@
 
 namespace homura{
   // query all results for search term
-  void query_packages(std::string args, bool print);
+  void query_packages(std::string args, bool print, int threadcount);
 }
 #endif
