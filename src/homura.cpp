@@ -8,11 +8,10 @@
 #include "homura.h"
 
 // objective: write c for curl / html parsing part
-// (limit cpp to string mainuplation and boost::thread)
 // write c++ for libtorrent part (after everything is parsed)
 
 // https://curl.haxx.se/libcurl/c/hiperfifo.html
-bool curl_or_die(CURLcode code,std::string where){
+void sucess_or_exit(CURLcode code,std::string where){
   std::string s;
   if (CURLE_OK != code){
     switch(code){
@@ -28,11 +27,8 @@ bool curl_or_die(CURLcode code,std::string where){
         s = "CURLM_unkown"; break;
     }
     std::cerr << boost::format("ERROR: %s returns %s\n") % s % where;
-    // curl die
-    return false;
+    exit(EXIT_FAILURE);
   }
-  // curl live 
-  return true;
 }
 
 /* container for webpages */
@@ -52,8 +48,7 @@ void memobject_init(struct memobject *s){
 }
 
 /* callback function write webpage to memory */
-static size_t
-WriteCallback(void *ptr, size_t size, size_t nmemb, struct memobject *s) {
+static size_t WriteCallback(void *ptr, size_t size, size_t nmemb, struct memobject *s) {
   size_t realsize = s->len + size * nmemb;
   s->ptr = (char *) realloc(s->ptr,realsize+1);
   if (s->ptr == nullptr){
@@ -76,16 +71,16 @@ struct memobject curl_one(CURL *&conn, std::string args){
   memobject_init(&store);
   if (!conn) exit(EXIT_FAILURE);
   code = curl_easy_setopt(conn,CURLOPT_URL,args.c_str());
-  if (!curl_or_die(code,"curl_one: CURLOPT_URL")) exit(EXIT_FAILURE); 
+  sucess_or_exit(code,"curl_one: CURLOPT_URL");
   code = curl_easy_setopt(conn,CURLOPT_WRITEFUNCTION,WriteCallback);
-  if (!curl_or_die(code,"curl_one: CURLOPT_WRITEFUNCTION")) exit(EXIT_FAILURE); 
+  sucess_or_exit(code,"curl_one: CURLOPT_WRITEFUNCTION");
   code = curl_easy_setopt(conn,CURLOPT_WRITEDATA,&store);
-  if (!curl_or_die(code,"curl_one: CURLOPT_WRITEDATA")) exit(EXIT_FAILURE); 
+  sucess_or_exit(code,"curl_one: CURLOPT_WRITEDATA");
   code = curl_easy_setopt(conn,CURLOPT_USERAGENT,"libcurl-agent/1.0");
-  if (!curl_or_die(code,"curl_one: CURLOPT_USERAGENT")) exit(EXIT_FAILURE); 
+  sucess_or_exit(code,"curl_one: CURLOPT_USERAGENT");
   // retrieve content
   code = curl_easy_perform(conn);
-  if (!curl_or_die(code,"curl_one: easy_preform")) exit(EXIT_FAILURE);
+  sucess_or_exit(code,"curl_one: easy_preform");
   return store;
 }
 
@@ -98,16 +93,19 @@ std::string parse_string (std::string name){
 // @in: args : name of item to be searched
 // @in: print : verbose logging
 // @in: threads : how many threads to utilize in our program
-void homura::query_packages(std::string args, bool verbose, int threads = 1){
+void homura::query_packages(std::string args, int LOG_LEVEL, int threads = 1){
   /* nyaa.si has no official api, and we must manually
      find out how many pages to parse by sending a request */
   std::string FIRST_ = "https://nyaa.si/?f=0&c=0_0&q=" + parse_string(args); 
   CURL *curl;
   curl_global_init(CURL_GLOBAL_ALL);
   struct memobject FIRST_PAGE = curl_one(curl,FIRST_);
-  if (verbose){
+  if (LOG_LEVEL){
     std::cout << " == FIRST_PAGE_URL == \n";
     std::cout << FIRST_ << std::endl;
+    if (LOG_LEVEL>1){
+      std::cout << std::string(FIRST_PAGE.ptr);
+    }
   }
   free(FIRST_PAGE.ptr);
   curl_easy_cleanup(curl);

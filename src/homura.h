@@ -4,9 +4,8 @@
 #include <string>
 #include <curl/curl.h>
 
-
 namespace homura{
   // query all results for search term
-  void query_packages(std::string args, bool print, int threadcount);
+  void query_packages(std::string args, int LOG_LEVEL, int threadcount);
 }
 #endif
