@@ -1,36 +1,35 @@
-#include <iostream> 
-#include <string>
-#include <boost/format.hpp>
-#include <boost/asio.hpp>
+#include <string.h>
 #include <getopt.h>
 #include <libgen.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "homura.h"
 
+#define MAX_BUF = 1024
+
   /* print_usage helper functions */
-  // 5 indents for all strings
+  // 5 space indent for all strings
   // first part of option string will be a minimum of 30 characters long 
-  void printl(std::string line){
-    std::cout << boost::format("%5s%s\n")
-      % "" % line;
+  void printl(const char *line){
+    fprintf(stdout,"%5s %s\n","", line);
   }
-  void printopt(std::string option, std::string description){
-    std::cout << boost::format("%5s%-30s %s\n") 
-      % "" % option % description;
+  void printopt(const char *option, const char *description){
+    fprintf(stdout,"%5s %-30s%s\n", "", option, description);
   }
 
   /* print_usage */ 
   // @param[in] argument array (used to parse executable name)
   void print_usage(){
-    std:: cout << std::endl;
+    fprintf(stdout,"\n");
     printl("USAGE:");
     printl("homura [-vdt:] ARG");
     printl("  Search nyaa.si for expression ARG.");
     printl("  Make sure to enclose the expression within a \"\".");
     printl("  optional args -v,-d,-t defined in OPTIONS");
-    std::cout << std::endl;
+    fprintf(stdout,"\n");
     printl("homura --help");
     printl("  print out usage message");
-    std::cout << std::endl;
+    fprintf(stdout,"\n");
 
     printl("OPTIONS:");
     printopt("[-v,--verbose]"," : logging, prints out actions as they are preformed");
@@ -38,7 +37,7 @@
     printopt("[-t,--threads] THREADCOUNT"," : use a pool of THREADCOUNT threads ");
     printopt("","   (THREADCOUNT is a positive integer)");
     printopt("[--help]"," : print out usage message");
-    std::cout << std::endl;
+    fprintf (stdout,"\n");
 
 
     printl("EXAMPLES:");
@@ -46,17 +45,17 @@
     printl("for more information about advanced search options : https://nyaa.si/help");
     printl("REMINDER: if you need to use the \" operator, "
                      "use \\\" when inside a quote.");
-    std::cout << std::endl;
+    fprintf (stdout,"\n");
     printl("search examples:");
     printl("  \% homura \"Ping Pong The Animation\"");
     printl("  \% homura --threads 5 \"Initial D\"");
-    std::cout << std::endl;
+    fprintf (stdout,"\n");
     printl("advanced search examples:");
     printl("  \% homura \"Monogatari|Madoka\"");
     printl("  // display results for \"Monogatari\" OR \"Madoka\"");
     printl("  \% homura \"\\\"School Days\\\"\"");
     printl("  // search for \"School Days\" but not \"Days School\".");
-    std::cout << std::endl;
+    fprintf (stdout,"\n");
 }
 
 void parse_args (int argc, char **argv) {
@@ -72,45 +71,45 @@ void parse_args (int argc, char **argv) {
        { "threads" , required_argument ,  0   , 't' },
        {  NULL     , 0                 , NULL ,  0  }
      };
-     opt = getopt_long(argc,argv, "vt:",
+     opt = getopt_long(argc,argv, "vdt:",
                  long_options, &option_index);
      if (opt == -1)		 
        break;
      switch (opt) {
        case 'v':
-         _VERBOSELEVEL = 1;
+         if (!_VERBOSELEVEL)
+           _VERBOSELEVEL = 1;
          break;
        case 'd':
          _VERBOSELEVEL = 2;
          break;
        case 'h':
 	 print_usage();
-	 exit(0);
+	 exit(EXIT_SUCCESS);
        case 't':
          _THREADCOUNT =  atoi(optarg);
          if (_THREADCOUNT < 1){
-           std::cerr << "error:-t,--thread expects a positive integer\n";
-           std::cerr << boost::format("(recieved %s)") % std::string(optarg);
-           std::cerr << std::endl;
-           exit(1);
+           fprintf(stderr,"error:-t,--thread expects a positive integer\n");
+	   fprintf(stderr,"(recieved %s)\n", optarg);
+           exit(EXIT_FAILURE);
          } 
          break;
        case '?':
-         std::cerr << boost::format("incorrect option %c\n") % optopt;
-         std::cerr << "for usage: homura --help\n";
-	 exit(1);
+         fprintf(stderr,"incorrect option %c\n",optopt);
+         fprintf(stderr,"for usage: homura --help\n");
+	 exit(EXIT_FAILURE);
          break;
      }
    }
    if (optind + 1 > argc) {
-     std::cerr << "No search term provided.\n";
-     std::cerr << "for usage: homura --help\n";
-     exit(1);
+     fprintf (stderr,"No search term provided.\n");
+     fprintf (stderr,"for usage: homura --help \n");
+     exit(EXIT_FAILURE);
    }
-   homura::query_packages(std::string(argv[optind]),_VERBOSELEVEL,_THREADCOUNT);
+   query_packages(argv[optind],_VERBOSELEVEL,_THREADCOUNT);
 }
 
 int main (int argc, char ** argv) {
   parse_args(argc,argv);
-  return 0;
+  return EXIT_SUCCESS;
 }
