@@ -1,13 +1,11 @@
 project('homura','cpp')
 cc = meson.get_compiler('cpp')
-homura_sources = ['src/main.cpp','src/homura.cpp']
+homura_sources = ['src/main.cpp','src/homura.cpp','src/errlib.cpp']
 
 # dependencies 
 dep_thread = dependency('threads')
 dep_libtorrent = dependency('libtorrent-rasterbar')
 dep_curl = dependency('libcurl')
-# note: boost module 'serialization' requires seperate build
-# (is not usually included with the standard boost libraries e.g. libboost-dev)
 dep_boost = dependency('boost', modules : ['serialization'])
 # note : myhtml is usually not found in package repositories,
 # install here: https://github.com/lexborisov/myhtml/blob/master/INSTALL.md 

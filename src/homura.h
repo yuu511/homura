@@ -4,6 +4,8 @@
 #include <curl/curl.h>
 #include <string>
 
-void query_packages(std::string args, int LOG_LEVEL, int threadcount);
+namespace homura{
+  void query_packages(std::string args, int LOG_LEVEL, int threadcount);
+}
 
 #endif

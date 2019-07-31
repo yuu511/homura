@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "homura.h"
+#include "errlib.h"
 
   /* print_usage helper functions */
   // n space indent for all strings
@@ -80,7 +81,7 @@ void parse_args (int argc, char **argv) {
          break;
        case 'h':
 	 print_usage();
-	 exit(EXIT_SUCCESS);
+         return;
        case 't':
          _THREADCOUNT =  atoi(optarg);
          if (_THREADCOUNT < 1){
@@ -101,10 +102,14 @@ void parse_args (int argc, char **argv) {
      fprintf (stderr,"for usage: homura --help \n");
      exit(EXIT_FAILURE);
    }
-   query_packages(std::string(argv[optind]),_VERBOSELEVEL,_THREADCOUNT);
+   homura::query_packages(std::string(argv[optind]),_VERBOSELEVEL,_THREADCOUNT);
 }
 
 int main (int argc, char ** argv) {
+  error_handler::exit_code = EXIT_SUCCESS;
   parse_args(argc,argv);
-  return EXIT_SUCCESS;
+  if (error_handler::exit_code){
+    fprintf(stderr,"%s\n",parse_error_exitcode(error_handler::exit_code).c_str());
+  }
+  return error_handler::exit_code;
 }
