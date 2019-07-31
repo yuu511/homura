@@ -1,60 +1,55 @@
-#include <string.h>
+#include <string>
 #include <getopt.h>
 #include <libgen.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "homura.h"
 
-#define MAX_BUF = 1024
-
   /* print_usage helper functions */
-  // 5 space indent for all strings
+  // n space indent for all strings
   // first part of option string will be a minimum of 30 characters long 
-  void printl(const char *line){
-    fprintf(stdout,"%5s %s\n","", line);
+  void println(int whitespace, const char *line){
+    fprintf(stdout,"%*s%s\n",whitespace,"", line);
   }
-  void printopt(const char *option, const char *description){
-    fprintf(stdout,"%5s %-30s%s\n", "", option, description);
+  void printopt(int whitespace, const char *option, const char *description){
+    fprintf(stdout,"%*s%-30s%s\n",whitespace, "", option, description);
   }
 
   /* print_usage */ 
   // @param[in] argument array (used to parse executable name)
   void print_usage(){
     fprintf(stdout,"\n");
-    printl("USAGE:");
-    printl("homura [-vdt:] ARG");
-    printl("  Search nyaa.si for expression ARG.");
-    printl("  Make sure to enclose the expression within a \"\".");
-    printl("  optional args -v,-d,-t defined in OPTIONS");
+    println(5,"USAGE:");
+    println(5,"homura [-vdt:] ARG");
+    println(7,"Search nyaa.si for expression ARG.");
+    println(7,"Make sure to enclose the expression within a \"\".");
+    println(7,"optional args -v,-d,-t defined in OPTIONS");
     fprintf(stdout,"\n");
-    printl("homura --help");
-    printl("  print out usage message");
+    println(5,"homura --help");
+    println(7,"print out usage message");
     fprintf(stdout,"\n");
-
-    printl("OPTIONS:");
-    printopt("[-v,--verbose]"," : logging, prints out actions as they are preformed");
-    printopt("[-d,--debug]"," : more extensive logging, prints out full html files");
-    printopt("[-t,--threads] THREADCOUNT"," : use a pool of THREADCOUNT threads ");
-    printopt("","   (THREADCOUNT is a positive integer)");
-    printopt("[--help]"," : print out usage message");
+    println(5,"OPTIONS:");
+    printopt(5,"[-v,--verbose]"," : logging, prints out actions as they are preformed");
+    printopt(5,"[-d,--debug]"," : more extensive logging, prints out full html files");
+    printopt(5,"[-t,--threads] THREADCOUNT"," : use a pool of THREADCOUNT threads ");
+    printopt(5,"","   (THREADCOUNT is a positive integer)");
+    printopt(5,"[--help]"," : print out usage message");
     fprintf (stdout,"\n");
-
-
-    printl("EXAMPLES:");
-    printl("all site-defined advanced search options should work. ( \"\",|,(),- )");
-    printl("for more information about advanced search options : https://nyaa.si/help");
-    printl("REMINDER: if you need to use the \" operator, "
+    println(5,"EXAMPLES:");
+    println(5,"all site-defined advanced search options should work. ( \"\",|,(),- )");
+    println(5,"for more information about advanced search options : https://nyaa.si/help");
+    println(5,"REMINDER: if you need to use the \" operator, "
                      "use \\\" when inside a quote.");
     fprintf (stdout,"\n");
-    printl("search examples:");
-    printl("  \% homura \"Ping Pong The Animation\"");
-    printl("  \% homura --threads 5 \"Initial D\"");
-    fprintf (stdout,"\n");
-    printl("advanced search examples:");
-    printl("  \% homura \"Monogatari|Madoka\"");
-    printl("  // display results for \"Monogatari\" OR \"Madoka\"");
-    printl("  \% homura \"\\\"School Days\\\"\"");
-    printl("  // search for \"School Days\" but not \"Days School\".");
+    println(5,"search examples:");
+    println(7,"\% homura \"Ping Pong The Animation\"");
+    println(7,"\% homura --threads 5 \"Initial D\"");
+    fprintf(stdout,"\n");
+    println(5,"advanced search examples:");
+    println(7,"\% homura \"Monogatari|Madoka\"");
+    println(7,"// display results for \"Monogatari\" OR \"Madoka\"");
+    println(7,"\% homura \"\\\"School Days\\\"\"");
+    println(7,"// search for \"School Days\" but not \"Days School\".");
     fprintf (stdout,"\n");
 }
 
@@ -106,7 +101,7 @@ void parse_args (int argc, char **argv) {
      fprintf (stderr,"for usage: homura --help \n");
      exit(EXIT_FAILURE);
    }
-   query_packages(argv[optind],_VERBOSELEVEL,_THREADCOUNT);
+   query_packages(std::string(argv[optind]),_VERBOSELEVEL,_THREADCOUNT);
 }
 
 int main (int argc, char ** argv) {
