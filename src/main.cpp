@@ -52,7 +52,7 @@
     println(7,"\% homura \"\\\"School Days\\\"\"");
     println(7,"// search for \"School Days\" but not \"Days School\".");
     fprintf (stdout,"\n");
-}
+  }
 
 void parse_args (int argc, char **argv) {
    int _VERBOSELEVEL = 0;
@@ -85,27 +85,25 @@ void parse_args (int argc, char **argv) {
        case 't':
          _THREADCOUNT =  atoi(optarg);
          if (_THREADCOUNT < 1){
-           fprintf(stderr,"error:-t,--thread expects a positive integer\n");
-	   fprintf(stderr,"(recieved %s)\n", optarg);
-           exit(EXIT_FAILURE);
+           errprintf(ERRCODE::FAILED_ARGPARSE,"error:-t,--thread expects a positive integer\n");
+	   errprintf(ERRCODE::FAILED_ARGPARSE,"(recieved %s)\n", optarg);
+           return;
          } 
          break;
        case '?':
-         fprintf(stderr,"incorrect option %c\n",optopt);
-         fprintf(stderr,"for usage: homura --help\n");
-	 exit(EXIT_FAILURE);
+         errprintf(ERRCODE::FAILED_ARGPARSE,"incorrect option %c\n",optopt);
+         errprintf(ERRCODE::FAILED_ARGPARSE,"for usage: homura --help\n");
          break;
      }
    }
    if (optind + 1 > argc) {
-     fprintf (stderr,"No search term provided.\n");
-     fprintf (stderr,"for usage: homura --help \n");
-     exit(EXIT_FAILURE);
+     errprintf (ERRCODE::FAILED_ARGPARSE,"No search term provided.\n");
+     errprintf (ERRCODE::FAILED_ARGPARSE,"for usage: homura --help \n");
    }
    homura::query_packages(std::string(argv[optind]),_VERBOSELEVEL,_THREADCOUNT);
 }
 
-int main (int argc, char ** argv) {
+int main (int argc, char **argv) {
   error_handler::exit_code = EXIT_SUCCESS;
   parse_args(argc,argv);
   if (error_handler::exit_code){

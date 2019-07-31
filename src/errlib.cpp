@@ -16,16 +16,23 @@ void set_error_exitcode(int code){
 std::string parse_error_exitcode(int code){
   std::string message;
   switch(code){
+    case FAILED_ARGPARSE:
+      message = "FAILED_ARGPARSE";
+      break;
     case FAILED_CURL:
       message = "FAILED_CURL";
+      break;
     case FAILED_MALLOC:
       message = "FAILED_MALLOC";
+      break;
     case FAILED_REALLOC:
       message = "FAILED_REALLOC";
+      break;
     default:
       message = "UNKNOWN_ERROR";
+      break;
   }
-  return "ERROR: homura RETURNED NON ZERO EXIT CODE " + message;
+  return "ERROR: homura returned non-zero exit code " + message;
 }
 
 void errprintf(int error_code, const char *format, ...) {
