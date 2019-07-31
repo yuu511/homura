@@ -11,8 +11,6 @@ int debug_level = 0;
 // *using std::string and .c_str(), and chrono for timing
 
 /* terminate program immediately if curl reports an error */
-// @in CURLcode to parse
-// @in string to indicated the calling location
 // https://curl.haxx.se/libcurl/c/hiperfifo.html
 void sucess_or_exit(CURLcode code,std::string where){
   std::string s;
@@ -65,8 +63,6 @@ static size_t WriteCallback(void *ptr, size_t size, size_t nmemb, struct memobje
 }
 
 /* download one webpage */
-// @in curl handle
-// @in name of webpage to download
 struct memobject *curl_one(std::string args){
   CURLcode code;
   CURL *conn = curl_easy_init();
@@ -96,9 +92,6 @@ struct memobject *curl_one(std::string args){
 }
 
 /* given a string, scrape all torrent names and magnets */
-// @in: args : name of item to be searched
-// @in: print : verbose logging
-// @in: threads : how many threads to utilize in our program
 void query_packages(std::string args, int LOG_LEVEL, int threads){
   debug_level = LOG_LEVEL;
   curl_global_init(CURL_GLOBAL_ALL);
@@ -111,7 +104,6 @@ void query_packages(std::string args, int LOG_LEVEL, int threads){
     fprintf (stderr, " == FIRST_PAGE_URL == \n");
     fprintf (stderr, "%s\n",FIRST_.c_str());
     if (debug_level > 1){
-      fprintf (stderr, " == FIRST_PAGE_DATA == \n");
       fprintf (stderr, "%s\n",FIRST_PAGE->ptr);
     }
   }
