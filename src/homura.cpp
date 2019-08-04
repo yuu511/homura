@@ -13,8 +13,7 @@ int wait_time = 0; // some websites have a limit on crawling. wait_time is set t
 // objective: write mostly* c for curl/parsing, c++ for libtorrent 
 // *using std::string and .c_str(), and chrono for timing
 
-/* terminate program immediately if curl reports an error */
-// https://curl.haxx.se/libcurl/c/hiperfifo.html
+/* terminate program if curl reports an error */
 bool check_curlcode(CURLcode code,std::string where){
   std::string s;
   if (CURLE_OK != code){
@@ -137,6 +136,11 @@ void homura::query_packages(std::string args, int LOG_LEVEL, int threads){
     if (debug_level > 1){
       fprintf (stderr, "%s\n",FIRST_PAGE->ptr);
     }
+  }
+  std::regex exp("([0-9]+)-([0-9]+) out of ([0-9]+)");
+  std::smatch sm;
+  std::string text = std::string(FIRST_PAGE->ptr);
+  if(!regex_search(text, sm, exp)) {
   }
   free(FIRST_PAGE->ptr);
   free(FIRST_PAGE);

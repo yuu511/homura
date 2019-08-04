@@ -1,4 +1,4 @@
-project('homura','cpp')
+project('homura','cpp',default_options: ['cpp_std=c++11'])
 cc = meson.get_compiler('cpp')
 homura_sources = ['src/main.cpp','src/homura.cpp','src/errlib.cpp']
 
