@@ -100,7 +100,8 @@ void parse_args (int argc, char **argv) {
      errprintf (ERRCODE::FAILED_ARGPARSE,"No search term provided.\n");
      errprintf (ERRCODE::FAILED_ARGPARSE,"for usage: homura --help \n");
    }
-   homura::query_packages(std::string(argv[optind]),_VERBOSELEVEL,_THREADCOUNT);
+   magnet_table *results = homura::query_packages(std::string(argv[optind]),_VERBOSELEVEL,_THREADCOUNT);
+   homura::free_mtable(results);
 }
 
 int main (int argc, char **argv) {

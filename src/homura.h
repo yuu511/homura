@@ -3,9 +3,11 @@
 
 #include <curl/curl.h>
 #include <string>
+#include "magnet_table.h"
 
 namespace homura{
-  void query_packages(std::string args, int LOG_LEVEL, int threadcount);
+  magnet_table *query_packages(std::string args, int LOG_LEVEL, int threadcount);
+  void free_mtable(magnet_table*);
 }
 
 #endif

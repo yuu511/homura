@@ -28,6 +28,9 @@ std::string parse_error_exitcode(int code){
     case FAILED_REALLOC:
       message = "FAILED_REALLOC";
       break;
+    case FAILED_FIRST_PARSE:
+      message = "FAILED_FIRST_PARSE";
+      break;
     default:
       message = "UNKNOWN_ERROR";
       break;

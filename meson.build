@@ -1,6 +1,6 @@
 project('homura','cpp',default_options: ['cpp_std=c++11'])
 cc = meson.get_compiler('cpp')
-homura_sources = ['src/main.cpp','src/homura.cpp','src/errlib.cpp']
+homura_sources = ['src/main.cpp','src/homura.cpp','src/errlib.cpp','src/magnet_table.cpp']
 
 # dependencies 
 dep_thread = dependency('threads')
@@ -17,8 +17,12 @@ all_dep = [ dep_thread, dep_libtorrent, dep_curl, dep_myhtml, dep_boost ]
 # FLAGS
 generic_flags = ['-g','-Wall']
 
-executable('homura', 
-           sources: homura_sources,
-           dependencies: all_dep,
-           include_directories: inc_myhtml,
-           c_args : generic_flags)
+e = executable('homura', 
+                sources: homura_sources,
+                dependencies: all_dep,
+                include_directories: inc_myhtml,
+                c_args : generic_flags)
+
+# Tests
+test ('default' , e, args : ['-v','dumbbell nan kilo moteru'])
+

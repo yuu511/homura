@@ -4,14 +4,14 @@
 #include <curl/curl.h>
 #include <string.h>
 #include <stdlib.h>
+#include "magnet_table.h"
 #include "homura.h"
 #include "errlib.h"
 
-int debug_level = 0;
-int wait_time = 0; // some websites have a limit on crawling. wait_time is set to respect this
+// mix of c and c++ for torrent scraping
+// use char* for html parsing, store results in string
 
-// objective: write mostly* c for curl/parsing, c++ for libtorrent 
-// *using std::string and .c_str(), and chrono for timing
+int debug_level = 0;
 
 /* terminate program if curl reports an error */
 bool check_curlcode(CURLcode code,std::string where){
@@ -34,6 +34,7 @@ bool check_curlcode(CURLcode code,std::string where){
   }
   return true;
 }
+
 
 /* container for html data */
 struct memobject {
@@ -116,20 +117,33 @@ struct memobject *curl_one(std::string args){
   return store;
 }
 
+void homura::free_mtable(magnet_table *names){
+  if (names){
+    for (auto itor : *names){
+      delete itor;
+    }
+  }
+  delete names;
+}
+
 /* given a string, scrape all torrent names and magnets */
-void homura::query_packages(std::string args, int LOG_LEVEL, int threads){
-  wait_time = 5;
+magnet_table *homura::query_packages(std::string args, int LOG_LEVEL, int threads){
+  int wait_time = 5;
   debug_level = LOG_LEVEL;
   curl_global_init(CURL_GLOBAL_ALL);
   /* nyaa.si has no official api, and we must manually
      find out how many pages to parse by sending a request */
+
+  int num_elements = 0;
+
   std::replace(args.begin(),args.end(),' ','+');
   std::string FIRST_ = "https://nyaa.si/?f=0&c=0_0&q=" + args;
   struct memobject *FIRST_PAGE = curl_one(FIRST_);
   if (!FIRST_PAGE){
     set_error_exitcode(ERRCODE::FAILED_CURL); 
-    return;
+    return nullptr;
   }
+
   if (debug_level){
     fprintf (stderr, " == FIRST_PAGE_URL == \n");
     fprintf (stderr, "%s\n",FIRST_.c_str());
@@ -137,12 +151,27 @@ void homura::query_packages(std::string args, int LOG_LEVEL, int threads){
       fprintf (stderr, "%s\n",FIRST_PAGE->ptr);
     }
   }
-  std::regex exp("([0-9]+)-([0-9]+) out of ([0-9]+)");
+
+  std::regex exp("([0-9]+)-([0-9]+) out of ([0-9]+)(?= results)");
   std::smatch sm;
   std::string text = std::string(FIRST_PAGE->ptr);
   if(!regex_search(text, sm, exp)) {
+    errprintf(ERRCODE::FAILED_FIRST_PARSE,
+      "Failed to parse first page \n");
+    free_memobject(FIRST_PAGE);
+    return nullptr;
   }
-  free(FIRST_PAGE->ptr);
-  free(FIRST_PAGE);
+  num_elements = std::stoi(sm[3].str()); 
+  if (!num_elements){
+    fprintf(stdout,"No results found for %s\n", args.c_str());
+    free_memobject(FIRST_PAGE);
+    return nullptr;
+  }
+  magnet_table *names = new magnet_table(num_elements);
+  for (size_t i = 0; i < names->size(); i++){
+    (*names)[i] = new name_magnet();
+  }
+  free_memobject(FIRST_PAGE);
   curl_global_cleanup();
+  return names;
 }
