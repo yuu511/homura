@@ -1,11 +1,12 @@
 #include <string>
 #include <algorithm>
 #include <regex>
+#include <chrono>
 #include <curl/curl.h>
 #include <string.h>
 #include <stdlib.h>
-#include "magnet_table.h"
 #include "homura.h"
+#include "magnet_table.h"
 #include "errlib.h"
 
 // mix of c and c++ for torrent scraping
@@ -14,7 +15,7 @@
 int debug_level = 0;
 
 /* terminate program if curl reports an error */
-bool check_curlcode(CURLcode code,std::string where){
+bool curlcode_pass(CURLcode code,std::string where){
   std::string s;
   if (CURLE_OK != code){
     switch(code){
@@ -83,38 +84,88 @@ struct memobject *curl_one(std::string args){
   }
   struct memobject *store = (memobject*) malloc (sizeof(memobject));
   memobject_init(store);
+
   // add URL to curl handle
   code = curl_easy_setopt(conn,CURLOPT_URL,args.c_str());
-  if (!check_curlcode(code,"curl_one: CURLOPT_URL")) {
-    free_memobject(store);
-    return nullptr;
-  }
+  if (!curlcode_pass(code,"curl_one: CURLOPT_URL")) goto curlone_fail;
+
   // determine the function that will handle the data
   code = curl_easy_setopt(conn,CURLOPT_WRITEFUNCTION,WriteCallback);
-  if (!check_curlcode(code,"curl_one: CURLOPT_WRITEFUNCTION")){
-    free_memobject(store);
-    return nullptr;
-  }
+  if (!curlcode_pass(code,"curl_one: CURLOPT_WRITEFUNCTION")) goto curlone_fail;
+
   // determine the location that the data will be stored
   code = curl_easy_setopt(conn,CURLOPT_WRITEDATA,&*store);
-  if (!check_curlcode(code,"curl_one: CURLOPT_WRITEDATA")){
-    free_memobject(store);
-    return nullptr;
-  }
+  if (!curlcode_pass(code,"curl_one: CURLOPT_WRITEDATA")) goto curlone_fail;
+
   // some websites require a user-agent name.
   code = curl_easy_setopt(conn,CURLOPT_USERAGENT,"libcurl-agent/1.0");
-  if (!check_curlcode(code,"curl_one: CURLOPT_USERAGENT")){
-    free_memobject(store);
-    return nullptr;
-  }
+  if (!curlcode_pass(code,"curl_one: CURLOPT_USERAGENT")) goto curlone_fail;
+
   // retrieve content
   code = curl_easy_perform(conn);
-  if (!check_curlcode(code,"curl_one: easy_preform")) {
-    free_memobject(store);
-    return nullptr;
-  }
+  if (!curlcode_pass(code,"curl_one: easy_preform")) goto curlone_fail;
+
   curl_easy_cleanup(conn);
   return store;
+
+  curlone_fail:
+    set_error_exitcode(ERRCODE::FAILED_CURL); 
+    free_memobject(store);
+    return nullptr;
+}
+
+// allocate table based on first page
+magnet_table *alloc_table(struct memobject *FIRST_PAGE){
+  int num_elements = 0;
+  magnet_table *names = nullptr;
+  std::regex exp("([0-9]+)-([0-9]+) out of ([0-9]+)(?= results)");
+  std::smatch sm;
+  std::string text = std::string(FIRST_PAGE->ptr);
+  if(!regex_search(text, sm, exp)) {
+    errprintf(ERRCODE::FAILED_FIRST_PARSE, "Failed to parse first page \n");
+    return nullptr;
+  }
+  num_elements = std::stoi(sm[3].str()); 
+  if (!num_elements){
+    fprintf(stdout,"No results found for query\n");
+    return nullptr;
+  }
+  try {
+    names = new magnet_table(num_elements);
+    for (size_t i = 0; i < names->size(); i++){
+      (*names)[i] = new name_magnet();
+    }
+  }
+  catch (std::bad_alloc &ba){
+    errprintf(ERRCODE::FAILED_NEW, "Failed new allocation %s\n",ba);
+    return nullptr;
+  }
+  return names;
+}
+
+/* given a string, scrape all torrent names and magnets */
+magnet_table *homura::search_nyaasi(std::string args, int LOG_LEVEL, int threads){
+  std::chrono::seconds crawl_delay(5);
+  debug_level = LOG_LEVEL;
+  curl_global_init(CURL_GLOBAL_ALL);
+  /* nyaa.si has no official api, and we must manually
+     find out how many pages to parse by sending a request */
+  std::replace(args.begin(),args.end(),' ','+');
+  std::string FIRST_ = "https://nyaa.si/?f=0&c=0_0&q=" + args;
+  struct memobject *FIRST_PAGE = curl_one(FIRST_);
+  if (!FIRST_PAGE) return nullptr;
+
+  if (debug_level)
+    fprintf (stderr, " == FIRST_PAGE_URL == \n %s\n",FIRST_.c_str());
+  if (debug_level > 1) 
+    fprintf (stderr, "%s\n",FIRST_PAGE->ptr);
+
+  magnet_table *names = alloc_table(FIRST_PAGE);
+  if (!names) return nullptr;
+
+  free_memobject(FIRST_PAGE);
+  curl_global_cleanup();
+  return names;
 }
 
 void homura::free_mtable(magnet_table *names){
@@ -122,56 +173,6 @@ void homura::free_mtable(magnet_table *names){
     for (auto itor : *names){
       delete itor;
     }
+    delete names;
   }
-  delete names;
-}
-
-/* given a string, scrape all torrent names and magnets */
-magnet_table *homura::query_packages(std::string args, int LOG_LEVEL, int threads){
-  int wait_time = 5;
-  debug_level = LOG_LEVEL;
-  curl_global_init(CURL_GLOBAL_ALL);
-  /* nyaa.si has no official api, and we must manually
-     find out how many pages to parse by sending a request */
-
-  int num_elements = 0;
-
-  std::replace(args.begin(),args.end(),' ','+');
-  std::string FIRST_ = "https://nyaa.si/?f=0&c=0_0&q=" + args;
-  struct memobject *FIRST_PAGE = curl_one(FIRST_);
-  if (!FIRST_PAGE){
-    set_error_exitcode(ERRCODE::FAILED_CURL); 
-    return nullptr;
-  }
-
-  if (debug_level){
-    fprintf (stderr, " == FIRST_PAGE_URL == \n");
-    fprintf (stderr, "%s\n",FIRST_.c_str());
-    if (debug_level > 1){
-      fprintf (stderr, "%s\n",FIRST_PAGE->ptr);
-    }
-  }
-
-  std::regex exp("([0-9]+)-([0-9]+) out of ([0-9]+)(?= results)");
-  std::smatch sm;
-  std::string text = std::string(FIRST_PAGE->ptr);
-  if(!regex_search(text, sm, exp)) {
-    errprintf(ERRCODE::FAILED_FIRST_PARSE,
-      "Failed to parse first page \n");
-    free_memobject(FIRST_PAGE);
-    return nullptr;
-  }
-  num_elements = std::stoi(sm[3].str()); 
-  if (!num_elements){
-    fprintf(stdout,"No results found for %s\n", args.c_str());
-    free_memobject(FIRST_PAGE);
-    return nullptr;
-  }
-  magnet_table *names = new magnet_table(num_elements);
-  for (size_t i = 0; i < names->size(); i++){
-    (*names)[i] = new name_magnet();
-  }
-  free_memobject(FIRST_PAGE);
-  curl_global_cleanup();
-  return names;
 }
