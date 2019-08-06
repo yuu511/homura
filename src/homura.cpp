@@ -3,9 +3,12 @@
 #include <regex>
 #include <chrono>
 #include <utility>
+
 #include <curl/curl.h>
 #include <string.h>
 #include <stdlib.h>
+#include <pthread.h>
+
 #include "homura.h"
 #include "magnet_table.h"
 #include "errlib.h"
@@ -14,6 +17,75 @@
 // use char* for html parsing, store results in string
 
 int debug_level = 0;
+
+// in order to use SSL in a multithreaded context, we must place mutex callback setups
+// https://curl.haxx.se/libcurl/c/threaded-ssl.html
+static pthread_mutex_t *lockarray;
+
+extern "C"
+{
+  #ifndef USE_OPENSSL
+  #include <openssl/crypto.h>
+  static void lock_callback(int mode, int type, char *file, int line)
+  {
+    (void)file;
+    (void)line;
+    if(mode & CRYPTO_LOCK) {
+      pthread_mutex_lock(&(lockarray[type]));
+    }
+    else {
+      pthread_mutex_unlock(&(lockarray[type]));
+    }
+  }
+  
+  static unsigned long thread_id(void)
+  {
+    unsigned long ret;
+  
+    ret = (unsigned long)pthread_self();
+    return ret;
+  }
+  
+  static void init_locks(void)
+  {
+    int i;
+  
+    lockarray = (pthread_mutex_t *)OPENSSL_malloc(CRYPTO_num_locks() *
+                                                  sizeof(pthread_mutex_t));
+    for(i = 0; i<CRYPTO_num_locks(); i++) {
+      pthread_mutex_init(&(lockarray[i]), NULL);
+    }
+  
+    CRYPTO_set_id_callback((unsigned long (*)())thread_id);
+    CRYPTO_set_locking_callback((void (*)())lock_callback);
+  }
+  
+  static void kill_locks(void)
+  {
+    int i;
+  
+    CRYPTO_set_locking_callback(NULL);
+    for(i = 0; i<CRYPTO_num_locks(); i++)
+      pthread_mutex_destroy(&(lockarray[i]));
+  
+    OPENSSL_free(lockarray);
+  }
+  #endif
+  
+  #ifdef USE_GNUTLS
+  #include <gcrypt.h>
+  #include <errno.h>
+  
+  GCRY_THREAD_OPTION_PTHREAD_IMPL;
+  
+  void init_locks(void)
+  {
+    gcry_control(GCRYCTL_SET_THREAD_CBS);
+  }
+  
+  #define kill_locks()
+  #endif
+}
 
 /* terminate program if curl reports an error */
 bool curlcode_pass(CURLcode code,std::string where){
@@ -37,7 +109,6 @@ bool curlcode_pass(CURLcode code,std::string where){
   return true;
 }
 
-
 /* container for html data */
 struct memobject {
   char *ptr;
@@ -47,7 +118,7 @@ struct memobject {
 void memobject_init(struct memobject *s){
   s->len = 0;
   s->ptr = (char *) malloc(1);
-  if (s->ptr == NULL){
+  if (s->ptr == nullptr){
     errprintf (ERRCODE::FAILED_MALLOC, "malloc() failed in memobject_init");
     return;
   }
@@ -65,9 +136,9 @@ void free_memobject(struct memobject *s){
 static size_t WriteCallback(void *ptr, size_t size, size_t nmemb, struct memobject *s) {
   size_t realsize = s->len + size * nmemb;
   s->ptr = (char *) realloc(s->ptr,realsize+1);
-  if (s->ptr == NULL){
-    errprintf (ERRCODE::FAILED_REALLOC, "malloc() failed ");
-    exit(EXIT_FAILURE);
+  if (s->ptr == nullptr){
+    errprintf(ERRCODE::FAILED_REALLOC, "malloc() failed ");
+    return 0; 
   }
   memcpy(s->len+s->ptr, ptr, size * nmemb);
   s->ptr[realsize] = '\0';
@@ -175,6 +246,7 @@ magnet_table *homura::search_nyaasi(std::string args, int LOG_LEVEL, int threads
   std::chrono::seconds crawl_delay(5);
   debug_level = LOG_LEVEL;
   curl_global_init(CURL_GLOBAL_ALL);
+  init_locks();
   /* nyaa.si has no official api, and we must manually
      find out how many pages to parse by sending a request */
   std::replace(args.begin(),args.end(),' ','+');
@@ -213,6 +285,7 @@ magnet_table *homura::search_nyaasi(std::string args, int LOG_LEVEL, int threads
   free_memobject(FIRST_PAGE);
   free_urls(urls);
   curl_global_cleanup();
+  kill_locks();
   return names;
 
   failed_search_cleanup:
