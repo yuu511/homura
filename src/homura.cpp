@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <regex>
 #include <chrono>
+#include <utility>
 #include <curl/curl.h>
 #include <string.h>
 #include <stdlib.h>
@@ -110,29 +111,20 @@ struct memobject *curl_one(std::string args){
 
   curlone_fail:
     set_error_exitcode(ERRCODE::FAILED_CURL); 
+    curl_global_cleanup();
     free_memobject(store);
     return nullptr;
 }
 
-// allocate table based on first page
-magnet_table *alloc_table(struct memobject *FIRST_PAGE){
-  int num_elements = 0;
+magnet_table *alloc_table_nyaasi(int total) {
   magnet_table *names = nullptr;
-  std::regex exp("([0-9]+)-([0-9]+) out of ([0-9]+)(?= results)");
-  std::smatch sm;
-  std::string text = std::string(FIRST_PAGE->ptr);
-  if(!regex_search(text, sm, exp)) {
-    errprintf(ERRCODE::FAILED_FIRST_PARSE, "Failed to parse first page \n");
-    return nullptr;
-  }
-  num_elements = std::stoi(sm[3].str()); 
-  if (!num_elements){
+  if (!total){
     fprintf(stdout,"No results found for query\n");
     return nullptr;
   }
   try {
-    names = new magnet_table(num_elements);
-    for (size_t i = 0; i < names->size(); i++){
+    names = new magnet_table(total);
+    for (size_t i = 0; i < names->size(); ++i){
       (*names)[i] = new name_magnet();
     }
   }
@@ -143,6 +135,41 @@ magnet_table *alloc_table(struct memobject *FIRST_PAGE){
   return names;
 }
 
+std::vector<std::string*> *alloc_urls_nyaasi
+(int total, int results_per_page, std::string base_url) {
+  if (!total){
+    return nullptr;
+  }
+  if (debug_level)
+    fprintf (stderr, "== URLS: ==\n");
+  // rounds up integer division, (overflow not expected, max results = 1000)
+  int num_elements = ( total + (results_per_page -1) ) / results_per_page; 
+  std::vector<std::string*> *urls;
+  try {
+    // already tried the first page
+    urls = new std::vector<std::string*>(num_elements);
+    // first page in memory already (nyaasi)
+    for (size_t i = 1; i < urls->size(); ++i){
+     (*urls)[i] = new std::string (base_url + "&p=" + std::to_string(i+1));   
+     if (debug_level)
+       fprintf (stderr, "%s\n", (*urls)[i]->c_str());
+    }
+  }
+  catch (std::bad_alloc &ba){
+      errprintf(ERRCODE::FAILED_NEW, "Failed new allocation %s\n",ba);
+      return nullptr;
+  }
+  return urls;
+}
+
+void free_urls (std::vector<std::string*> *urls){
+  if (urls){
+    for (auto itor : *urls){
+      delete itor; 
+    }
+    delete urls;
+  }
+}
 /* given a string, scrape all torrent names and magnets */
 magnet_table *homura::search_nyaasi(std::string args, int LOG_LEVEL, int threads){
   std::chrono::seconds crawl_delay(5);
@@ -156,16 +183,44 @@ magnet_table *homura::search_nyaasi(std::string args, int LOG_LEVEL, int threads
   if (!FIRST_PAGE) return nullptr;
 
   if (debug_level)
-    fprintf (stderr, " == FIRST_PAGE_URL == \n %s\n",FIRST_.c_str());
+    fprintf (stderr, "== FIRST_PAGE_URL == \n %s\n",FIRST_.c_str());
   if (debug_level > 1) 
     fprintf (stderr, "%s\n",FIRST_PAGE->ptr);
 
-  magnet_table *names = alloc_table(FIRST_PAGE);
-  if (!names) return nullptr;
+  std::smatch sm;
+  std::regex exp("([0-9]+)-([0-9]+) out of ([0-9]+)(?= results)");
+  std::string text = std::string(FIRST_PAGE->ptr);
+  if(!regex_search(text, sm, exp)) {
+    errprintf(ERRCODE::FAILED_FIRST_PARSE, "Failed to parse first page \n");
+    free_memobject(FIRST_PAGE);
+    return nullptr;
+  }
+
+  if (debug_level)
+    fprintf(stderr,"== SMATCH_INFO ==\n"
+      "smatch: %s\nsmatch_sz: %zd\n",sm[0].str().c_str(),sm.size());
+
+  int total = std::stoi(sm[3].str());
+  int results_per_page = std::stoi(sm[2].str());
+
+  if (debug_level)
+    printf ("results per page %d\ntotal %d\n",total,results_per_page);
+
+  magnet_table *names = alloc_table_nyaasi(total);
+  std::vector<std::string*> *urls = alloc_urls_nyaasi(total,results_per_page,FIRST_);
+  if (!names || !urls) goto failed_search_cleanup;
 
   free_memobject(FIRST_PAGE);
+  free_urls(urls);
   curl_global_cleanup();
   return names;
+
+  failed_search_cleanup:
+    free_memobject(FIRST_PAGE);
+    free_urls(urls);
+    homura::free_mtable(names);
+    curl_global_cleanup();
+    return nullptr;
 }
 
 void homura::free_mtable(magnet_table *names){
