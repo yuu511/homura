@@ -214,8 +214,11 @@ std::vector<std::string*> *alloc_urls_nyaasi
   if (!total){
     return nullptr;
   }
-  if (debug_level)
+
+  if (debug_level){
     fprintf (stderr, "== URLS: ==\n");
+  }
+
   // rounds up integer division, (overflow not expected, max results = 1000)
   int num_elements = ( total + (results_per_page - 1) ) / results_per_page; 
   std::vector<std::string*> *urls;
@@ -224,18 +227,23 @@ std::vector<std::string*> *alloc_urls_nyaasi
     urls = new std::vector<std::string*>(num_elements-1);
     // first page in memory already (nyaasi)
     for (size_t i = 1; i < urls->size(); ++i){
-     (*urls)[i] = new std::string (base_url + "&p=" + std::to_string(i+1));   
-     if (debug_level)
-       fprintf (stderr, "%s\n", (*urls)[i]->c_str());
+      (*urls)[i] = new std::string (base_url + "&p=" + std::to_string(i+1));   
+
+      if (debug_level){
+        fprintf (stdout, "%s\n", (*urls)[i]->c_str());
+      }
+
     }
   }
   catch (std::bad_alloc &ba){
       errprintf(ERRCODE::FAILED_NEW, "Failed new allocation %s\n",ba);
       return nullptr;
   }
+
   if (debug_level){
-    fprintf(stderr,"size of urls: %zd\n",urls->size());
+    fprintf(stdout,"Pages to parse: %zd\n",urls->size()+1);
   }
+
   return urls;
 }
 
@@ -323,10 +331,13 @@ magnet_table *homura::search_nyaasi(std::string args, int LOG_LEVEL, int threads
   struct html_s *FIRST_PAGE = curl_one(FIRST_);
   if (!FIRST_PAGE) return nullptr;
 
-  if (debug_level)
-    fprintf (stderr, "== FIRST_PAGE_URL == \n %s\n",FIRST_.c_str());
-  if (debug_level > 1) 
-    fprintf (stderr, "%s\n",FIRST_PAGE->ptr);
+  if (debug_level){
+    fprintf (stdout, "== First Page URL: == \n%s\n\n",FIRST_.c_str());
+  }
+
+  if (debug_level > 1){
+    fprintf (stdout, "%s\n",FIRST_PAGE->ptr);
+  }
 
   // basic init
   myhtml_t *myhtml = myhtml_create();
@@ -349,10 +360,20 @@ magnet_table *homura::search_nyaasi(std::string args, int LOG_LEVEL, int threads
     myhtml_tag_id_t tag_id = myhtml_node_tag_id(node);
     if (tag_id == MyHTML_TAG__TEXT || tag_id == MyHTML_TAG__COMMENT){
       page_information = myhtml_node_text(node,NULL);
-      if (debug_level)
-        fprintf (stdout,"First Page Pagination Information: %s\n",page_information);
+
+      if (debug_level){
+        fprintf (stdout,"== First page pagination Information: ==\n%s\n\n",page_information);
+      }
+
+    } 
+    else {
+      errprintf(ERRCODE::FAILED_FIRST_PARSE, "Failed to parse first page \n (Pagination information not found)");
     }
-  } else{
+    if (myhtml_collection_destroy(found)){
+      errprintf(ERRCODE::FAILED_FREE, "Failed to free MyHTML collection.");
+    }
+  } 
+  else{
     errprintf(ERRCODE::FAILED_FIRST_PARSE, "Failed to parse first page \n (Pagination information not found)");
   }
 
@@ -380,8 +401,9 @@ magnet_table *homura::search_nyaasi(std::string args, int LOG_LEVEL, int threads
   }
   free(orig_location);
 
-  if (debug_level)
-    fprintf (stdout,"results per page %d\ntotal %d\n",results[2],results[1]);
+  if (debug_level){
+    fprintf (stdout,"results per page %d\ntotal pages%d\n",results[2],results[1]);
+  }
 
   magnet_table *names = alloc_table_nyaasi(results[2]);
   std::vector<std::string*> *urls = alloc_urls_nyaasi(results[2],results[1],FIRST_);
@@ -404,7 +426,7 @@ magnet_table *homura::search_nyaasi(std::string args, int LOG_LEVEL, int threads
     // do stuff
     now = clock::steady_clock::now();
     if (debug_level) {
-      fprintf(stderr,"Sleeping for %lu milliseconds\n",
+      fprintf(stdout,"sleeping for %lu milliseconds\n",
               clock::duration_cast<clock::milliseconds>(new_request - now).count()); 
     }
     std::this_thread::sleep_for(clock::duration_cast<clock::milliseconds>(new_request - now));

@@ -37,6 +37,9 @@ std::string parse_error_exitcode(int code){
     case FAILED_INTCAST:
       message = "FAILED_INTCAST";
       break;
+    case FAILED_FREE:
+      message = "FAILED_FREE";
+      break;
     default:
       message = "UNKNOWN_ERROR";
       break;
