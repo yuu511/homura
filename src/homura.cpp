@@ -113,22 +113,22 @@ bool curlcode_pass(CURLcode code,std::string where){
 }
 
 /* container for html data */
-struct memobject {
+struct html_s {
   char *ptr;
   size_t len;
 }; 
 
-void memobject_init(struct memobject *s){
+void html_s_init(struct html_s *s){
   s->len = 0;
   s->ptr = (char *) malloc(1);
   if (s->ptr == nullptr){
-    errprintf (ERRCODE::FAILED_MALLOC, "malloc() failed in memobject_init");
+    errprintf (ERRCODE::FAILED_MALLOC, "malloc() failed in html_s_init");
     return;
   }
   s->ptr[0] = '\0';
 }
 
-void free_memobject(struct memobject *s){
+void free_html_s(struct html_s *s){
   if (s){
     free (s->ptr);
     free (s);
@@ -136,7 +136,7 @@ void free_memobject(struct memobject *s){
 }
 
 /* callback function write webpage to memory */
-static size_t WriteCallback(void *ptr, size_t size, size_t nmemb, struct memobject *s) {
+static size_t WriteCallback(void *ptr, size_t size, size_t nmemb, struct html_s *s) {
   size_t realsize = s->len + size * nmemb;
   s->ptr = (char *) realloc(s->ptr,realsize+1);
   if (s->ptr == nullptr){
@@ -150,15 +150,15 @@ static size_t WriteCallback(void *ptr, size_t size, size_t nmemb, struct memobje
 }
 
 /* download one webpage */
-struct memobject *curl_one(std::string args){
+struct html_s *curl_one(std::string args){
   CURLcode code;
   CURL *conn = curl_easy_init();
   if (!conn){
     errprintf (ERRCODE::FAILED_CURL, "failed to recieve the curl handle");
     return nullptr;
   }
-  struct memobject *store = (memobject*) malloc (sizeof(memobject));
-  memobject_init(store);
+  struct html_s *store = (html_s*) malloc (sizeof(html_s));
+  html_s_init(store);
 
   // add URL to curl handle
   code = curl_easy_setopt(conn,CURLOPT_URL,args.c_str());
@@ -186,7 +186,7 @@ struct memobject *curl_one(std::string args){
   curlone_fail:
     set_error_exitcode(ERRCODE::FAILED_CURL); 
     curl_global_cleanup();
-    free_memobject(store);
+    free_html_s(store);
     return nullptr;
 }
 
@@ -248,6 +248,64 @@ void free_urls (std::vector<std::string*> *urls){
   }
 }
 
+void print_node_attr(myhtml_tree_node_t *node)
+{
+    myhtml_tree_attr_t *attr = myhtml_node_attribute_first(node);
+    
+    while (attr) {
+        const char *name = myhtml_attribute_key(attr, NULL);
+        
+        if(name) {
+            printf(" %s", name);
+            
+            const char *value = myhtml_attribute_value(attr, NULL);
+            
+            if(value)
+                printf("=\"%s\"", value);
+        }
+        
+        attr = myhtml_attribute_next(attr);
+    }
+}
+
+void print_tree(myhtml_tree_t* tree, myhtml_tree_node_t *node, size_t inc)
+{
+    while (node)
+    {
+        for(size_t i = 0; i < inc; i++)
+            printf("\t");
+        
+        // print current element
+        const char *tag_name = myhtml_tag_name_by_id(tree, myhtml_node_tag_id(node), NULL);
+        
+        if(tag_name)
+            printf("<%s", tag_name);
+        else
+            // it can not be
+            printf("<!something is wrong!");
+        
+        // print node attributes
+        print_node_attr(node);
+        
+        if(myhtml_node_is_close_self(node))
+            printf(" /");
+        
+        myhtml_tag_id_t tag_id = myhtml_node_tag_id(node);
+        
+        if(tag_id == MyHTML_TAG__TEXT || tag_id == MyHTML_TAG__COMMENT) {
+            const char* node_text = myhtml_node_text(node, NULL);
+            printf("---->: %s\n", node_text);
+        }
+        else {
+            printf(">\n");
+        }
+        
+        // print children
+        print_tree(tree, myhtml_node_child(node), (inc + 1));
+        node = myhtml_node_next(node);
+    }
+}
+
 /* given a string, scrape all torrent names and magnets */
 magnet_table *homura::search_nyaasi(std::string args, int LOG_LEVEL, int threads){
   namespace clock = std::chrono;
@@ -262,7 +320,7 @@ magnet_table *homura::search_nyaasi(std::string args, int LOG_LEVEL, int threads
      find out how many pages to parse by sending a request */
   std::replace(args.begin(),args.end(),' ','+');
   std::string FIRST_ = "https://nyaa.si/?f=0&c=0_0&q=" + args;
-  struct memobject *FIRST_PAGE = curl_one(FIRST_);
+  struct html_s *FIRST_PAGE = curl_one(FIRST_);
   if (!FIRST_PAGE) return nullptr;
 
   if (debug_level)
@@ -270,62 +328,46 @@ magnet_table *homura::search_nyaasi(std::string args, int LOG_LEVEL, int threads
   if (debug_level > 1) 
     fprintf (stderr, "%s\n",FIRST_PAGE->ptr);
 
-  // parse the first page
-
   // basic init
-  myhtml_t* myhtml = myhtml_create();
+  myhtml_t *myhtml = myhtml_create();
   myhtml_init(myhtml, MyHTML_OPTIONS_DEFAULT, 1, 0);
   
   // init tree
-  myhtml_tree_t* tree = myhtml_tree_create();
+  myhtml_tree_t *tree = myhtml_tree_create();
   myhtml_tree_init(tree, myhtml);
   
   // parse html
   myhtml_parse(tree, MyENCODING_UTF_8, FIRST_PAGE->ptr, FIRST_PAGE->len+1);
 
   // attempt to find the pagination information
+  const char *page_information;
   myhtml_collection_t *found = 
     myhtml_get_nodes_by_attribute_value(tree,NULL,NULL,true,"class",5,"pagination-page-info",20,NULL);
-  if (found){
-    ;
-  }
-  else {
-    printf ("not found");
-  }
   if (found && found->list && found->length){
     myhtml_tree_node_t *node = found->list[0];
-    myhtml_tree_attr_t *attr = myhtml_node_attribute_first(node);
-    while (attr){
-      const char *name = myhtml_attribute_key(attr,NULL);
-      if (name){
-        printf("%s",name);
-        const char *value = myhtml_attribute_value(attr,NULL);
-        if (value)
-          printf ("=\"%s\"",value);
-      }
-      attr = myhtml_attribute_next(attr);
+    node = myhtml_node_child(node);
+    myhtml_tag_id_t tag_id = myhtml_node_tag_id(node);
+    if (tag_id == MyHTML_TAG__TEXT || tag_id == MyHTML_TAG__COMMENT){
+      page_information = myhtml_node_text(node,NULL);
+      if (debug_level)
+        fprintf (stdout,"First Page Pagination Information: %s\n",page_information);
     }
   } else{
-   printf ("found ded");
+    errprintf(ERRCODE::FAILED_FIRST_PARSE, "Failed to parse first page \n (Pagination information not found)");
   }
-  // const char *attr_char = myhtml_attribute_value(gets_attr, NULL);
-  // if (attr_char)
-  //   printf("Get attr by key name \"key\": %s\n", attr_char);
-  // else 
-  //   printf("dead");
 
   // release resources
   myhtml_tree_destroy(tree);
   myhtml_destroy(myhtml);
 
-  //
-
   std::smatch sm;
-  std::regex exp("([0-9]+)-([0-9]+) out of ([0-9]+)(?= results)");
-  std::string text = std::string(FIRST_PAGE->ptr);
+  std::regex exp("([0-9]+)-([0-9]+) out of ([0-9]+)");
+  std::string text = std::string(page_information);
   if(!regex_search(text, sm, exp)) {
     errprintf(ERRCODE::FAILED_FIRST_PARSE, "Failed to parse first page \n");
-    free_memobject(FIRST_PAGE);
+    free_html_s(FIRST_PAGE);
+    myhtml_tree_destroy(tree);
+    myhtml_destroy(myhtml);
     return nullptr;
   }
 
@@ -342,27 +384,27 @@ magnet_table *homura::search_nyaasi(std::string args, int LOG_LEVEL, int threads
   magnet_table *names = alloc_table_nyaasi(total);
   std::vector<std::string*> *urls = alloc_urls_nyaasi(total,results_per_page,FIRST_);
   if (!names || !urls) {
-    free_memobject(FIRST_PAGE);
-    free_urls(urls);
-    homura::free_mtable(names);
-    curl_global_cleanup();
-    return nullptr;
+    // free_html_s(FIRST_PAGE);
+    // free_urls(urls);
+    // homura::free_mtable(names);
+    // curl_global_cleanup();
+    // return nullptr;
   }
   /* process first url we pulled here */
-  now = clock::steady_clock::now();
-  std::this_thread::sleep_for(clock::duration_cast<clock::milliseconds>(new_request - now));
+  // now = clock::steady_clock::now();
+  // std::this_thread::sleep_for(clock::duration_cast<clock::milliseconds>(new_request - now));
 
-  for (auto itor : *urls) {
-    new_request = clock::steady_clock::now() + crawl_delay;
-    // do stuff
-    now = clock::steady_clock::now();
-    if (debug_level) {
-      fprintf(stderr,"Sleeping for %lu milliseconds\n",clock::duration_cast<clock::milliseconds>(new_request - now).count()); 
-    }
-    std::this_thread::sleep_for(clock::duration_cast<clock::milliseconds>(new_request - now));
-  }
+  // for (auto itor : *urls) {
+  //   new_request = clock::steady_clock::now() + crawl_delay;
+  //   // do stuff
+  //   now = clock::steady_clock::now();
+  //   if (debug_level) {
+  //     fprintf(stderr,"Sleeping for %lu milliseconds\n",clock::duration_cast<clock::milliseconds>(new_request - now).count()); 
+  //   }
+  //   std::this_thread::sleep_for(clock::duration_cast<clock::milliseconds>(new_request - now));
+  // }
 
-  free_memobject(FIRST_PAGE);
+  free_html_s(FIRST_PAGE);
   free_urls(urls);
   curl_global_cleanup();
   kill_locks();
