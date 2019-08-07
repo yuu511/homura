@@ -1,6 +1,5 @@
 #include <string>
 #include <algorithm>
-#include <regex>
 #include <chrono>
 #include <utility>
 #include <ctime>
@@ -10,6 +9,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <limits.h>
 #include <myhtml/myhtml.h>
 
 #include "homura.h"
@@ -356,58 +356,67 @@ magnet_table *homura::search_nyaasi(std::string args, int LOG_LEVEL, int threads
     errprintf(ERRCODE::FAILED_FIRST_PARSE, "Failed to parse first page \n (Pagination information not found)");
   }
 
-  // release resources
-  myhtml_tree_destroy(tree);
-  myhtml_destroy(myhtml);
+  // Displaying results[0]-results[1] out of results[2]
+  int results[3];
+  int idx = 0;
+  // copy so we can modify the string
+  char *copy = strdup(page_information);
+  char *orig_location = copy;
+  while (*copy){
+    if (isdigit(*copy)){
+       long int parse = strtol(copy,&copy,10);
+       if (parse <= INT_MAX){
+         results[idx] = (int) parse;
+         idx++;
+       } 
+       else {
+         errprintf(ERRCODE::FAILED_INTCAST,"Failed to convert long to int");
+	 free(orig_location);
+       }
+    }
+    else {
+      copy++;
+    }
+  }
+  free(orig_location);
 
-  std::smatch sm;
-  std::regex exp("([0-9]+)-([0-9]+) out of ([0-9]+)");
-  std::string text = std::string(page_information);
-  if(!regex_search(text, sm, exp)) {
-    errprintf(ERRCODE::FAILED_FIRST_PARSE, "Failed to parse first page \n");
-    free_html_s(FIRST_PAGE);
+  if (debug_level)
+    fprintf (stdout,"results per page %d\ntotal %d\n",results[2],results[1]);
+
+  magnet_table *names = alloc_table_nyaasi(results[2]);
+  std::vector<std::string*> *urls = alloc_urls_nyaasi(results[2],results[1],FIRST_);
+  if (!names || !urls) {
     myhtml_tree_destroy(tree);
     myhtml_destroy(myhtml);
+    free_html_s(FIRST_PAGE);
+    free_urls(urls);
+    homura::free_mtable(names);
+    curl_global_cleanup();
     return nullptr;
   }
 
-  if (debug_level)
-    fprintf(stderr,"== SMATCH_INFO ==\n"
-      "smatch: %s\nsmatch_sz: %zd\n",sm[0].str().c_str(),sm.size());
-
-  int total = std::stoi(sm[3].str());
-  int results_per_page = std::stoi(sm[2].str());
-
-  if (debug_level)
-    fprintf (stdout,"results per page %d\ntotal %d\n",total,results_per_page);
-
-  magnet_table *names = alloc_table_nyaasi(total);
-  std::vector<std::string*> *urls = alloc_urls_nyaasi(total,results_per_page,FIRST_);
-  if (!names || !urls) {
-    // free_html_s(FIRST_PAGE);
-    // free_urls(urls);
-    // homura::free_mtable(names);
-    // curl_global_cleanup();
-    // return nullptr;
-  }
   /* process first url we pulled here */
-  // now = clock::steady_clock::now();
-  // std::this_thread::sleep_for(clock::duration_cast<clock::milliseconds>(new_request - now));
+  now = clock::steady_clock::now();
+  std::this_thread::sleep_for(clock::duration_cast<clock::milliseconds>(new_request - now));
 
-  // for (auto itor : *urls) {
-  //   new_request = clock::steady_clock::now() + crawl_delay;
-  //   // do stuff
-  //   now = clock::steady_clock::now();
-  //   if (debug_level) {
-  //     fprintf(stderr,"Sleeping for %lu milliseconds\n",clock::duration_cast<clock::milliseconds>(new_request - now).count()); 
-  //   }
-  //   std::this_thread::sleep_for(clock::duration_cast<clock::milliseconds>(new_request - now));
-  // }
+  for (auto itor : *urls) {
+    new_request = clock::steady_clock::now() + crawl_delay;
+    // do stuff
+    now = clock::steady_clock::now();
+    if (debug_level) {
+      fprintf(stderr,"Sleeping for %lu milliseconds\n",
+              clock::duration_cast<clock::milliseconds>(new_request - now).count()); 
+    }
+    std::this_thread::sleep_for(clock::duration_cast<clock::milliseconds>(new_request - now));
+  }
 
+  // release resources
   free_html_s(FIRST_PAGE);
   free_urls(urls);
   curl_global_cleanup();
   kill_locks();
+  myhtml_tree_destroy(tree);
+  myhtml_destroy(myhtml);
   return names;
 }
 
