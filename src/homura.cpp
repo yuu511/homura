@@ -1,3 +1,5 @@
+#define USE_OPENSSL
+
 #include <string>
 #include <algorithm>
 #include <chrono>
@@ -27,7 +29,7 @@ static pthread_mutex_t *lockarray;
 
 extern "C"
 {
-  #ifndef USE_OPENSSL
+  #ifdef USE_OPENSSL
   #include <openssl/crypto.h>
   static void lock_callback(int mode, int type, char *file, int line)
   {
@@ -354,68 +356,64 @@ magnet_table *homura::search_nyaasi(std::string args, int LOG_LEVEL, int threads
   const char *page_information;
   myhtml_collection_t *found = 
     myhtml_get_nodes_by_attribute_value(tree,NULL,NULL,true,"class",5,"pagination-page-info",20,NULL);
-  if (found && found->list && found->length){
+  if (found && found->list && found->length) {
     myhtml_tree_node_t *node = found->list[0];
     node = myhtml_node_child(node);
     myhtml_tag_id_t tag_id = myhtml_node_tag_id(node);
     if (tag_id == MyHTML_TAG__TEXT || tag_id == MyHTML_TAG__COMMENT){
       page_information = myhtml_node_text(node,NULL);
 
-      if (debug_level){
+      if (debug_level) {
         fprintf (stdout,"== First page pagination Information: ==\n%s\n\n",page_information);
       }
 
     } 
     else {
       errprintf(ERRCODE::FAILED_FIRST_PARSE, "Failed to parse first page \n (Pagination information not found)");
+      return nullptr;
     }
-    if (myhtml_collection_destroy(found)){
+    if (myhtml_collection_destroy(found)) {
       errprintf(ERRCODE::FAILED_FREE, "Failed to free MyHTML collection.");
+      return nullptr;
     }
   } 
-  else{
+  else {
     errprintf(ERRCODE::FAILED_FIRST_PARSE, "Failed to parse first page \n (Pagination information not found)");
+    return nullptr;
   }
-
+  
   // Displaying results[0]-results[1] out of results[2]
   int results[3];
   int idx = 0;
   // copy so we can modify the string
   char *copy = strdup(page_information);
   char *orig_location = copy;
-  while (*copy){
-    if (isdigit(*copy)){
+  while (*copy) {
+    if (isdigit(*copy)) {
        long int parse = strtol(copy,&copy,10);
-       if (parse <= INT_MAX){
+       if (parse <= INT_MAX) {
          results[idx] = (int) parse;
          idx++;
        } 
        else {
          errprintf(ERRCODE::FAILED_INTCAST,"Failed to convert long to int");
-	 free(orig_location);
+	 return nullptr;
        }
     }
     else {
       copy++;
     }
   }
-  free(orig_location);
 
-  if (debug_level){
+  if (debug_level) {
     fprintf (stdout,"results per page %d\ntotal pages%d\n",results[2],results[1]);
   }
 
   magnet_table *names = alloc_table_nyaasi(results[2]);
+  if (!names){ return nullptr; }
   std::vector<std::string*> *urls = alloc_urls_nyaasi(results[2],results[1],FIRST_);
-  if (!names || !urls) {
-    myhtml_tree_destroy(tree);
-    myhtml_destroy(myhtml);
-    free_html_s(FIRST_PAGE);
-    free_urls(urls);
-    homura::free_mtable(names);
-    curl_global_cleanup();
-    return nullptr;
-  }
+  if (!urls){ return nullptr; }
+  
 
   /* process first url we pulled here */
   now = clock::steady_clock::now();
@@ -433,6 +431,7 @@ magnet_table *homura::search_nyaasi(std::string args, int LOG_LEVEL, int threads
   }
 
   // release resources
+  free(orig_location);
   free_html_s(FIRST_PAGE);
   free_urls(urls);
   curl_global_cleanup();
@@ -440,6 +439,21 @@ magnet_table *homura::search_nyaasi(std::string args, int LOG_LEVEL, int threads
   myhtml_tree_destroy(tree);
   myhtml_destroy(myhtml);
   return names;
+
+  // nyaasi_5:
+  //   free_urls(urls);
+  // nyaasi_4:
+  //   homura::free_mtable(names);
+  // nyaasi_3:
+  //   free(orig_location);
+  // nyaasi_2:
+  //   myhtml_collection_destroy(found);
+  // nyaasi_1:
+  //   free_html_s(FIRST_PAGE);
+  // nyaasi_0:
+  //   kill_locks();
+  //   curl_global_cleanup();
+  //   return nullptr;
 }
 
 void homura::free_mtable(magnet_table *names){
