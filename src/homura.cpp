@@ -113,15 +113,15 @@ namespace homura
     if (debug_level) 
     {
       fprintf (stdout,"sizeof data: %zd\nsizeof data_sz %zd\n",
-        first_request->get_buffer()->size(),first_request->get_data_sz());
+        first_request->get_HTML()->size(),first_request->get_data_sz());
       fprintf (stdout, "== First Page URL: == \n%s\n\n",first_request->get_url().c_str());
     }
 
     if (debug_level > 1) 
-      fprintf (stdout,"html pg: %s", first_request->get_buffer_char());
+      fprintf (stdout,"html pg: %s", first_request->get_HTML_char());
 
     tree_container *first_page_tree = new tree_container(); 
-    first_page_tree->tree_parseHTML(first_request->get_buffer_char());
+    first_page_tree->tree_parseHTML(first_request->get_HTML_char());
     if (! first_page_tree->parse_pagination_information() ) 
     {
       errprintf(ERRCODE::FAILED_FIRST_PARSE, "ERROR:Failed initial parsing first page.\n");

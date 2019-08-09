@@ -10,12 +10,12 @@ std::string curl_container::get_url()
   return url;
 }
 
-std::vector<unsigned char> *curl_container::get_buffer()
+std::vector<unsigned char> *curl_container::get_HTML()
 {
   return buffer;
 }
 
-const char *curl_container::get_buffer_char()
+const char *curl_container::get_HTML_char()
 {
   return reinterpret_cast<const char*>(buffer->data());
 }
@@ -50,7 +50,8 @@ bool curl_container::curlcode_pass( CURLcode code,std::string where )
   return true;
 }
 
-size_t curl_container::writecb(const unsigned char *ptr, size_t size, size_t nmemb, void *userp){
+size_t curl_container::writecb(const unsigned char *ptr, size_t size, size_t nmemb, void *userp)
+{
   curl_container *data = static_cast<curl_container*>(userp); 
   size_t len = size * nmemb;
   data->buffer->resize (data->data_sz + len + 1);
@@ -60,7 +61,8 @@ size_t curl_container::writecb(const unsigned char *ptr, size_t size, size_t nme
   return len;
 }
 
-curl_container::curl_container( std::string url ){
+curl_container::curl_container( std::string url )
+{
   CURLcode code;
   this->buffer = new std::vector<unsigned char>();
   this->easyhandle = curl_easy_init();  

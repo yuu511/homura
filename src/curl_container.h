@@ -14,8 +14,8 @@ namespace homura
     ~curl_container();
 
    std::string get_url();
-   std::vector<unsigned char> *get_buffer();
-   const char *get_buffer_char(); 
+   std::vector<unsigned char> *get_HTML();
+   const char *get_HTML_char(); 
    size_t get_data_sz();
 
    bool curlcode_pass(CURLcode code,std::string where);
