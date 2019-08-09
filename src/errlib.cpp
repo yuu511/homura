@@ -40,6 +40,9 @@ std::string parse_error_exitcode(int code){
     case FAILED_FREE:
       message = "FAILED_FREE";
       break;
+    case FAILED_MYHTML_TREE_INIT:
+      message = "FAILED_MYHTML_TREE_INIT";
+      break;
     default:
       message = "UNKNOWN_ERROR";
       break;

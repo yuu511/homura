@@ -13,13 +13,13 @@ namespace homura
     curl_container(std::string url);
     ~curl_container();
 
-   //  void set_url(std::string url);
    std::string get_url();
    std::vector<unsigned char> get_buffer();
+   const char *get_buffer_char(); 
    size_t get_data_sz();
-   //  std::string get_buffer();
-   bool perform_curl();
+
    bool curlcode_pass(CURLcode code,std::string where);
+   bool perform_curl();
   private:
     static size_t writecb(const unsigned char *ptr, size_t size, size_t nmemb, void *s); 
     static const char *user_agent;

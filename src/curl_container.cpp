@@ -1,19 +1,27 @@
 #include <stdexcept>
-#include "curl_object.h"
+#include "curl_container.h"
 #include "errlib.h"
 
 using namespace homura;
 const char *curl_container::user_agent = "libcurl-agent/1.0";
 
-std::string curl_container::get_url(){
+std::string curl_container::get_url()
+{
   return url;
 }
 
-std::vector<unsigned char> curl_container::get_buffer(){
+std::vector<unsigned char> curl_container::get_buffer()
+{
   return buffer;
 }
 
-size_t curl_container::get_data_sz(){
+const char *curl_container::get_buffer_char()
+{
+  return reinterpret_cast<const char*>(buffer.data());
+}
+
+size_t curl_container::get_data_sz()
+{
   return data_sz;
 }
 
@@ -45,9 +53,9 @@ bool curl_container::curlcode_pass( CURLcode code,std::string where )
 size_t curl_container::writecb(const unsigned char *ptr, size_t size, size_t nmemb, void *userp){
   curl_container *data = static_cast<curl_container*>(userp); 
   size_t len = size * nmemb;
-  data->buffer.resize (data->data_sz + len);
+  data->buffer.resize (data->data_sz + len + 1);
   std::copy(ptr, ptr + len, data->buffer.begin() + data->data_sz);
-  data->buffer.insert (data->buffer.end(), '\0');
+  data->buffer[data->data_sz + len] = '\0';
   data->data_sz += len;
   return len;
 }
@@ -73,16 +81,11 @@ curl_container::curl_container( std::string url ){
 
      response = code;
   }
-  catch ( const std::runtime_error &e) 
+  catch ( const std::runtime_error &e ) 
   {
+    errprintf(ERRCODE::FAILED_CURL, "CURL initialization exited at %s\n",e);
     return;
   }
-  // // retrieve content
-  // code = curl_easy_perform(conn);
-  // if (!curlcode_pass(code,"curl_one: easy_preform")) goto curlone_fail;
-  
-  // curl_easy_cleanup(conn);
-  // return store;
 }
 
 bool curl_container::perform_curl()
