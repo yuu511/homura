@@ -113,7 +113,7 @@ namespace homura
     if (debug_level) 
     {
       fprintf (stdout,"sizeof data: %zd\nsizeof data_sz %zd\n",
-        first_request->get_buffer().size(),first_request->get_data_sz());
+        first_request->get_buffer()->size(),first_request->get_data_sz());
       fprintf (stdout, "== First Page URL: == \n%s\n\n",first_request->get_url().c_str());
     }
 

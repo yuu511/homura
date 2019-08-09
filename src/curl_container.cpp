@@ -10,14 +10,14 @@ std::string curl_container::get_url()
   return url;
 }
 
-std::vector<unsigned char> curl_container::get_buffer()
+std::vector<unsigned char> *curl_container::get_buffer()
 {
   return buffer;
 }
 
 const char *curl_container::get_buffer_char()
 {
-  return reinterpret_cast<const char*>(buffer.data());
+  return reinterpret_cast<const char*>(buffer->data());
 }
 
 size_t curl_container::get_data_sz()
@@ -53,15 +53,16 @@ bool curl_container::curlcode_pass( CURLcode code,std::string where )
 size_t curl_container::writecb(const unsigned char *ptr, size_t size, size_t nmemb, void *userp){
   curl_container *data = static_cast<curl_container*>(userp); 
   size_t len = size * nmemb;
-  data->buffer.resize (data->data_sz + len + 1);
-  std::copy(ptr, ptr + len, data->buffer.begin() + data->data_sz);
-  data->buffer[data->data_sz + len] = '\0';
+  data->buffer->resize (data->data_sz + len + 1);
+  std::copy(ptr, ptr + len, data->buffer->begin() + data->data_sz);
+  (*data->buffer)[data->data_sz + len] = '\0';
   data->data_sz += len;
   return len;
 }
 
 curl_container::curl_container( std::string url ){
   CURLcode code;
+  this->buffer = new std::vector<unsigned char>();
   this->easyhandle = curl_easy_init();  
   this->url = url;
   data_sz = 0;
@@ -73,7 +74,7 @@ curl_container::curl_container( std::string url ){
      code = curl_easy_setopt(easyhandle,CURLOPT_WRITEFUNCTION,&curl_container::writecb);
      if (!curlcode_pass(code,"curl_one: CURLOPT_WRITEFUNCTION")) throw std::runtime_error("CURLOPT_WRITEFUNCTION");
 
-     code = curl_easy_setopt(easyhandle,CURLOPT_WRITEDATA, this);
+     code = curl_easy_setopt(easyhandle,CURLOPT_WRITEDATA, &*this);
      if (!curlcode_pass(code,"curl_one: CURLOPT_WRITEDATA")) throw std::runtime_error("CURLOPT_WRITEDATA");
 
      code = curl_easy_setopt(easyhandle,CURLOPT_USERAGENT,"libcurl-agent/1.0");
@@ -90,13 +91,13 @@ curl_container::curl_container( std::string url ){
 
 bool curl_container::perform_curl()
 {
-  buffer.clear(); 
+  buffer->clear(); 
   data_sz = 0;
-  CURLcode code = curl_easy_perform(easyhandle);
-  return CURLE_OK == code;
+  return CURLE_OK == curl_easy_perform(easyhandle);
 }
 
 curl_container::~curl_container(){
   if (easyhandle)
     curl_easy_cleanup(easyhandle);
+  delete buffer;
 }
