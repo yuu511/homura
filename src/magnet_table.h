@@ -4,14 +4,20 @@
 #include <vector>
 #include <string>
 
-/* container for torrent title, magnet link */
-struct name_magnet{
-  const std::string *name;  
-  const std::string *magnet;
-  name_magnet();
-  ~name_magnet();
-};
+namespace homura {
+    /* container for torrent title, magnet link */
+    class name_magnet{
+      public:
+        name_magnet();
+        ~name_magnet();
+      private:
+        const std::string *name;  
+        const std::string *magnet;
+    };
+    
+    using magnet_table = std::vector<name_magnet*>;
+    void free_magnet_table(magnet_table *names);
+}
 
-using magnet_table = std::vector<name_magnet*>;
 
 #endif
