@@ -5,7 +5,7 @@
 using namespace homura;
 const char *curl_container::user_agent = "libcurl-agent/1.0";
 
-std::string curl_container::get_url()
+const std::string curl_container::get_url()
 {
   return url;
 }
@@ -25,11 +25,6 @@ const char *curl_container::get_HTML_char()
 size_t curl_container::get_data_sz()
 {
   return data_sz;
-}
-
-std::chrono::seconds curl_container::get_crawl_delay()
-{
-  return crawl_delay;
 }
 
 std::chrono::steady_clock::time_point curl_container::get_time_sent()
@@ -73,14 +68,13 @@ size_t curl_container::writecb(const unsigned char *ptr, size_t size, size_t nme
   return len;
 }
 
-curl_container::curl_container( std::string url , std::chrono::seconds crawl_delay )
+curl_container::curl_container(const std::string &url)
+  : buffer (new std::vector<unsigned char>()),
+    data_sz(0),
+    url(url),
+    easyhandle (curl_easy_init())
 {
   CURLcode code;
-  this->buffer = new std::vector<unsigned char>();
-  this->easyhandle = curl_easy_init();  
-  this->url = url;
-  this->crawl_delay = crawl_delay;
-  data_sz = 0;
   try 
   {
      code = curl_easy_setopt(easyhandle,CURLOPT_URL,url.c_str());

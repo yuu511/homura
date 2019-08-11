@@ -4,9 +4,11 @@
 #include <vector>
 #include <string>
 
-namespace homura {
+namespace homura 
+{
     /* container for torrent title, magnet link */
-    class name_magnet{
+    class name_magnet
+    {
       public:
         name_magnet();
         ~name_magnet();

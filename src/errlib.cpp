@@ -37,23 +37,17 @@ std::string parse_error_exitcode(int code){
     case FAILED_CURL:
       message = "FAILED_CURL";
       break;
-    case FAILED_MALLOC:
-      message = "FAILED_MALLOC";
-      break;
-    case FAILED_REALLOC:
-      message = "FAILED_REALLOC";
-      break;
-    case FAILED_FIRST_PARSE:
+    case FAILED_PARSE:
       message = "FAILED_FIRST_PARSE";
       break;
     case FAILED_NEW:
       message = "FAILED_NEW";
       break;
-    case FAILED_INTCAST:
-      message = "FAILED_INTCAST";
-      break;
     case FAILED_FREE:
       message = "FAILED_FREE";
+      break;
+    case FAILED_INTCAST:
+      message = "FAILED_INTCAST";
       break;
     case FAILED_MYHTML_TREE_INIT:
       message = "FAILED_MYHTML_TREE_INIT";

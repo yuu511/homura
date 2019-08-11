@@ -62,7 +62,7 @@ bool tree_container::parse_pagination_information(){
     } 
     else 
     {
-      errprintf(ERRCODE::FAILED_FIRST_PARSE, "Failed to parse first page \n (Pagination information not found)");
+      errprintf(ERRCODE::FAILED_PARSE, "Failed to parse first page \n (Pagination information not found)");
       return false;
     }
     if (myhtml_collection_destroy(found)) 
@@ -73,7 +73,7 @@ bool tree_container::parse_pagination_information(){
   } 
   else 
   {
-    errprintf(ERRCODE::FAILED_FIRST_PARSE, "Failed to parse first page (Pagination information not found)\n");
+    errprintf(ERRCODE::FAILED_PARSE, "Failed to parse first page (Pagination information not found)\n");
     return false;
   }
 
@@ -103,7 +103,7 @@ bool tree_container::parse_pagination_information(){
   free(copy);
   if (stk.size() != 3)
   {
-    errprintf(ERRCODE::FAILED_FIRST_PARSE,"Incorrect pagination string parse.\n");
+    errprintf(ERRCODE::FAILED_PARSE,"Incorrect pagination string parse.\n");
     return false;
   }
 

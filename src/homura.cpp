@@ -25,29 +25,22 @@ homura::magnet_table *homura::search_nyaasi(std::string args)
   /* nyaa.si has no official api, and we must manually
      find out how many pages to parse by sending a request */
 
-  std::replace(args.begin(),args.end(),' ','+');
-  std::string first_url = "https://nyaa.si/?f=0&c=0_0&q=" + args;
+  std::replace(args.begin(), args.end(), ' ', '+');
+  const std::string first_url = "https://nyaa.si/?f=0&c=0_0&q=" + args;
 
-  // curl_container *first_request = new curl_container(first_url,crawl_delay);
-  try 
-  { 
-    std::unique_ptr<curl_container> first_request(new curl_container(first_url,crawl_delay));
+  std::unique_ptr<curl_container> first_request(new curl_container(first_url));
+  first_request -> perform_curl();
 
-    if (!first_request->perform_curl()) throw std::runtime_error("Failed CURL");
+  std::unique_ptr<tree_container> first_page_tree(new tree_container()); 
+  first_page_tree -> tree_parseHTML(first_request->get_HTML_char());
 
-    std::unique_ptr<tree_container> first_page_tree(new tree_container()); 
-
-    if ( !first_page_tree -> tree_parseHTML(first_request->get_HTML_char()) ) 
-      throw std::runtime_error("Failed myHTML Parse");
-
-    if ( !first_page_tree -> parse_pagination_information() ) 
-      throw std::runtime_error("Failed to parse 1st Page information");
-  } 
-  catch (std::runtime_error &e)
+  if ( !(first_page_tree -> parse_pagination_information()) )
   {
+    errprintf(ERRCODE::FAILED_PARSE, "Failed to retrieve number of results.\n");
     curl_global_cleanup();
     return nullptr;
   }
+  
   // for (auto itor : *urls) 
   // {
   //   new_request = clock::steady_clock::now() + crawl_delay;
