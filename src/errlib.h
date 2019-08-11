@@ -3,8 +3,19 @@
 
 #include <string>
 
-// small error handling module
+// small error and option handling module
 
+/* options */
+namespace homura {
+  namespace options{
+    extern int debug_level;
+    extern int threads;
+    void set_debug_level(int level);
+    void set_thread_level(int numt);
+  }
+}
+
+/* error */
 enum ERRCODE{
   success,
   FAILED_ARGPARSE,
@@ -25,7 +36,8 @@ struct error_handler {
 void set_error_exitcode(int code);
 std::string parse_error_exitcode(int code);
 
-void errprintf(int error_code, const char *format, ...);
 // sets the return, prints out error message through stderr
+void errprintf(int error_code, const char *format, ...);
+
 
 #endif

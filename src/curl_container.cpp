@@ -17,12 +17,24 @@ std::vector<unsigned char> *curl_container::get_HTML()
 
 const char *curl_container::get_HTML_char()
 {
+  if (!this->data_sz)
+    return nullptr;
   return reinterpret_cast<const char*>(buffer->data());
 }
 
 size_t curl_container::get_data_sz()
 {
   return data_sz;
+}
+
+std::chrono::seconds curl_container::get_crawl_delay()
+{
+  return crawl_delay;
+}
+
+std::chrono::steady_clock::time_point curl_container::get_time_sent()
+{
+  return time_sent;
 }
 
 bool curl_container::curlcode_pass( CURLcode code,std::string where )
@@ -61,12 +73,13 @@ size_t curl_container::writecb(const unsigned char *ptr, size_t size, size_t nme
   return len;
 }
 
-curl_container::curl_container( std::string url )
+curl_container::curl_container( std::string url , std::chrono::seconds crawl_delay )
 {
   CURLcode code;
   this->buffer = new std::vector<unsigned char>();
   this->easyhandle = curl_easy_init();  
   this->url = url;
+  this->crawl_delay = crawl_delay;
   data_sz = 0;
   try 
   {
@@ -89,13 +102,36 @@ curl_container::curl_container( std::string url )
     errprintf(ERRCODE::FAILED_CURL, "CURL initialization exited at %s\n",e);
     return;
   }
+  if (homura::options::debug_level) 
+  {
+    fprintf (stdout, "\n== Parsed URL: == \n%s\n\n",this->get_url().c_str());
+  }
 }
 
 bool curl_container::perform_curl()
 {
   buffer->clear(); 
   data_sz = 0;
-  return CURLE_OK == curl_easy_perform(easyhandle);
+  this->time_sent = std::chrono::steady_clock::now();
+  bool pass = CURLE_OK == curl_easy_perform(easyhandle);
+
+  if ( pass ) 
+  {
+    if ( homura::options::debug_level )
+    {
+      fprintf (stdout,"== Size of data / size of string ==\n");
+      fprintf (stdout,"sizeof data: %zd\nsizeof string %zd\n\n",
+        this->get_HTML()->size(),this->get_data_sz());
+    }
+    if ( homura::options::debug_level > 1 ) 
+    {
+      fprintf (stdout, "== HTML DATA %s START ==\n\n",this->get_url().c_str());
+      fprintf (stdout,"%s\n\n", this->get_HTML_char());
+      fprintf (stdout, "== HTML DATA %s END ==\n\n",this->get_url().c_str());
+    }
+  }
+
+  return pass;
 }
 
 curl_container::~curl_container(){

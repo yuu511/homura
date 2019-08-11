@@ -6,7 +6,7 @@
 
 namespace homura
 {
-  magnet_table *search_nyaasi(std::string args, int LOG_LEVEL, int threadcount);
+  magnet_table *search_nyaasi(std::string args);
 }
 
 #endif

@@ -26,6 +26,8 @@ tree_container::tree_container(int threads)
 
 bool tree_container::tree_parseHTML(const char *html_page)
 {
+  if (!html_page)
+    return false;
   return MyHTML_STATUS_OK == myhtml_parse(tree, MyENCODING_UTF_8, html_page,strlen(html_page));
 }
 
@@ -57,10 +59,6 @@ bool tree_container::parse_pagination_information(){
     if (tag_id == MyHTML_TAG__TEXT || tag_id == MyHTML_TAG__COMMENT)
     {
       page_information = myhtml_node_text(node,NULL);
-      // if (debug_level) 
-      // {
-      //   fprintf (stdout,"== First page pagination Information: ==\n%s\n\n",page_information);
-      // }
     } 
     else 
     {
@@ -108,7 +106,20 @@ bool tree_container::parse_pagination_information(){
     errprintf(ERRCODE::FAILED_FIRST_PARSE,"Incorrect pagination string parse.\n");
     return false;
   }
+
   pageinfo = new pagination_information(stk[0],stk[1],stk[2]);
+
+  if (homura::options::debug_level)
+  {
+    fprintf (stdout,"== First page result information == \n");
+    fprintf (stdout,"String: \"%s\" \nfirst result "
+                    "%d\nlast result (results per page) %d\ntotal results %d\n\n",
+            page_information,
+            this->pageinfo_first_result(),
+            this->pageinfo_last_result(),
+            this->pageinfo_total_result());
+  }
+
   return true;
 }
 

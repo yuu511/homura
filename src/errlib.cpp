@@ -1,12 +1,27 @@
 #include <string>
+#include <algorithm>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <assert.h>
 #include <stdio.h>
 #include "errlib.h"
 
-// small error handling module
+// small error / option handling module
 
+/* options */
+int homura::options::debug_level = 0;
+int homura::options::threads = 1;
+void homura::options::set_debug_level(int level) 
+{
+  homura::options::debug_level = 
+    std::max(level,homura::options::debug_level);
+}
+void homura::options::set_thread_level(int numt) 
+{
+  homura::options::threads = numt;
+}
+
+/* error */
 int error_handler::exit_code = EXIT_SUCCESS;
 
 void set_error_exitcode(int code){

@@ -58,8 +58,6 @@ void print_usage()
 
 void parse_args (int argc, char **argv) 
 {
-   int _VERBOSELEVEL = 0;
-   int  _THREADCOUNT = 1;
    int opt;
    while (1) 
    {  
@@ -79,23 +77,22 @@ void parse_args (int argc, char **argv)
      switch (opt) 
      {
        case 'v':
-         if (!_VERBOSELEVEL)
-           _VERBOSELEVEL = 1;
+         homura::options::set_debug_level(1);
          break;
        case 'd':
-         _VERBOSELEVEL = 2;
+         homura::options::set_debug_level(2);
          break;
        case 'h':
 	 print_usage();
          return;
        case 't':
-         _THREADCOUNT =  atoi(optarg);
-         if (_THREADCOUNT < 1)
+         if (atoi(optarg) < 1)
          {
            errprintf(ERRCODE::FAILED_ARGPARSE,"error:-t,--thread expects a positive integer\n");
 	   errprintf(ERRCODE::FAILED_ARGPARSE,"(recieved %s)\n", optarg);
            return;
          } 
+         homura::options::set_thread_level(atoi(optarg));
          break;
        case '?':
          errprintf(ERRCODE::FAILED_ARGPARSE,"incorrect option %c\n",optopt);
@@ -108,8 +105,7 @@ void parse_args (int argc, char **argv)
      errprintf (ERRCODE::FAILED_ARGPARSE,"No search term provided.\n");
      errprintf (ERRCODE::FAILED_ARGPARSE,"for usage: homura --help \n");
    }
-   homura::magnet_table *results = homura::search_nyaasi(std::string(argv[optind]),_VERBOSELEVEL,_THREADCOUNT);
-   homura::free_magnet_table(results);
+   homura::magnet_table *results = homura::search_nyaasi(std::string(argv[optind]));
 }
 
 int main (int argc, char **argv) 
