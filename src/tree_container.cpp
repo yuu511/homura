@@ -13,15 +13,15 @@ pagination_information::pagination_information(int first, int last, int total){
   total_result = total;
 }
 
-tree_container::tree_container(int threads)
+tree_container::tree_container(std::chrono::steady_clock::time_point time_sent_, int threads)
+  : time_sent(time_sent_),
+    pageinfo (nullptr)
 {
   handle = myhtml_create();
   myhtml_init(handle, MyHTML_OPTIONS_DEFAULT, threads, 0);
 
   tree = myhtml_tree_create();
   myhtml_tree_init(tree, handle);
-
-  pageinfo = nullptr;
 }
 
 bool tree_container::tree_parseHTML(const char *html_page)
@@ -40,7 +40,8 @@ tree_container::~tree_container()
   delete pageinfo; 
 }
 
-bool tree_container::parse_pagination_information(){
+bool tree_container::parse_pagination_information()
+{
   if (!tree || !handle)
   { 
     errprintf(ERRCODE::FAILED_MYHTML_TREE_INIT, "No tree or handle detected in"
@@ -115,15 +116,15 @@ bool tree_container::parse_pagination_information(){
     fprintf (stdout,"String: \"%s\" \nfirst result "
                     "%d\nlast result (results per page) %d\ntotal results %d\n\n",
             page_information,
-            this->pageinfo_first_result(),
-            this->pageinfo_last_result(),
-            this->pageinfo_total_result());
+            this->get_pageinfo_first_result(),
+            this->get_pageinfo_last_result(),
+            this->get_pageinfo_total_result());
   }
 
   return true;
 }
 
-int tree_container::pageinfo_first_result()
+int tree_container::get_pageinfo_first_result()
 {
   if (pageinfo)
     return pageinfo->first_result;
@@ -132,7 +133,7 @@ int tree_container::pageinfo_first_result()
   return 0;
 }
 
-int tree_container::pageinfo_last_result()
+int tree_container::get_pageinfo_last_result()
 {
   if (pageinfo)
     return pageinfo->last_result;
@@ -141,11 +142,16 @@ int tree_container::pageinfo_last_result()
   return 0;
 }
 
-int tree_container::pageinfo_total_result()
+int tree_container::get_pageinfo_total_result()
 {
   if (pageinfo)
     return pageinfo->total_result;
   else 
     fprintf(stdout,"WARNING: Pagination information does not exist.\n");  
   return 0;
+}
+
+std::chrono::steady_clock::time_point tree_container::get_time_sent()
+{
+  return time_sent;
 }

@@ -74,16 +74,25 @@ magnet_table *homura::search_nyaasi(std::string args)
   init_locks();
 
   /* nyaa.si has no official api, and we must manually
-     find out how many pages to parse by sending a request */
+     find out how many results to expect by sending a request 
+     and parsing the query result information */
 
   std::replace(args.begin(), args.end(), ' ', '+');
   const std::string first_url = "https://nyaa.si/?f=0&c=0_0&q=" + args;
 
   std::unique_ptr<curl_container> first_request(new curl_container(first_url));
-  first_request -> perform_curl();
+  if ( ! first_request -> perform_curl() ) 
+  {
+    errprintf(ERRCODE::FAILED_CURL, "Failed first curl.\n");
+    curl_global_cleanup();
+    return nullptr;
+  }
 
-  std::unique_ptr<tree_container> first_page_tree(new tree_container()); 
+  std::unique_ptr<tree_container>
+    first_page_tree (new tree_container(first_request->get_time_sent())); 
+
   first_page_tree -> tree_parseHTML(first_request->get_HTML_char());
+  first_request.release();
 
   if ( !(first_page_tree -> parse_pagination_information()) )
   {
@@ -91,6 +100,7 @@ magnet_table *homura::search_nyaasi(std::string args)
     curl_global_cleanup();
     return nullptr;
   }
+  
 
   // for (auto itor : *urls) 
   // {
