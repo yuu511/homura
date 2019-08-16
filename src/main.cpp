@@ -88,33 +88,43 @@ void parse_args (int argc, char **argv)
        case 't':
          if (atoi(optarg) < 1)
          {
-           errprintf(ERRCODE::FAILED_ARGPARSE,"error:-t,--thread expects a positive integer\n");
-	   errprintf(ERRCODE::FAILED_ARGPARSE,"(recieved %s)\n", optarg);
+           errprintf(homura::ERRCODE::FAILED_ARGPARSE,
+	   "error:-t,--thread expects a positive integer\n");
+	   errprintf(homura::ERRCODE::FAILED_ARGPARSE,"(recieved %s)\n", optarg);
            return;
          } 
          homura::options::set_thread_level(atoi(optarg));
          break;
        case '?':
-         errprintf(ERRCODE::FAILED_ARGPARSE,"incorrect option %c\n",optopt);
-         errprintf(ERRCODE::FAILED_ARGPARSE,"for usage: homura --help\n");
+         errprintf(homura::ERRCODE::FAILED_ARGPARSE,"incorrect option %c\n",optopt);
+         errprintf(homura::ERRCODE::FAILED_ARGPARSE,"for usage: homura --help\n");
          break;
      }
    }
    if (optind + 1 > argc) 
    {
-     errprintf (ERRCODE::FAILED_ARGPARSE,"No search term provided.\n");
-     errprintf (ERRCODE::FAILED_ARGPARSE,"for usage: homura --help \n");
+     errprintf (homura::ERRCODE::FAILED_ARGPARSE,"No search term provided.\n");
+     errprintf (homura::ERRCODE::FAILED_ARGPARSE,"for usage: homura --help \n");
    }
    homura::magnet_table *results = homura::search_nyaasi(std::string(argv[optind]));
 }
 
 int main (int argc, char **argv) 
 {
-  error_handler::exit_code = EXIT_SUCCESS;
   parse_args(argc,argv);
-  if (error_handler::exit_code)
+  if (homura::options::debug_level)
   {
-    fprintf(stderr,"%s\n",parse_error_exitcode(error_handler::exit_code).c_str());
+    if (homura::error_handler::exit_code != EXIT_SUCCESS )
+    {
+      fprintf(stderr,"homura exited with error code %s\n",
+        homura::parse_error_exitcode(homura::error_handler::exit_code).c_str());
+
+      homura::unwind_exit_code_stack(homura::error_handler::exitcode_stack);
+    }
+    else 
+    {
+      fprintf(stdout,"homura exited sucessfully.\n");
+    }
   }
-  return error_handler::exit_code;
+  return homura::error_handler::exit_code;
 }

@@ -1,0 +1,1 @@
+option('GNUTLS', type : 'boolean', value : 'false', description : 'Build with GNUTLS instead.')

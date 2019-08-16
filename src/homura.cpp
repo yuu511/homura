@@ -8,15 +8,66 @@
 #include "homura.h"
 #include "magnet_table.h"
 #include "errlib.h"
-#include "select_ssl.h"
 #include "curl_container.h"
 #include "tree_container.h"
+
+using namespace homura;
+
+// in order to use SSL in a multithreaded context, we must place mutex callback setups
+#ifdef GNUTLS
+#include <gcrypt.h>
+#include <errno.h>
+
+GCRY_THREAD_OPTION_PTHREAD_IMPL;
+
+void init_locks(void)
+{
+  gcry_control(GCRYCTL_SET_THREAD_CBS);
+  if (homura::options::debug_level)
+    fprintf(stdout, "curl with GNUTLS selected\n");
+}
+
+#else // the default, openssl
+#include <openssl/crypto.h>
+#include <deque>
+#include <mutex>
+
+std::deque<std::mutex> locks;
+
+static void lock_callback(int mode, int type, char *file, int line) 
+{
+  (void)file;
+  (void)line;
+  if(mode & CRYPTO_LOCK) 
+  {
+    locks[type].lock();
+  }
+  else 
+  {
+    locks[type].unlock();
+  }
+}
+
+static unsigned long thread_id() 
+{
+  return static_cast<unsigned long> (pthread_self());
+}
+
+static void init_locks() 
+{
+  locks.resize(CRYPTO_num_locks());
+  CRYPTO_set_id_callback(&thread_id);
+  CRYPTO_set_locking_callback(&lock_callback);
+  if (homura::options::debug_level)
+    fprintf(stdout, "curl with OpenSSL selected\n");
+}
+#endif
 
 // mix of c and c++ for torrent scraping
 // use char* for html parsing, store results in string
   
 /* given a string, scrape all torrent names and magnets */
-homura::magnet_table *homura::search_nyaasi(std::string args)
+magnet_table *homura::search_nyaasi(std::string args)
 {
   std::chrono::seconds crawl_delay(5);
   curl_global_init(CURL_GLOBAL_ALL);
@@ -40,7 +91,7 @@ homura::magnet_table *homura::search_nyaasi(std::string args)
     curl_global_cleanup();
     return nullptr;
   }
-  
+
   // for (auto itor : *urls) 
   // {
   //   new_request = clock::steady_clock::now() + crawl_delay;

@@ -22,13 +22,26 @@ void homura::options::set_thread_level(int numt)
 }
 
 /* error */
-int error_handler::exit_code = EXIT_SUCCESS;
+int homura::error_handler::exit_code = EXIT_SUCCESS;
+std::vector<int> homura::error_handler::exitcode_stack;
 
-void set_error_exitcode(int code){
-  error_handler::exit_code = code;
+void homura::error_handler::set_error_exitcode(int code)
+{
+  homura::error_handler::exit_code = code;
+  homura::error_handler::exitcode_stack.push_back(code);
 }
 
-std::string parse_error_exitcode(int code){
+void homura::unwind_exit_code_stack(std::vector<int> exitcode_stack)
+{
+  fprintf(stderr, "UNWINDING STACK:\n\n");
+  for (auto itor : exitcode_stack)
+  {
+    fprintf(stderr, "FAILED WITH CODE %s\n",parse_error_exitcode(itor).c_str());
+  }
+}
+
+std::string homura::parse_error_exitcode(int code)
+{
   std::string message;
   switch(code){
     case FAILED_ARGPARSE:
@@ -56,13 +69,14 @@ std::string parse_error_exitcode(int code){
       message = "UNKNOWN_ERROR";
       break;
   }
-  return "ERROR: homura returned non-zero exit code " + message;
+  return message;
 }
 
-void errprintf(int error_code, const char *format, ...) {
+void homura::errprintf(int error_code, const char *format, ...) 
+{
   assert(format != nullptr);
   fflush(nullptr);
-  set_error_exitcode(error_code);
+  homura::error_handler::set_error_exitcode(error_code);
   va_list args;
   va_start (args,format);
   vfprintf(stderr, format ,args);
