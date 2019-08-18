@@ -4,8 +4,7 @@
 #include <myhtml/myhtml.h>
 #include <chrono>
 
-namespace homura 
-{
+namespace homura {
   struct pagination_information {
     pagination_information(int first_result,int last_result,int total_result);
     int first_result;
@@ -13,8 +12,7 @@ namespace homura
     int total_result;
   };
 
-  class tree_container
-  {
+  class tree_container {
   public:
     tree_container(std::chrono::steady_clock::time_point time_sent, int threads = 1);
     ~tree_container();

@@ -3,10 +3,19 @@
 
 #include <string>
 #include "magnet_table.h"
+#include "url_table.h"
 
-namespace homura
-{
-  magnet_table *search_nyaasi(std::string args);
+namespace homura {
+  struct homura_instance {
+  public:
+    homura_instance();
+    void cleanup();
+    ~homura_instance();
+    bool query_nyaasi(std::string args);
+  private:
+    magnet_table *results;
+    url_table *requests;
+  };
 }
 
 #endif

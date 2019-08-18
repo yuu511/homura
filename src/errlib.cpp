@@ -11,13 +11,13 @@
 /* options */
 int homura::options::debug_level = 0;
 int homura::options::threads = 1;
-void homura::options::set_debug_level(int level) 
-{
+
+void homura::options::set_debug_level(int level) {
   homura::options::debug_level = 
     std::max(level,homura::options::debug_level);
 }
-void homura::options::set_thread_level(int numt) 
-{
+
+void homura::options::set_thread_level(int numt) {
   homura::options::threads = numt;
 }
 
@@ -25,25 +25,22 @@ void homura::options::set_thread_level(int numt)
 int homura::error_handler::exit_code = EXIT_SUCCESS;
 std::vector<int> homura::error_handler::exitcode_stack;
 
-void homura::error_handler::set_error_exitcode(int code)
-{
+void homura::error_handler::set_error_exitcode(int code) {
   homura::error_handler::exit_code = code;
   homura::error_handler::exitcode_stack.push_back(code);
 }
 
-void homura::unwind_exit_code_stack(std::vector<int> exitcode_stack)
-{
+void homura::unwind_exit_code_stack(std::vector<int> exitcode_stack) {
   fprintf(stderr, "UNWINDING STACK:\n\n");
-  for (auto itor : exitcode_stack)
-  {
+  for (auto itor : exitcode_stack) {
     fprintf(stderr, "FAILED WITH CODE %s\n",parse_error_exitcode(itor).c_str());
   }
+  fprintf(stderr, "\n END ERRCODE STACK");
 }
 
-std::string homura::parse_error_exitcode(int code)
-{
+std::string homura::parse_error_exitcode(int code) {
   std::string message;
-  switch(code){
+  switch(code) {
     case FAILED_ARGPARSE:
       message = "FAILED_ARGPARSE";
       break;
@@ -72,8 +69,7 @@ std::string homura::parse_error_exitcode(int code)
   return message;
 }
 
-void homura::errprintf(int error_code, const char *format, ...) 
-{
+void homura::errprintf(int error_code, const char *format, ...) {
   assert(format != nullptr);
   fflush(nullptr);
   homura::error_handler::set_error_exitcode(error_code);

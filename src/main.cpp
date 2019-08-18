@@ -9,18 +9,16 @@
 /* print_usage helper functions */
 // n space indent for all strings
 // first part of option string will be a minimum of 30 characters long 
-void println(int whitespace, const char *line)
-{
+void println(int whitespace, const char *line) {
   fprintf(stdout,"%*s%s\n",whitespace,"", line);
 }
-void printopt(int whitespace, const char *option, const char *description)
-{
+
+void printopt(int whitespace, const char *option, const char *description) {
   fprintf(stdout,"%*s%-30s%s\n",whitespace, "", option, description);
 }
 
 /* print_usage */ 
-void print_usage()
-{
+void print_usage() {
   fprintf(stdout,"\n");
   println(5,"USAGE:");
   println(5,"homura [-vdt:] ARG");
@@ -56,11 +54,12 @@ void print_usage()
   fprintf (stdout,"\n");
 }
 
-void parse_args (int argc, char **argv) 
-{
+void parse_args (int argc, char **argv) {
+
+   using namespace homura;
+
    int opt;
-   while (1) 
-   {  
+   while (1) {  
      int option_index = 0;
      static struct option long_options[] = 
      {
@@ -74,55 +73,51 @@ void parse_args (int argc, char **argv)
                  long_options, &option_index);
      if (opt == -1)		 
        break;
-     switch (opt) 
-     {
+     switch (opt) {
        case 'v':
-         homura::options::set_debug_level(1);
+         options::set_debug_level(1);
          break;
        case 'd':
-         homura::options::set_debug_level(2);
+         options::set_debug_level(2);
          break;
        case 'h':
 	 print_usage();
          return;
        case 't':
-         if (atoi(optarg) < 1)
-         {
-           errprintf(homura::ERRCODE::FAILED_ARGPARSE,
+         if (atoi(optarg) < 1) {
+           errprintf(ERRCODE::FAILED_ARGPARSE,
 	   "error:-t,--thread expects a positive integer\n");
-	   errprintf(homura::ERRCODE::FAILED_ARGPARSE,"(recieved %s)\n", optarg);
+	   errprintf(ERRCODE::FAILED_ARGPARSE,"(recieved %s)\n", optarg);
            return;
          } 
-         homura::options::set_thread_level(atoi(optarg));
+         options::set_thread_level(atoi(optarg));
          break;
        case '?':
-         errprintf(homura::ERRCODE::FAILED_ARGPARSE,"incorrect option %c\n",optopt);
-         errprintf(homura::ERRCODE::FAILED_ARGPARSE,"for usage: homura --help\n");
+         errprintf(ERRCODE::FAILED_ARGPARSE,"incorrect option %c\n",optopt);
+         errprintf(ERRCODE::FAILED_ARGPARSE,"for usage: homura --help\n");
          break;
      }
    }
-   if (optind + 1 > argc) 
-   {
-     errprintf (homura::ERRCODE::FAILED_ARGPARSE,"No search term provided.\n");
-     errprintf (homura::ERRCODE::FAILED_ARGPARSE,"for usage: homura --help \n");
+   if (optind + 1 > argc) {
+     errprintf (ERRCODE::FAILED_ARGPARSE,"No search term provided.\n");
+     errprintf (ERRCODE::FAILED_ARGPARSE,"for usage: homura --help \n");
    }
-   homura::magnet_table *results = homura::search_nyaasi(std::string(argv[optind]));
+   homura_instance homuhomu = homura_instance();
+   homuhomu.query_nyaasi(std::string(argv[optind]));
+   homuhomu.cleanup();
+   // homura::magnet_table *results = homura::search_nyaasi(std::string(argv[optind]));
 }
 
-int main (int argc, char **argv) 
-{
+int main (int argc, char **argv) {
   parse_args(argc,argv);
-  if (homura::options::debug_level)
-  {
-    if (homura::error_handler::exit_code != EXIT_SUCCESS )
-    {
+  if (homura::options::debug_level) {
+    if (homura::error_handler::exit_code != EXIT_SUCCESS ) {
       fprintf(stderr,"homura exited with error code %s\n",
         homura::parse_error_exitcode(homura::error_handler::exit_code).c_str());
 
       homura::unwind_exit_code_stack(homura::error_handler::exitcode_stack);
     }
-    else 
-    {
+    else {
       fprintf(stdout,"homura exited sucessfully.\n");
     }
   }

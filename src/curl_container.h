@@ -6,10 +6,8 @@
 #include <string>
 #include <chrono>
 
-namespace homura 
-{
-  class curl_container
-  {
+namespace homura {
+  class curl_container {
   public:
     curl_container( const std::string &url );
     ~curl_container();

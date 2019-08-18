@@ -1,4 +1,4 @@
-project('homura','cpp',default_options: ['cpp_std=c++17'])
+project('homura','cpp',default_options: ['cpp_std=c++11'])
 cc = meson.get_compiler('cpp')
 homura_sources = ['src/main.cpp','src/homura.cpp','src/errlib.cpp','src/magnet_table.cpp','src/curl_container.cpp','src/tree_container.cpp']
 

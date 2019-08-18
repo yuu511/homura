@@ -13,6 +13,9 @@
 
 using namespace homura;
 
+// mix of c and c++ for torrent scraping
+// use char* for html parsing, store results in string
+
 // in order to use SSL in a multithreaded context, we must place mutex callback setups
 #ifdef GNUTLS
 #include <gcrypt.h>
@@ -20,8 +23,7 @@ using namespace homura;
 
 GCRY_THREAD_OPTION_PTHREAD_IMPL;
 
-void init_locks(void)
-{
+void init_locks(void) {
   gcry_control(GCRYCTL_SET_THREAD_CBS);
   if (homura::options::debug_level)
     fprintf(stdout, "curl with GNUTLS selected\n");
@@ -34,27 +36,22 @@ void init_locks(void)
 
 std::deque<std::mutex> locks;
 
-static void lock_callback(int mode, int type, char *file, int line) 
-{
+static void lock_callback(int mode, int type, char *file, int line) {
   (void)file;
   (void)line;
-  if(mode & CRYPTO_LOCK) 
-  {
+  if(mode & CRYPTO_LOCK) {
     locks[type].lock();
   }
-  else 
-  {
+  else {
     locks[type].unlock();
   }
 }
 
-static unsigned long thread_id() 
-{
+static unsigned long thread_id() {
   return static_cast<unsigned long> (pthread_self());
 }
 
-static void init_locks() 
-{
+static void init_locks() {
   locks.resize(CRYPTO_num_locks());
   CRYPTO_set_id_callback(&thread_id);
   CRYPTO_set_locking_callback(&lock_callback);
@@ -63,16 +60,26 @@ static void init_locks()
 }
 #endif
 
-// mix of c and c++ for torrent scraping
-// use char* for html parsing, store results in string
-  
-/* given a string, scrape all torrent names and magnets */
-magnet_table *homura::search_nyaasi(std::string args)
-{
-  std::chrono::seconds crawl_delay(5);
+homura_instance::homura_instance()
+  : results(nullptr),
+    requests(nullptr) {
   curl_global_init(CURL_GLOBAL_ALL);
   init_locks();
+}
 
+void homura_instance::cleanup() {
+  if (results)
+    delete results;
+  if (requests)
+    delete requests;
+  curl_global_cleanup();
+}
+
+homura_instance::~homura_instance() {
+  cleanup(); 
+}
+
+bool homura_instance::query_nyaasi(std::string args) {
   /* nyaa.si has no official api, and we must manually
      find out how many results to expect by sending a request 
      and parsing the query result information */
@@ -81,29 +88,24 @@ magnet_table *homura::search_nyaasi(std::string args)
   const std::string first_url = "https://nyaa.si/?f=0&c=0_0&q=" + args;
 
   std::unique_ptr<curl_container> first_request(new curl_container(first_url));
-  if ( ! first_request -> perform_curl() ) 
-  {
+
+  if ( !first_request->perform_curl() ) {
     errprintf(ERRCODE::FAILED_CURL, "Failed first curl.\n");
-    curl_global_cleanup();
-    return nullptr;
+    return false;
   }
 
   std::unique_ptr<tree_container>
     first_page_tree (new tree_container(first_request->get_time_sent())); 
 
-  first_page_tree -> tree_parseHTML(first_request->get_HTML_char());
-  first_request.release();
+  first_page_tree->tree_parseHTML(first_request->get_HTML_char());
 
-  if ( !(first_page_tree -> parse_pagination_information()) )
-  {
+  if (!(first_page_tree->parse_pagination_information())) {
     errprintf(ERRCODE::FAILED_PARSE, "Failed to retrieve number of results.\n");
-    curl_global_cleanup();
-    return nullptr;
+    return false;
   }
-  
 
   // for (auto itor : *urls) 
-  // {
+  //  {
   //   new_request = clock::steady_clock::now() + crawl_delay;
   //   // do stuff
   //   now = clock::steady_clock::now();
@@ -118,6 +120,6 @@ magnet_table *homura::search_nyaasi(std::string args)
   // delete (first_request);
   // first_request.release();
   // delete (first_page_tree);
-  curl_global_cleanup();
-  return nullptr;
+
+  return true;
 }
