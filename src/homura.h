@@ -2,6 +2,8 @@
 #define __HOMURA_H_
 
 #include <string>
+#include <chrono>
+#include <unordered_map>
 #include "magnet_table.h"
 #include "url_table.h"
 

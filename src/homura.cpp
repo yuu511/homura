@@ -1,6 +1,5 @@
 #include <algorithm>
 #include <chrono>
-#include <thread>
 #include <memory>
 #include <curl/curl.h>
 #include <pthread.h>
@@ -77,6 +76,11 @@ void homura_instance::cleanup() {
 
 homura_instance::~homura_instance() {
   cleanup(); 
+}
+
+tree_container *parse_webpage(const std::string url) { 
+  std::unique_ptr<curl_container> request(new curl_container(url));
+  return nullptr;
 }
 
 bool homura_instance::query_nyaasi(std::string args) {
