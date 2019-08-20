@@ -15,6 +15,7 @@ namespace homura {
   class tree_container {
   public:
     tree_container(std::chrono::steady_clock::time_point time_sent, int threads = 1);
+    void clear();
     ~tree_container();
 
     bool tree_parseHTML(const char *html_page);
@@ -29,7 +30,7 @@ namespace homura {
     myhtml_t *handle;
     myhtml_tree *tree; 
     std::chrono::steady_clock::time_point time_sent;
-    pagination_information *pageinfo;
+    pagination_information pageinfo;
   };
 }
 

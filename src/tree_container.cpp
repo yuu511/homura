@@ -15,7 +15,7 @@ pagination_information::pagination_information(int first, int last, int total) {
 
 tree_container::tree_container(std::chrono::steady_clock::time_point time_sent_, int threads)
   : time_sent(time_sent_),
-    pageinfo (nullptr) {
+    pageinfo (pagination_information(0,0,0)) {
   handle = myhtml_create();
   myhtml_init(handle, MyHTML_OPTIONS_DEFAULT, threads, 0);
 
@@ -29,12 +29,15 @@ bool tree_container::tree_parseHTML(const char *html_page) {
   return MyHTML_STATUS_OK == myhtml_parse(tree, MyENCODING_UTF_8, html_page,strlen(html_page));
 }
 
-tree_container::~tree_container() {
+void tree_container::clear() {
   if (tree)
     myhtml_tree_destroy(tree);
   if (handle)
     myhtml_destroy(handle);
-  delete pageinfo; 
+}
+
+tree_container::~tree_container() {
+  clear();
 }
 
 bool tree_container::parse_pagination_information() {
@@ -93,7 +96,7 @@ bool tree_container::parse_pagination_information() {
     return false;
   }
 
-  pageinfo = new pagination_information(stk[0],stk[1],stk[2]);
+  pageinfo = pagination_information(stk[0],stk[1],stk[2]);
 
   if (homura::options::debug_level) {
     fprintf (stdout,"== First page result information == \n");
@@ -109,27 +112,15 @@ bool tree_container::parse_pagination_information() {
 }
 
 int tree_container::get_pageinfo_first_result() {
-  if (pageinfo)
-    return pageinfo->first_result;
-  else 
-    fprintf(stdout,"WARNING: Pagination information does not exist.\n");  
-  return 0;
+  return pageinfo.first_result;
 }
 
 int tree_container::get_pageinfo_last_result() {
-  if (pageinfo)
-    return pageinfo->last_result;
-  else 
-    fprintf(stdout,"WARNING: Pagination information does not exist.\n");  
-  return 0;
+  return pageinfo.last_result;
 }
 
 int tree_container::get_pageinfo_total_result() {
-  if (pageinfo)
-    return pageinfo->total_result;
-  else 
-    fprintf(stdout,"WARNING: Pagination information does not exist.\n");  
-  return 0;
+  return pageinfo.total_result;
 }
 
 std::chrono::steady_clock::time_point tree_container::get_time_sent() {

@@ -10,6 +10,7 @@ namespace homura {
   class curl_container {
   public:
     curl_container( const std::string &url );
+    void clear();
     ~curl_container();
 
     const std::string get_url();

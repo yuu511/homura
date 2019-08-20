@@ -2,31 +2,24 @@
 #define __URLTABLE_H_
 
 #include <chrono>
-#include <vector>
 #include <string>
-#include <unordered_map>
+#include <vector>
+#include <mutex>
 
 namespace homura {
-
-  enum website {
-    nyaasi, 
-    nyaapantsu, 
-    horriblesubs
-  };
-
-  struct url_request {
+  class url_table {
   public:
-    url_request(const std::string &url, int website, std::chrono::seconds delay);
-    const std::string get_url();
-    int get_website();
-    std::chrono::seconds get_delay();
+    url_table(std::chrono::seconds delay, 
+      std::chrono::steady_clock::time_point last_written);  
+    ~url_table();
+    void insert(std::string url);
+    void update_time();
   private:
-    const std::string url; 
-    int website;
     std::chrono::seconds delay;
+    std::vector <std::string> urls;
+    std::chrono::steady_clock::time_point last_written;
+    std::mutex time_lock;
   };
-  using url_table = std::vector<url_request*>;  
-  
 }
 
 #endif

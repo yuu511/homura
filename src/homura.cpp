@@ -59,18 +59,12 @@ static void init_locks() {
 }
 #endif
 
-homura_instance::homura_instance()
-  : results(nullptr),
-    requests(nullptr) {
+homura_instance::homura_instance() {
   curl_global_init(CURL_GLOBAL_ALL);
   init_locks();
 }
 
 void homura_instance::cleanup() {
-  if (results)
-    delete results;
-  if (requests)
-    delete requests;
   curl_global_cleanup();
 }
 
@@ -78,9 +72,21 @@ homura_instance::~homura_instance() {
   cleanup(); 
 }
 
-tree_container *parse_webpage(const std::string url) { 
+std::unique_ptr<tree_container> parse_webpage(const std::string url) { 
   std::unique_ptr<curl_container> request(new curl_container(url));
-  return nullptr;
+  if ( !request->perform_curl() ) {
+    errprintf (ERRCODE::FAILED_CURL, "Failed Curl for URL : %s\n", url.c_str());
+    return nullptr;
+  }
+
+  std::unique_ptr<tree_container>
+    page_tree (new tree_container(request->get_time_sent())); 
+  if ( !page_tree->tree_parseHTML(request->get_HTML_char()) ) {
+    errprintf (ERRCODE::FAILED_PARSE, "Failed Parse for URL: %s\n", url.c_str()); 
+    return nullptr;
+  }
+    
+  return page_tree;
 }
 
 bool homura_instance::query_nyaasi(std::string args) {
@@ -91,17 +97,7 @@ bool homura_instance::query_nyaasi(std::string args) {
   std::replace(args.begin(), args.end(), ' ', '+');
   const std::string first_url = "https://nyaa.si/?f=0&c=0_0&q=" + args;
 
-  std::unique_ptr<curl_container> first_request(new curl_container(first_url));
-
-  if ( !first_request->perform_curl() ) {
-    errprintf(ERRCODE::FAILED_CURL, "Failed first curl.\n");
-    return false;
-  }
-
-  std::unique_ptr<tree_container>
-    first_page_tree (new tree_container(first_request->get_time_sent())); 
-
-  first_page_tree->tree_parseHTML(first_request->get_HTML_char());
+  std::unique_ptr<tree_container> first_page_tree = parse_webpage(first_url); 
 
   if (!(first_page_tree->parse_pagination_information())) {
     errprintf(ERRCODE::FAILED_PARSE, "Failed to retrieve number of results.\n");

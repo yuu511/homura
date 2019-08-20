@@ -50,13 +50,19 @@ bool curl_container::curlcode_pass(CURLcode code,std::string where) {
 }
 
 size_t curl_container::writecb(const unsigned char *ptr, size_t size, size_t nmemb, void *userp) {
-  curl_container *data = static_cast<curl_container*>(userp); 
-  size_t len = size * nmemb;
-  data->buffer->resize (data->data_sz + len + 1);
-  std::copy(ptr, ptr + len, data->buffer->begin() + data->data_sz);
-  (*data->buffer)[data->data_sz + len] = '\0';
-  data->data_sz += len;
-  return len;
+  try {
+    curl_container *data = static_cast<curl_container*>(userp); 
+    size_t len = size * nmemb;
+    data->buffer->resize (data->data_sz + len + 1);
+    std::copy(ptr, ptr + len, data->buffer->begin() + data->data_sz);
+    (*data->buffer)[data->data_sz + len] = '\0';
+    data->data_sz += len;
+    return len;
+  }
+  catch (std::bad_alloc &ba) {
+    errprintf(ERRCODE::FAILED_NEW, "ERROR: gg oom\n(out of memory)\n");
+  }
+  return 0;
 }
 
 curl_container::curl_container(const std::string &url)
@@ -112,8 +118,12 @@ bool curl_container::perform_curl() {
   return pass;
 }
 
-curl_container::~curl_container() {
+void curl_container::clear() {
   if (easyhandle)
     curl_easy_cleanup(easyhandle);
   delete buffer;
+}
+
+curl_container::~curl_container() {
+  clear();
 }
