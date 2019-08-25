@@ -1,0 +1,13 @@
+testmodule.cpp: In function ‘void main_loop(std::unique_ptr<std::vector<std::shared_ptr<homura::url_table> > >&)’:
+testmodule.cpp:85:19: error: base operand of ‘->’ has non-pointer type ‘std::vector<std::__cxx11::basic_string<char> >’
+     if (itor.first->get_urls().end() == itor.second){
+                   ^~
+testmodule.cpp:91:44: error: could not convert ‘itor.std::pair<std::vector<std::__cxx11::basic_string<char> >, __gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char>*, std::vector<std::__cxx11::basic_string<char> > > >::second.__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char>*, std::vector<std::__cxx11::basic_string<char> > >::operator++()’ from ‘__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char>*, std::vector<std::__cxx11::basic_string<char> > >’ to ‘bool’
+     for (itor.second != itor.first.end() ; ++itor.second){
+                                            ^~~~~~~~~~~~~
+testmodule.cpp:91:57: error: expected ‘;’ before ‘)’ token
+     for (itor.second != itor.first.end() ; ++itor.second){
+                                                         ^
+testmodule.cpp:92:33: error: no match for call to ‘(__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char>*, std::vector<std::__cxx11::basic_string<char> > >) ()’
+       std::cout << *itor.second();
+                                 ^

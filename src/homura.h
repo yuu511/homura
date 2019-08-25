@@ -22,8 +22,8 @@ namespace homura {
     ~homura_instance();
     bool query_nyaasi(std::string args);
   private:
-    magnet_table results;
-    std::map <int, url_table*> requests;
+    magnet_table *results;
+    std::map <int, url_table> *requests;
   };
 }
 
