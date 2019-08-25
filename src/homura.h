@@ -4,9 +4,13 @@
 #include <string>
 #include <chrono>
 #include <vector>
-#include <map>
+#include <unordered_map>
+#include <memory>
+
 #include "magnet_table.h"
 #include "url_table.h"
+
+using milliseconds = std::chrono::milliseconds;
 
 namespace homura {
   enum website {
@@ -20,10 +24,16 @@ namespace homura {
     homura_instance();
     void cleanup();
     ~homura_instance();
+    
+    void crawl();
     bool query_nyaasi(std::string args);
   private:
     magnet_table *results;
-    std::map <int, url_table> *requests;
+    std::vector<std::shared_ptr<homura::url_table>> requests;
+    std::unordered_map<int,std::shared_ptr<homura::url_table>> requests_hash;
+   
+    // helper methods
+    std::shared_ptr<homura::url_table> get_table(int website, std::chrono::milliseconds delay);
   };
 }
 

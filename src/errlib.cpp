@@ -62,6 +62,9 @@ std::string homura::parse_error_exitcode(int code) {
     case FAILED_MYHTML_TREE_INIT:
       message = "FAILED_MYHTML_TREE_INIT";
       break;
+    case FAILED_BOUNDS:
+      message = "FAILED_BOUNDS";
+      break;
     default:
       message = "UNKNOWN_ERROR";
       break;

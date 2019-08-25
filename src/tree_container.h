@@ -22,9 +22,9 @@ namespace homura {
     bool parse_pagination_information();
 
     std::chrono::steady_clock::time_point get_time_sent();
-    int get_pageinfo_first_result();
-    int get_pageinfo_last_result();
-    int get_pageinfo_total_result();
+    int pageinfo_first();
+    int pageinfo_results_per_page();
+    int pageinfo_total();
 
   private:
     myhtml_t *handle;

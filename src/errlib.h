@@ -16,7 +16,8 @@ namespace homura {
     FAILED_NEW,
     FAILED_FREE,
     FAILED_INTCAST,
-    FAILED_MYHTML_TREE_INIT
+    FAILED_MYHTML_TREE_INIT,
+    FAILED_BOUNDS
   };
 
   /* options */

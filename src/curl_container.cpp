@@ -108,7 +108,7 @@ bool curl_container::perform_curl() {
       fprintf (stdout,"sizeof data: %zd\nsizeof string %zd\n\n",
         this->get_HTML()->size(),this->get_data_sz());
     }
-    if (homura::options::debug_level > 1) {
+    if (homura::options::debug_level > 2) {
       fprintf (stdout, "== HTML DATA %s START ==\n\n",this->get_url().c_str());
       fprintf (stdout,"%s\n\n", this->get_HTML_char());
       fprintf (stdout, "== HTML DATA %s END ==\n\n",this->get_url().c_str());

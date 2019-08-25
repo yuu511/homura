@@ -104,6 +104,7 @@ void parse_args (int argc, char **argv) {
    }
    homura_instance homuhomu = homura_instance();
    homuhomu.query_nyaasi(std::string(argv[optind]));
+   homuhomu.crawl();
    homuhomu.cleanup();
    // homura::magnet_table *results = homura::search_nyaasi(std::string(argv[optind]));
 }

@@ -103,23 +103,23 @@ bool tree_container::parse_pagination_information() {
     fprintf (stdout,"String: \"%s\" \nfirst result "
                     "%d\nlast result (results per page) %d\ntotal results %d\n\n",
             page_information,
-            this->get_pageinfo_first_result(),
-            this->get_pageinfo_last_result(),
-            this->get_pageinfo_total_result());
+            this->pageinfo_first(),
+            this->pageinfo_results_per_page(),
+            this->pageinfo_total());
   }
 
   return true;
 }
 
-int tree_container::get_pageinfo_first_result() {
+int tree_container::pageinfo_first() {
   return pageinfo.first_result;
 }
 
-int tree_container::get_pageinfo_last_result() {
+int tree_container::pageinfo_results_per_page() {
   return pageinfo.last_result;
 }
 
-int tree_container::get_pageinfo_total_result() {
+int tree_container::pageinfo_total() {
   return pageinfo.total_result;
 }
 
