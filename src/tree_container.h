@@ -15,8 +15,10 @@ namespace homura {
   class tree_container {
   public:
     tree_container(std::chrono::steady_clock::time_point time_sent, int threads = 1);
-    void clear();
     ~tree_container();
+    tree_container(const tree_container&) = delete; 
+    tree_container &operator=(const tree_container&) = delete;
+    void clear();
 
     bool tree_parseHTML(const char *html_page);
     bool parse_pagination_information();
@@ -32,6 +34,7 @@ namespace homura {
     std::chrono::steady_clock::time_point time_sent;
     pagination_information pageinfo;
   };
+
 }
 
 #endif

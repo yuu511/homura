@@ -56,8 +56,8 @@ std::shared_ptr<homura::url_table> homura_instance::get_table
 
 // curl website, create and return parse tree.
 std::unique_ptr<tree_container> parse_webpage(const std::string url) { 
-  std::unique_ptr<curl_container> request(new curl_container(url));
-  if ( !request->perform_curl() ) {
+  std::unique_ptr<curl_container> request(new curl_container());
+  if ( !request->perform_curl(url) ) {
     errprintf (ERRCODE::FAILED_CURL, "Failed Curl for URL : %s\n", url.c_str());
     return nullptr;
   }
