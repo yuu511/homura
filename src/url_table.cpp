@@ -13,12 +13,12 @@ url_table::url_table (
  std::chrono::steady_clock::time_point last_written )
    : website(website), 
      delay(delay), 
-     curler(std::make_unique<curl_container>()),
-     last_written(last_written),
-     it(urls.begin()) {}
+     url_list(std::make_shared<urls>()),
+     curler(std::make_shared<curl_container>()),
+     last_written(last_written) {}
 
 void url_table::insert(std::string url) {
-  urls.push_back(url);   
+  url_list->push_back(url);   
   if (homura::options::debug_level) {
     std::cout << "Inserted key " << url << std::endl;
   }
@@ -36,21 +36,8 @@ void url_table::update_time() {
   }
 }
 
-void url_table::set_begin() {
-  it = urls.begin();
-}
-
-void url_table::increment_iterator() {
-  if (!end()) {
-    ++it;
-  }
-}
-
-bool url_table::end() {
-  if (it == urls.end()){
-    return true;
-  }
-  return false;
+std::chrono::milliseconds url_table::get_delay() {
+  return delay;
 }
 
 bool url_table::ready_for_request() {
@@ -58,34 +45,15 @@ bool url_table::ready_for_request() {
     std::chrono::duration_cast<std::chrono::milliseconds>
       (std::chrono::steady_clock::now() - last_written);
 
-  if ( diff.count() > delay.count() ) 
+  if ( diff.count() >= delay.count() ) 
     return true;
   return false;
 }
 
-std::chrono::steady_clock::time_point url_table::get_time() {
-  return last_written;
+std::shared_ptr<urls> url_table::get_urls() {
+  return url_list;
 }
 
-std::chrono::milliseconds url_table::get_delay() {
-  return delay;
-}
-
-int url_table::get_website() {
-  return website;
-}
-
-std::vector <std::string> url_table::get_urls(){
-  return urls;
-}
-
-std::string url_table::get_itor_element() {
-  if (!end())
-    return *it;
-  errprintf ( ERRCODE::FAILED_BOUNDS, "get_itor element() called out of bounds.\n");
-  return "";
-}
-
-std::unique_ptr<curl_container> &url_table::get_curler() {
+std::shared_ptr<curl_container> url_table::get_curler() {
   return curler;
 }

@@ -63,32 +63,25 @@ void homura_instance::crawl() {
     }
   }
 
-  for (auto table : requests) {
-    table->set_begin();
-  }
-
   bool finished = false;
-  while (!finished) { 
+  while (!finished) {
     finished = true;
     for (auto table : requests) {
       // end condition
-      if (!table->end()) {
+      if (!table->get_urls()->empty()) {
         finished = false;
         if (table->ready_for_request()) {
-
-          if (homura::options::debug_level) {
-            fprintf(stdout, "Parsing url %s\n" , table->get_itor_element().c_str());
-          }
-
-          table->increment_iterator();
           table->update_time();
+          if (homura::options::debug_level) {
+            fprintf(stdout, "Parsing url %s\n" , table->get_urls()->back().c_str());
+          }
+          table->get_urls()->pop_back();
         }
       } else {
         continue;
       }
     }
   }
-
 }
 
 bool homura_instance::query_nyaasi(std::string args) {
@@ -99,7 +92,7 @@ bool homura_instance::query_nyaasi(std::string args) {
      find out how many results to expect by sending a request 
      and parsing the query result information */
 
-   homura::options::set_debug_level(3);
+  homura::options::set_debug_level(3);
 
   std::replace(args.begin(), args.end(), ' ', '+');
   const std::string base_url = "https://nyaa.si/?f=0&c=0_0&q=" + args;
@@ -109,29 +102,29 @@ bool homura_instance::query_nyaasi(std::string args) {
   std::shared_ptr<std::vector<unsigned char>> results = table->get_curler()->get_HTML();
 
   // should be able to start another thread and just rip it
- std::shared_ptr<tree_container> tree = std::make_shared<tree_container>(); 
- const char *HTML = reinterpret_cast<const char*>(results->data());
- // testan
- table->get_curler()->perform_curl("http://example.com");
- std::thread t1(&tree_container::tree_parseHTML,tree, HTML);
- t1.join();
- // check for the fkd up tree
- if (!(tree->parse_pagination_information())) {
-   errprintf(ERRCODE::FAILED_PARSE, "Failed to retrieve number of results.\n");
-   return false;
- }
-
-
- table->update_time();
-
- int total = tree->pageinfo_total();
- int per_page = tree->pageinfo_results_per_page();
- // rounds up integer division (overflow not expected, max results = 1000)
- int num_pages = ( total + (per_page - 1) ) / per_page;
-
- /* push urls to table */
- for (int i = 1; i < num_pages; i++) {
-   table->insert( base_url + "&p=" + std::to_string(i) );  
- }
- return true;
+  std::shared_ptr<tree_container> tree = std::make_shared<tree_container>(); 
+  const char *HTML = reinterpret_cast<const char*>(results->data());
+  // testan
+  table->get_curler()->perform_curl("http://example.com");
+  std::thread t1(&tree_container::tree_parseHTML,tree, HTML);
+  t1.join();
+  // check for the fkd up tree
+  if (!(tree->parse_pagination_information())) {
+    errprintf(ERRCODE::FAILED_PARSE, "Failed to retrieve number of results.\n");
+    return false;
+  }
+ 
+ 
+  table->update_time();
+ 
+  int total = tree->pageinfo_total();
+  int per_page = tree->pageinfo_results_per_page();
+  // rounds up integer division (overflow not expected, max results = 1000)
+  int num_pages = ( total + (per_page - 1) ) / per_page;
+ 
+  /* push urls to table */
+  for (int i = 2; i <= num_pages; i++) {
+    table->insert( base_url + "&p=" + std::to_string(i) );  
+  }
+  return true;
 }
