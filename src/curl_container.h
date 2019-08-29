@@ -17,8 +17,8 @@ namespace homura {
     void clear();
     
 
-    std::unique_ptr<std::vector<unsigned char>> &get_HTML();
-    const char *get_HTML_char(); 
+    std::shared_ptr<std::vector<unsigned char>> get_HTML();
+    const char *get_HTML_aschar(); 
     size_t get_data_sz();
     std::chrono::steady_clock::time_point get_time_sent();
 
@@ -27,7 +27,7 @@ namespace homura {
   private:
     static size_t writecb( const unsigned char *ptr, size_t size, size_t nmemb, void *s ); 
     static const char *user_agent;
-    std::unique_ptr<std::vector<unsigned char>> buffer;
+    std::shared_ptr<std::vector<unsigned char>> buffer;
     size_t data_sz;
     CURL *easyhandle;
     CURLcode response;

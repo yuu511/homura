@@ -6,6 +6,7 @@
 #include <vector>
 #include <mutex>
 #include <memory>
+#include "curl_container.h"
 
 namespace homura {
   class url_table {
@@ -25,11 +26,13 @@ namespace homura {
     std::chrono::milliseconds get_delay();
     std::vector <std::string> get_urls();
     std::string get_itor_element();
+    std::unique_ptr <curl_container> &get_curler();
 
   private:
     int website;
     std::chrono::milliseconds delay;
     std::vector <std::string> urls;
+    std::unique_ptr<curl_container> curler;
     std::chrono::steady_clock::time_point last_written;
     std::vector<std::string>::iterator it;
   };

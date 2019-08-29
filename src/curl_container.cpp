@@ -5,11 +5,11 @@
 using namespace homura;
 const char *curl_container::user_agent = "libcurl-agent/1.0";
 
-std::unique_ptr<std::vector<unsigned char>> &curl_container::get_HTML() {
+std::shared_ptr<std::vector<unsigned char>> curl_container::get_HTML() {
   return buffer;
 }
 
-const char *curl_container::get_HTML_char() {
+const char *curl_container::get_HTML_aschar() {
   if (!this->data_sz)
     return nullptr;
   return reinterpret_cast<const char*>(buffer->data());
@@ -62,7 +62,7 @@ size_t curl_container::writecb(const unsigned char *ptr, size_t size, size_t nme
 }
 
 curl_container::curl_container()
-  : buffer (std::make_unique<std::vector<unsigned char>>()),
+  : buffer (std::make_shared<std::vector<unsigned char>>()),
     data_sz(0),
     easyhandle (curl_easy_init()) {
 
@@ -110,7 +110,7 @@ bool curl_container::perform_curl(const std::string &url) {
         this->get_HTML()->size(),this->get_data_sz());
     }
     if (homura::options::debug_level > 2) {
-      fprintf (stdout,"%s\n\n", this->get_HTML_char());
+      fprintf (stdout,"%s\n\n", this->get_HTML_aschar());
     }
   }
 

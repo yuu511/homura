@@ -11,6 +11,9 @@
 #include "tree_container.h"
 #include "select_ssl.h"
 
+//testing only, rm later
+#include <thread>
+
 using namespace homura;
 
 // mix of c and c++ for torrent scraping
@@ -52,24 +55,6 @@ std::shared_ptr<homura::url_table> homura_instance::get_table
   }
   requests.insert(itor, new_table);
   return new_table;
-}
-
-// curl website, create and return parse tree.
-std::unique_ptr<tree_container> parse_webpage(const std::string url) { 
-  std::unique_ptr<curl_container> request(new curl_container());
-  if ( !request->perform_curl(url) ) {
-    errprintf (ERRCODE::FAILED_CURL, "Failed Curl for URL : %s\n", url.c_str());
-    return nullptr;
-  }
-
-  std::unique_ptr<tree_container>
-    page_tree (new tree_container(request->get_time_sent())); 
-  if ( !page_tree->tree_parseHTML(request->get_HTML_char()) ) {
-    errprintf (ERRCODE::FAILED_PARSE, "Failed Parse for URL: %s\n", url.c_str()); 
-    return nullptr;
-  }
-    
-  return page_tree;
 }
 
 void homura_instance::crawl() {
@@ -118,27 +103,39 @@ bool homura_instance::query_nyaasi(std::string args) {
      find out how many results to expect by sending a request 
      and parsing the query result information */
 
+   homura::options::set_debug_level(3);
+
   std::replace(args.begin(), args.end(), ' ', '+');
   const std::string base_url = "https://nyaa.si/?f=0&c=0_0&q=" + args;
 
-  std::unique_ptr<tree_container> tree = parse_webpage(base_url); 
-  if (!tree) return false;
+  table->get_curler()->perform_curl(base_url);
 
-  if (!(tree->parse_pagination_information())) {
-    errprintf(ERRCODE::FAILED_PARSE, "Failed to retrieve number of results.\n");
-    return false;
-  }
+  std::shared_ptr<std::vector<unsigned char>> results = table->get_curler()->get_HTML();
 
-  table->update_time();
+  // should be able to start another thread and just rip it
+ std::shared_ptr<tree_container> tree = std::make_shared<tree_container>(); 
+ const char *HTML = reinterpret_cast<const char*>(results->data());
+// testan
+ std::thread t1(&tree_container::tree_parseHTML,tree, HTML);
+ table->get_curler()->perform_curl("http://example.com");
+ t1.join();
 
-  int total = tree->pageinfo_total();
-  int per_page = tree->pageinfo_results_per_page();
-  // rounds up integer division (overflow not expected, max results = 1000)
-  int num_pages = ( total + (per_page - 1) ) / per_page;
+ // check for the fkd up tree
+ if (!(tree->parse_pagination_information())) {
+   errprintf(ERRCODE::FAILED_PARSE, "Failed to retrieve number of results.\n");
+   return false;
+ }
 
-  /* push urls to table */
-  for (int i = 1; i < num_pages; i++) {
-    table->insert( base_url + "&p=" + std::to_string(i) );  
-  }
-  return true;
+ table->update_time();
+
+ int total = tree->pageinfo_total();
+ int per_page = tree->pageinfo_results_per_page();
+ // rounds up integer division (overflow not expected, max results = 1000)
+ int num_pages = ( total + (per_page - 1) ) / per_page;
+
+ /* push urls to table */
+ for (int i = 1; i < num_pages; i++) {
+   table->insert( base_url + "&p=" + std::to_string(i) );  
+ }
+ return true;
 }

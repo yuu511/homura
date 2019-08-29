@@ -13,6 +13,7 @@ url_table::url_table (
  std::chrono::steady_clock::time_point last_written )
    : website(website), 
      delay(delay), 
+     curler(std::make_unique<curl_container>()),
      last_written(last_written),
      it(urls.begin()) {}
 
@@ -83,4 +84,8 @@ std::string url_table::get_itor_element() {
     return *it;
   errprintf ( ERRCODE::FAILED_BOUNDS, "get_itor element() called out of bounds.\n");
   return "";
+}
+
+std::unique_ptr<curl_container> &url_table::get_curler() {
+  return curler;
 }

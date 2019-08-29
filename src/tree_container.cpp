@@ -13,9 +13,8 @@ pagination_information::pagination_information(int first, int last, int total) {
   total_result = total;
 }
 
-tree_container::tree_container(std::chrono::steady_clock::time_point time_sent_, int threads)
-  : time_sent(time_sent_),
-    pageinfo (pagination_information(0,0,0)) {
+tree_container::tree_container(int threads)
+  : pageinfo (pagination_information(0,0,0)) {
   handle = myhtml_create();
   myhtml_init(handle, MyHTML_OPTIONS_DEFAULT, threads, 0);
 
@@ -121,8 +120,4 @@ int tree_container::pageinfo_results_per_page() {
 
 int tree_container::pageinfo_total() {
   return pageinfo.total_result;
-}
-
-std::chrono::steady_clock::time_point tree_container::get_time_sent() {
-  return time_sent;
 }
