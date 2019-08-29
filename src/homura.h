@@ -23,7 +23,6 @@ namespace homura {
   public:
     homura_instance();
     void cleanup();
-    ~homura_instance();
     
     void crawl();
     bool query_nyaasi(std::string args);

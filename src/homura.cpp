@@ -29,10 +29,6 @@ void homura_instance::cleanup() {
   curl_global_cleanup();
 }
 
-homura_instance::~homura_instance() {
-  cleanup(); 
-}
-
 // if the table exists for a kind of url, return pointer to it
 // otherwise allcoate a new one and insert it into request hash and request vector
 std::shared_ptr<homura::url_table> homura_instance::get_table
@@ -115,16 +111,16 @@ bool homura_instance::query_nyaasi(std::string args) {
   // should be able to start another thread and just rip it
  std::shared_ptr<tree_container> tree = std::make_shared<tree_container>(); 
  const char *HTML = reinterpret_cast<const char*>(results->data());
-// testan
- std::thread t1(&tree_container::tree_parseHTML,tree, HTML);
+ // testan
  table->get_curler()->perform_curl("http://example.com");
+ std::thread t1(&tree_container::tree_parseHTML,tree, HTML);
  t1.join();
-
  // check for the fkd up tree
  if (!(tree->parse_pagination_information())) {
    errprintf(ERRCODE::FAILED_PARSE, "Failed to retrieve number of results.\n");
    return false;
  }
+
 
  table->update_time();
 
