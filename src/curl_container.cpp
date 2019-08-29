@@ -88,8 +88,7 @@ curl_container::curl_container()
 bool curl_container::perform_curl(const std::string &url) {
   CURLcode code;
   try {
-     buffer.reset();
-     buffer = std::make_unique<std::vector<unsigned char>>();
+     buffer = std::make_shared<std::vector<unsigned char>>();
      data_sz = 0;
 
      code = curl_easy_setopt(easyhandle,CURLOPT_URL,url.c_str());
