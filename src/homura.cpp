@@ -33,11 +33,13 @@ void homura_instance::cleanup() {
 // otherwise allcoate a new one and insert it into request hash and request vector
 std::shared_ptr<homura::url_table> homura_instance::get_table
 (int website, std::chrono::milliseconds delay) {
-  for (auto itor : requests_hash) {
-    if ( itor.first == website ) {
-      return itor.second; 
-    }
+  
+  // lookup
+  auto it = requests_hash.find(website); 
+  if (it != requests_hash.end() ) {
+    return it->second;
   }
+  
   // not found in hash
   auto new_table = std::make_shared<url_table>(website,delay);
   requests_hash.emplace(website, new_table);
@@ -54,14 +56,6 @@ std::shared_ptr<homura::url_table> homura_instance::get_table
 }
 
 void homura_instance::crawl() {
-  if (homura::options::debug_level) {
-    fprintf(stdout,"== Crawl called ==\n");
-    fprintf(stdout,"Number of url types %zd\n",requests.size());
-    for (auto itor : requests) {
-      size_t sz = itor->get_urls().size();
-      fprintf(stdout,"URL %d SZ %zd \n\n",itor->get_website(),sz);
-    }
-  }
 
   bool finished = false;
   while (!finished) {
