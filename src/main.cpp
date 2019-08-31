@@ -58,6 +58,7 @@ void parse_args (int argc, char **argv) {
    using namespace homura;
 
    int opt;
+   int numt;
    while (1) {  
      int option_index = 0;
      static struct option long_options[] = 
@@ -83,13 +84,14 @@ void parse_args (int argc, char **argv) {
 	 print_usage();
          return;
        case 't':
-         if (atoi(optarg) < 1) {
+         numt = atoi(optarg);
+         if (numt < 1) {
            errprintf(ERRCODE::FAILED_ARGPARSE,
 	   "error:-t,--thread expects a positive integer\n");
 	   errprintf(ERRCODE::FAILED_ARGPARSE,"(recieved %s)\n", optarg);
            return;
          } 
-         options::set_thread_level(atoi(optarg));
+         options::set_thread_level(numt);
          break;
        case '?':
          errprintf(ERRCODE::FAILED_ARGPARSE,"incorrect option %c\n",optopt);
