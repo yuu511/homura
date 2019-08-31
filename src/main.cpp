@@ -55,8 +55,6 @@ void print_usage() {
 }
 
 void parse_args (int argc, char **argv) {
-   using namespace homura;
-
    int opt;
    int numt;
    while (1) {  
@@ -75,10 +73,10 @@ void parse_args (int argc, char **argv) {
        break;
      switch (opt) {
        case 'v':
-         options::set_debug_level(1);
+         homura::options::set_debug_level(1);
          break;
        case 'd':
-         options::set_debug_level(2);
+         homura::options::set_debug_level(2);
          break;
        case 'h':
 	 print_usage();
@@ -86,24 +84,24 @@ void parse_args (int argc, char **argv) {
        case 't':
          numt = atoi(optarg);
          if (numt < 1) {
-           errprintf(ERRCODE::FAILED_ARGPARSE,
+           errprintf(homura::ERRCODE::FAILED_ARGPARSE,
 	   "error:-t,--thread expects a positive integer\n");
-	   errprintf(ERRCODE::FAILED_ARGPARSE,"(recieved %s)\n", optarg);
+	   errprintf(homura::ERRCODE::FAILED_ARGPARSE,"(recieved %s)\n", optarg);
            return;
          } 
-         options::set_thread_level(numt);
+         homura::options::set_thread_level(numt);
          break;
        case '?':
-         errprintf(ERRCODE::FAILED_ARGPARSE,"incorrect option %c\n",optopt);
-         errprintf(ERRCODE::FAILED_ARGPARSE,"for usage: homura --help\n");
+         errprintf(homura::ERRCODE::FAILED_ARGPARSE,"incorrect option %c\n",optopt);
+         errprintf(homura::ERRCODE::FAILED_ARGPARSE,"for usage: homura --help\n");
          break;
      }
    }
    if (optind + 1 > argc) {
-     errprintf (ERRCODE::FAILED_ARGPARSE,"No search term provided.\n");
-     errprintf (ERRCODE::FAILED_ARGPARSE,"for usage: homura --help \n");
+     errprintf (homura::ERRCODE::FAILED_ARGPARSE,"No search term provided.\n");
+     errprintf (homura::ERRCODE::FAILED_ARGPARSE,"for usage: homura --help \n");
    }
-   homura_instance homuhomu = homura_instance();
+   homura::homura_instance homuhomu = homura::homura_instance();
    homuhomu.query_nyaasi(std::string(argv[optind]));
    homuhomu.crawl();
    homuhomu.cleanup();
