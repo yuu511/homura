@@ -1,4 +1,0 @@
-testmodule.cpp: In function ‘void test_urltable()’:
-testmodule.cpp:30:34: error: ‘test’ was not declared in this scope
-   30 |   std::thread t1(thread_function,test,"T1",now);
-      |                                  ^~~~

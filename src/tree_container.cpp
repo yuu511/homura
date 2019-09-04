@@ -110,6 +110,11 @@ bool tree_container::parse_nyaasi_pageinfo() {
   return true;
 }
 
+bool tree_container::parse_nyaasi_torrents() {
+  
+  return true;
+}
+
 int tree_container::pageinfo_first() {
   return pageinfo.first_result;
 }
@@ -121,3 +126,4 @@ int tree_container::pageinfo_results_per_page() {
 int tree_container::pageinfo_total() {
   return pageinfo.total_result;
 }
+

@@ -21,7 +21,9 @@ namespace homura {
     void clear();
 
     bool parse_HTML(const char *html_page);
+
     bool parse_nyaasi_pageinfo();
+    bool parse_nyaasi_torrents();
 
     int pageinfo_first();
     int pageinfo_results_per_page();

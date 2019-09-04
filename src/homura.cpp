@@ -66,9 +66,13 @@ void homura_instance::crawl() {
         finished = false;
         if (table->ready_for_request()) {
           table->update_time();
-          //if (homura::options::debug_level) {
-          //  fprintf(stdout, "Parsing url %s\n" , table->get_urls()->back().c_str());
-          //}
+          if (homura::options::debug_level) {
+            fprintf(stdout, "Parsing url %s\n" , table->get_urls()->back().first.c_str());
+          }
+	  // auto p = table->get_urls()->back();
+	  // table->get_urls().second->perform_curl(table->get_urls()->
+          // p.second->perform_curl(p.first);
+	  table->get_urls()->back().second->perform_curl(table->get_urls()->back().first);
           table->get_urls()->pop_back();
         }
       } else {
@@ -107,9 +111,6 @@ bool homura_instance::query_nyaasi(std::string args) {
     table->insert( base_url + "&p=" + std::to_string(i) );  
   }
 
-  // table->update_time();
-  // first.clear();
-  // first_tree.clear();
- 
+  table->update_time();
   return true;
 }
