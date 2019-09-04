@@ -20,8 +20,8 @@ namespace homura {
     tree_container &operator=(const tree_container&) = delete;
     void clear();
 
-    bool tree_parseHTML(const char *html_page);
-    bool parse_pagination_information();
+    bool parse_HTML(const char *html_page);
+    bool parse_nyaasi_pageinfo();
 
     int pageinfo_first();
     int pageinfo_results_per_page();

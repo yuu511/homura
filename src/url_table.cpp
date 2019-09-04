@@ -14,11 +14,10 @@ url_table::url_table (
    : website(website), 
      delay(delay), 
      url_list(std::make_shared<urls>()),
-     curler(std::make_shared<curl_container>()),
      last_written(last_written) {}
 
 void url_table::insert(std::string url) {
-  url_list->push_back(url);   
+  url_list->emplace_back(url,std::make_unique<curl_container>());
   if (homura::options::debug_level) {
     std::cout << "Inserted key " << url << std::endl;
   }
@@ -52,8 +51,4 @@ bool url_table::ready_for_request() {
 
 std::shared_ptr<urls> url_table::get_urls() {
   return url_list;
-}
-
-std::shared_ptr<curl_container> url_table::get_curler() {
-  return curler;
 }

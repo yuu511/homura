@@ -8,7 +8,7 @@
 #include <memory>
 #include "curl_container.h"
 
-using urls = std::vector<std::string>;
+using urls = std::vector<std::pair<std::string,std::unique_ptr<homura::curl_container>>>;
 
 namespace homura {
   class url_table {
@@ -23,12 +23,10 @@ namespace homura {
     std::chrono::milliseconds get_delay();
 
     std::shared_ptr <urls> get_urls();
-    std::shared_ptr <curl_container> get_curler();
   private:
     int website;
     std::chrono::milliseconds delay;
     std::shared_ptr<urls> url_list;
-    std::shared_ptr<curl_container> curler;
     std::chrono::steady_clock::time_point last_written;
   };
 }

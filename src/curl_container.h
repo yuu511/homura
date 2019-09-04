@@ -12,8 +12,8 @@ namespace homura {
   public:
     curl_container();
     ~curl_container();
-    curl_container(const curl_container&) = delete;
-    curl_container &operator=(const curl_container&) = delete;
+    // curl_container(const curl_container&) = delete;
+    // curl_container &operator=(const curl_container&) = delete;
     void clear();
     
 

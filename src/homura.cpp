@@ -34,12 +34,14 @@ void homura_instance::cleanup() {
 std::shared_ptr<homura::url_table> homura_instance::get_table
 (int website, std::chrono::milliseconds delay) {
   
+  printf ("found.");
   // lookup
   auto it = requests_hash.find(website); 
   if (it != requests_hash.end() ) {
     return it->second;
   }
   
+  printf ("not found.");
   // not found in hash
   auto new_table = std::make_shared<url_table>(website,delay);
   requests_hash.emplace(website, new_table);
@@ -56,19 +58,17 @@ std::shared_ptr<homura::url_table> homura_instance::get_table
 }
 
 void homura_instance::crawl() {
-
   bool finished = false;
   while (!finished) {
     finished = true;
     for (auto table : requests) {
-      // end condition
       if (!table->get_urls()->empty()) {
         finished = false;
         if (table->ready_for_request()) {
           table->update_time();
-          if (homura::options::debug_level) {
-            fprintf(stdout, "Parsing url %s\n" , table->get_urls()->back().c_str());
-          }
+          //if (homura::options::debug_level) {
+          //  fprintf(stdout, "Parsing url %s\n" , table->get_urls()->back().c_str());
+          //}
           table->get_urls()->pop_back();
         }
       } else {
@@ -86,39 +86,30 @@ bool homura_instance::query_nyaasi(std::string args) {
      find out how many results to expect by sending a request 
      and parsing the query result information */
 
-  homura::options::set_debug_level(3);
-
   std::replace(args.begin(), args.end(), ' ', '+');
   const std::string base_url = "https://nyaa.si/?f=0&c=0_0&q=" + args;
 
-  table->get_curler()->perform_curl(base_url);
+  // std::unique_ptr<curl_container> first = std::make_unique<curl_container>();
+  // first->perform_curl(base_url);
+  curl_container first = curl_container();
+  first.perform_curl(base_url);
 
-  std::shared_ptr<std::vector<unsigned char>> results = table->get_curler()->get_HTML();
+  tree_container first_tree = tree_container();
+  first_tree.parse_HTML(first.get_HTML_aschar());
+  if (!first_tree.parse_nyaasi_pageinfo()) return false;  
 
-  // should be able to start another thread and just rip it
-  std::shared_ptr<tree_container> tree = std::make_shared<tree_container>(); 
-  const char *HTML = reinterpret_cast<const char*>(results->data());
-  // testan
-  table->get_curler()->perform_curl("http://example.com");
-  std::thread t1(&tree_container::tree_parseHTML,tree, HTML);
-  t1.join();
-  // check for the fkd up tree
-  if (!(tree->parse_pagination_information())) {
-    errprintf(ERRCODE::FAILED_PARSE, "Failed to retrieve number of results.\n");
-    return false;
-  }
- 
- 
-  table->update_time();
- 
-  int total = tree->pageinfo_total();
-  int per_page = tree->pageinfo_results_per_page();
+  int total = first_tree.pageinfo_total();
+  int per_page = first_tree.pageinfo_results_per_page();
   // rounds up integer division (overflow not expected, max results = 1000)
   int num_pages = ( total + (per_page - 1) ) / per_page;
- 
-  /* push urls to table */
+
   for (int i = 2; i <= num_pages; i++) {
     table->insert( base_url + "&p=" + std::to_string(i) );  
   }
+
+  // table->update_time();
+  // first.clear();
+  // first_tree.clear();
+ 
   return true;
 }

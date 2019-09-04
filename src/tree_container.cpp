@@ -22,7 +22,7 @@ tree_container::tree_container(int threads)
   myhtml_tree_init(tree, handle);
 }
 
-bool tree_container::tree_parseHTML(const char *html_page) {
+bool tree_container::parse_HTML(const char *html_page) {
   if (!html_page)
     return false;
   return MyHTML_STATUS_OK == myhtml_parse(tree, MyENCODING_UTF_8, html_page,strlen(html_page));
@@ -39,7 +39,7 @@ tree_container::~tree_container() {
   clear();
 }
 
-bool tree_container::parse_pagination_information() {
+bool tree_container::parse_nyaasi_pageinfo() {
   if (!tree || !handle) { 
     errprintf(ERRCODE::FAILED_MYHTML_TREE_INIT, "No tree or handle detected in"
       "get_pagination_information\n");
