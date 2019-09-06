@@ -25,7 +25,7 @@ homura_instance::homura_instance()
   init_locks();
 }
 
-void homura_instance::cleanup() {
+homura_instance::~homura_instance() {
   curl_global_cleanup();
 }
 
@@ -34,14 +34,12 @@ void homura_instance::cleanup() {
 std::shared_ptr<homura::url_table> homura_instance::get_table
 (int website, std::chrono::milliseconds delay) {
   
-  printf ("found.");
   // lookup
   auto it = requests_hash.find(website); 
   if (it != requests_hash.end() ) {
     return it->second;
   }
   
-  printf ("not found.");
   // not found in hash
   auto new_table = std::make_shared<url_table>(website,delay);
   requests_hash.emplace(website, new_table);
@@ -66,7 +64,7 @@ void homura_instance::crawl() {
         finished = false;
         if (table->ready_for_request()) {
           table->update_time();
-          if (homura::options::debug_level) {
+          if (options::debug_level) {
             fprintf(stdout, "Parsing url %s\n" , table->get_urls()->back().first.c_str());
           }
 	  // auto p = table->get_urls()->back();
@@ -93,8 +91,6 @@ bool homura_instance::query_nyaasi(std::string args) {
   std::replace(args.begin(), args.end(), ' ', '+');
   const std::string base_url = "https://nyaa.si/?f=0&c=0_0&q=" + args;
 
-  // std::unique_ptr<curl_container> first = std::make_unique<curl_container>();
-  // first->perform_curl(base_url);
   curl_container first = curl_container();
   first.perform_curl(base_url);
 
@@ -112,5 +108,8 @@ bool homura_instance::query_nyaasi(std::string args) {
   }
 
   table->update_time();
+
+  // parse the first page we already downloaded for torrents
+  first_tree.parse_nyaasi_torrents();
   return true;
 }

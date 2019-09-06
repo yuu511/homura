@@ -110,8 +110,95 @@ bool tree_container::parse_nyaasi_pageinfo() {
   return true;
 }
 
+void print_node_attr(myhtml_tree_node_t *node)
+{
+    myhtml_tree_attr_t *attr = myhtml_node_attribute_first(node);
+    
+    while (attr) {
+        const char *name = myhtml_attribute_key(attr, NULL);
+        
+        if(name) {
+            printf(" %s", name);
+            
+            const char *value = myhtml_attribute_value(attr, NULL);
+            
+            if(value)
+                printf("=\"%s\"", value);
+        }
+        
+        attr = myhtml_attribute_next(attr);
+    }
+}
+
+void print_tree(myhtml_tree_t* tree, myhtml_tree_node_t *node, size_t inc)
+{
+    while (node)
+    {
+        for(size_t i = 0; i < inc; i++)
+            printf("\t");
+        
+        // print current element
+        const char *tag_name = myhtml_tag_name_by_id(tree, myhtml_node_tag_id(node), NULL);
+        
+        if(tag_name)
+            printf("<%s", tag_name);
+        else
+            // it can not be
+            printf("<!something is wrong!");
+        
+        // print node attributes
+        print_node_attr(node);
+        
+        if(myhtml_node_is_close_self(node))
+            printf(" /");
+        
+        myhtml_tag_id_t tag_id = myhtml_node_tag_id(node);
+        
+        if(tag_id == MyHTML_TAG__TEXT || tag_id == MyHTML_TAG__COMMENT) {
+            const char* node_text = myhtml_node_text(node, NULL);
+            printf(">: %s\n", node_text);
+        }
+        else {
+            printf(">\n");
+        }
+        
+        // print children
+        print_tree(tree, myhtml_node_child(node), (inc + 1));
+        node = myhtml_node_next(node);
+    }
+}
+
 bool tree_container::parse_nyaasi_torrents() {
+  // parse html
+  // myhtml_collection_t *collection = myhtml_get_nodes_by_tag_id(tree, NULL, MyHTML_TAG_TBODY, NULL);
+  const char *mag_k = "href";
+  const char *mag_v = "magnet";
+  myhtml_collection_t *magnets = myhtml_get_nodes_by_attribute_value_contain(tree, NULL, NULL, true,
+                                                                             mag_k, strlen(mag_k),
+                                                                             mag_v, strlen(mag_v), NULL);
   
+  if(magnets && magnets->list && magnets->length) {
+    // printf ("magnets length %zd",magnets->length);
+    for (size_t i = 0; i < magnets->length; i++){
+      myhtml_tree_attr_t *attr = myhtml_node_attribute_first(magnets->list[i]);
+      const char *magnet_link = myhtml_attribute_value(attr,NULL);
+      if (magnet_link) {
+        printf ("%s\n",magnet_link);
+      }
+    }
+    //  myhtml_tree_node_t *text_node = magnets->list[0];
+    // text_node = myhtml_node_child(text_node);
+    // 
+    // print_tree(tree, text_node,0);
+    // if (magnets)
+    //   printf ("sz of collection %zd", magnets->size); 
+    // myhtml_tree_node_t *entry_contents = myhtml_node_child(text_node);
+    // while (entry_contents) {
+    //   entry_contents = myhtml_node_next(entry_contents);
+    // }
+    // print_tree(tree, text_node, 0);
+    
+  }
   return true;
 }
 

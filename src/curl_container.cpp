@@ -10,8 +10,6 @@ std::shared_ptr<std::vector<unsigned char>> curl_container::get_HTML() {
 }
 
 const char *curl_container::get_HTML_aschar() {
-  if (!this->data_sz)
-    return nullptr;
   return reinterpret_cast<const char*>(buffer->data());
 }
 
