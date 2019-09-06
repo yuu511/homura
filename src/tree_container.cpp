@@ -28,15 +28,11 @@ bool tree_container::parse_HTML(const char *html_page) {
   return MyHTML_STATUS_OK == myhtml_parse(tree, MyENCODING_UTF_8, html_page,strlen(html_page));
 }
 
-void tree_container::clear() {
+tree_container::~tree_container() {
   if (tree)
     myhtml_tree_destroy(tree);
   if (handle)
     myhtml_destroy(handle);
-}
-
-tree_container::~tree_container() {
-  clear();
 }
 
 bool tree_container::parse_nyaasi_pageinfo() {
@@ -178,7 +174,6 @@ bool tree_container::parse_nyaasi_torrents() {
                                                                              mag_v, strlen(mag_v), NULL);
   
   if(magnets && magnets->list && magnets->length) {
-    // printf ("magnets length %zd",magnets->length);
     for (size_t i = 0; i < magnets->length; i++){
       myhtml_tree_attr_t *attr = myhtml_node_attribute_first(magnets->list[i]);
       const char *magnet_link = myhtml_attribute_value(attr,NULL);
@@ -186,18 +181,6 @@ bool tree_container::parse_nyaasi_torrents() {
         printf ("%s\n",magnet_link);
       }
     }
-    //  myhtml_tree_node_t *text_node = magnets->list[0];
-    // text_node = myhtml_node_child(text_node);
-    // 
-    // print_tree(tree, text_node,0);
-    // if (magnets)
-    //   printf ("sz of collection %zd", magnets->size); 
-    // myhtml_tree_node_t *entry_contents = myhtml_node_child(text_node);
-    // while (entry_contents) {
-    //   entry_contents = myhtml_node_next(entry_contents);
-    // }
-    // print_tree(tree, text_node, 0);
-    
   }
   return true;
 }

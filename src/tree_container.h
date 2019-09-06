@@ -18,7 +18,6 @@ namespace homura {
     ~tree_container();
     tree_container(const tree_container&) = delete; 
     tree_container &operator=(const tree_container&) = delete;
-    void clear();
 
     bool parse_HTML(const char *html_page);
 
