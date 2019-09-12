@@ -98,8 +98,8 @@ bool homura_instance::query_nyaasi(std::string args) {
   first_tree.parse_HTML(first.get_HTML_aschar());
   if (!first_tree.parse_nyaasi_pageinfo()) return false;  
 
-  int total = first_tree.pageinfo_total();
-  int per_page = first_tree.pageinfo_results_per_page();
+  int total = first_tree.nyaasi_pageinfo_total();
+  int per_page = first_tree.nyaasi_pageinfo_results_per_page();
   // rounds up integer division (overflow not expected, max results = 1000)
   int num_pages = ( total + (per_page - 1) ) / per_page;
 

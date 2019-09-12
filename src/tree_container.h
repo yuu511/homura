@@ -16,22 +16,20 @@ namespace homura {
   public:
     tree_container(int threads = 1);
     ~tree_container();
-    tree_container(const tree_container&) = delete; 
-    tree_container &operator=(const tree_container&) = delete;
 
     bool parse_HTML(const char *html_page);
 
     bool parse_nyaasi_pageinfo();
     bool parse_nyaasi_torrents();
 
-    int pageinfo_first();
-    int pageinfo_results_per_page();
-    int pageinfo_total();
+    int nyaasi_pageinfo_first();
+    int nyaasi_pageinfo_results_per_page();
+    int nyaasi_pageinfo_total();
 
   private:
     myhtml_t *handle;
     myhtml_tree *tree; 
-    pagination_information pageinfo;
+    pagination_information nyaasi_pageinfo;
   };
 
 }

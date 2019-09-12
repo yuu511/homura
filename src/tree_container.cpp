@@ -14,7 +14,7 @@ pagination_information::pagination_information(int first, int last, int total) {
 }
 
 tree_container::tree_container(int threads)
-  : pageinfo (pagination_information(0,0,0)) {
+  : nyaasi_pageinfo (pagination_information(0,0,0)) {
   handle = myhtml_create();
   myhtml_init(handle, MyHTML_OPTIONS_DEFAULT, threads, 0);
 
@@ -91,16 +91,16 @@ bool tree_container::parse_nyaasi_pageinfo() {
     return false;
   }
 
-  pageinfo = pagination_information(stk[0],stk[1],stk[2]);
+  nyaasi_pageinfo = pagination_information(stk[0],stk[1],stk[2]);
 
   if (homura::options::debug_level) {
     fprintf (stdout,"== First page result information == \n");
     fprintf (stdout,"String: \"%s\" \nfirst result "
                     "%d\nlast result (results per page) %d\ntotal results %d\n\n",
             page_information,
-            this->pageinfo_first(),
-            this->pageinfo_results_per_page(),
-            this->pageinfo_total());
+            this->nyaasi_pageinfo_first(),
+            this->nyaasi_pageinfo_results_per_page(),
+            this->nyaasi_pageinfo_total());
   }
 
   return true;
@@ -185,15 +185,15 @@ bool tree_container::parse_nyaasi_torrents() {
   return true;
 }
 
-int tree_container::pageinfo_first() {
-  return pageinfo.first_result;
+int tree_container::nyaasi_pageinfo_first() {
+  return nyaasi_pageinfo.first_result;
 }
 
-int tree_container::pageinfo_results_per_page() {
-  return pageinfo.last_result;
+int tree_container::nyaasi_pageinfo_results_per_page() {
+  return nyaasi_pageinfo.last_result;
 }
 
-int tree_container::pageinfo_total() {
-  return pageinfo.total_result;
+int tree_container::nyaasi_pageinfo_total() {
+  return nyaasi_pageinfo.total_result;
 }
 
