@@ -96,7 +96,7 @@ bool homura_instance::query_nyaasi(std::string args) {
 
   tree_container first_tree = tree_container();
   first_tree.parse_HTML(first.get_HTML_aschar());
-  if (!first_tree.parse_nyaasi_pageinfo()) return false;  
+  if (!first_tree.nyaasi_parse_pageinfo()) return false;  
 
   int total = first_tree.nyaasi_pageinfo_total();
   int per_page = first_tree.nyaasi_pageinfo_results_per_page();
@@ -110,6 +110,6 @@ bool homura_instance::query_nyaasi(std::string args) {
   table->update_time();
 
   // parse the first page we already downloaded for torrents
-  first_tree.parse_nyaasi_torrents();
+  first_tree.nyaasi_parse_torrents();
   return true;
 }

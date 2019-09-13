@@ -44,8 +44,10 @@ bool url_table::ready_for_request() {
     std::chrono::duration_cast<std::chrono::milliseconds>
       (std::chrono::steady_clock::now() - last_written);
 
-  if ( diff.count() >= delay.count() ) 
+  if ( diff.count() >= delay.count() ) {
     return true;
+  }
+
   return false;
 }
 

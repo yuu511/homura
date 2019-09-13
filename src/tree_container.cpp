@@ -35,7 +35,7 @@ tree_container::~tree_container() {
     myhtml_destroy(handle);
 }
 
-bool tree_container::parse_nyaasi_pageinfo() {
+bool tree_container::nyaasi_parse_pageinfo() {
   if (!tree || !handle) { 
     errprintf(ERRCODE::FAILED_MYHTML_TREE_INIT, "No tree or handle detected in"
       "get_pagination_information\n");
@@ -164,7 +164,7 @@ void print_tree(myhtml_tree_t* tree, myhtml_tree_node_t *node, size_t inc)
     }
 }
 
-bool tree_container::parse_nyaasi_torrents() {
+bool tree_container::nyaasi_parse_torrents() {
   // parse html
   // myhtml_collection_t *collection = myhtml_get_nodes_by_tag_id(tree, NULL, MyHTML_TAG_TBODY, NULL);
   const char *mag_k = "href";
