@@ -20,7 +20,8 @@ using namespace homura;
 // use char* for html parsing, store results in string
 
 homura_instance::homura_instance() 
-  : results(nullptr) {
+  : results(nullptr),
+    torrenter() {
   curl_global_init(CURL_GLOBAL_ALL);
   init_locks();
 }
@@ -110,6 +111,10 @@ bool homura_instance::query_nyaasi(std::string args) {
   table->update_time();
 
   // parse the first page we already downloaded for torrents
-  first_tree.nyaasi_parse_torrents();
+
+  std::vector<std::string> magnets = first_tree.nyaasi_parse_torrents();
+  for (auto itor: magnets) {
+    torrenter.extract_magnet_information(itor);
+  }
   return true;
 }

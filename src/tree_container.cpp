@@ -164,7 +164,8 @@ void print_tree(myhtml_tree_t* tree, myhtml_tree_node_t *node, size_t inc)
     }
 }
 
-bool tree_container::nyaasi_parse_torrents() {
+std::vector<std::string> tree_container::nyaasi_parse_torrents() {
+  std::vector<std::string> magnet_list;
   // parse html
   // myhtml_collection_t *collection = myhtml_get_nodes_by_tag_id(tree, NULL, MyHTML_TAG_TBODY, NULL);
   const char *mag_k = "href";
@@ -178,11 +179,12 @@ bool tree_container::nyaasi_parse_torrents() {
       myhtml_tree_attr_t *attr = myhtml_node_attribute_first(magnets->list[i]);
       const char *magnet_link = myhtml_attribute_value(attr,NULL);
       if (magnet_link) {
-        printf ("%s\n",magnet_link);
+        magnet_list.push_back(magnet_link);
       }
     }
   }
-  return true;
+
+  return magnet_list;
 }
 
 int tree_container::nyaasi_pageinfo_first() {

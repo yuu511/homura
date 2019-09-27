@@ -1,6 +1,7 @@
 project('homura','cpp',default_options: ['cpp_std=c++17'])
 cc = meson.get_compiler('cpp')
-homura_sources = ['src/main.cpp','src/homura.cpp','src/errlib.cpp','src/magnet_table.cpp','src/curl_container.cpp','src/tree_container.cpp','src/url_table.cpp']
+homura_sources = ['src/main.cpp','src/homura.cpp','src/errlib.cpp','src/magnet_table.cpp','src/curl_container.cpp'
+,'src/tree_container.cpp','src/url_table.cpp','src/torrent_parser.cpp']
 
 # dependencies 
 dep_thread = dependency('threads')

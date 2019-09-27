@@ -3,6 +3,7 @@
 
 #include <myhtml/myhtml.h>
 #include <chrono>
+#include <string>
 
 namespace homura {
   struct pagination_information {
@@ -20,7 +21,7 @@ namespace homura {
     bool parse_HTML(const char *html_page);
 
     bool nyaasi_parse_pageinfo();
-    bool nyaasi_parse_torrents();
+    std::vector<std::string> nyaasi_parse_torrents();
 
     int nyaasi_pageinfo_first();
     int nyaasi_pageinfo_results_per_page();
