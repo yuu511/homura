@@ -22,10 +22,10 @@ tree_container::tree_container(int threads)
   myhtml_tree_init(tree, handle);
 }
 
-bool tree_container::parse_HTML(const char *html_page) {
-  if (!html_page)
-    return false;
-  return MyHTML_STATUS_OK == myhtml_parse(tree, MyENCODING_UTF_8, html_page,strlen(html_page));
+HOMURA_ERRCODE tree_container::parse_HTML(const char *html_page) {
+  if (!html_page || MyHTML_STATUS_OK == myhtml_parse(tree, MyENCODING_UTF_8, html_page,strlen(html_page)))
+    return ERRCODE::FAILED_PARSE;
+  return  ERRCODE::SUCCESS;
 }
 
 tree_container::~tree_container() {
@@ -35,11 +35,11 @@ tree_container::~tree_container() {
     myhtml_destroy(handle);
 }
 
-bool tree_container::nyaasi_parse_pageinfo() {
+HOMURA_ERRCODE tree_container::nyaasi_parse_pageinfo() {
   if (!tree || !handle) { 
     errprintf(ERRCODE::FAILED_MYHTML_TREE_INIT, "No tree or handle detected in"
       "get_pagination_information\n");
-    return false;
+    return ERRCODE::FAILED_MYHTML_TREE_INIT;
   }
 
   const char *page_information;
@@ -54,16 +54,16 @@ bool tree_container::nyaasi_parse_pageinfo() {
     } 
     else {
       errprintf(ERRCODE::FAILED_PARSE, "Failed to parse first page \n (Pagination information not found)");
-      return false;
+      return ERRCODE::FAILED_PARSE;
     }
     if (myhtml_collection_destroy(found)) {
       errprintf(ERRCODE::FAILED_FREE, "Failed to free MyHTML collection.");
-      return false;
+      return ERRCODE::FAILED_FREE;
     }
   } 
   else {
     errprintf(ERRCODE::FAILED_PARSE, "Failed to parse first page (Pagination information not found)\n");
-    return false;
+    return ERRCODE::FAILED_PARSE;
   }
 
   // parse the pagination information
@@ -79,7 +79,7 @@ bool tree_container::nyaasi_parse_pageinfo() {
        } 
        else {
          errprintf(ERRCODE::FAILED_INTCAST,"Failed to convert long to int\n");
-         return false;
+         return ERRCODE::FAILED_INTCAST;
        }
     }
     else 
@@ -88,7 +88,7 @@ bool tree_container::nyaasi_parse_pageinfo() {
   free(copy);
   if (stk.size() != 3) {
     errprintf(ERRCODE::FAILED_PARSE,"Incorrect pagination string parse.\n");
-    return false;
+    return ERRCODE::FAILED_PARSE;
   }
 
   nyaasi_pageinfo = pagination_information(stk[0],stk[1],stk[2]);
@@ -103,7 +103,7 @@ bool tree_container::nyaasi_parse_pageinfo() {
             this->nyaasi_pageinfo_total());
   }
 
-  return true;
+  return ERRCODE::SUCCESS;
 }
 
 void print_node_attr(myhtml_tree_node_t *node)

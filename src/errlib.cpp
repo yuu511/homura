@@ -65,6 +65,9 @@ std::string homura::parse_error_exitcode(int code) {
     case FAILED_BOUNDS:
       message = "FAILED_BOUNDS";
       break;
+    case FAILED_NO_RESULTS:
+      message = "FAILED_NO_RESULTS";
+      break;
     default:
       message = "UNKNOWN_ERROR";
       break;

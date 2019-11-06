@@ -4,6 +4,7 @@
 #include <myhtml/myhtml.h>
 #include <chrono>
 #include <string>
+#include "errlib.h"
 
 namespace homura {
   struct pagination_information {
@@ -18,9 +19,9 @@ namespace homura {
     tree_container(int threads = 1);
     ~tree_container();
 
-    bool parse_HTML(const char *html_page);
+    HOMURA_ERRCODE parse_HTML(const char *html_page);
 
-    bool nyaasi_parse_pageinfo();
+    HOMURA_ERRCODE nyaasi_parse_pageinfo();
     std::vector<std::string> nyaasi_parse_torrents();
 
     int nyaasi_pageinfo_first();

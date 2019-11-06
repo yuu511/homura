@@ -1,7 +1,5 @@
 project('homura','cpp',default_options: ['cpp_std=c++17'])
 cc = meson.get_compiler('cpp')
-homura_sources = ['src/main.cpp','src/homura.cpp','src/errlib.cpp','src/magnet_table.cpp','src/curl_container.cpp'
-,'src/tree_container.cpp','src/url_table.cpp','src/torrent_parser.cpp']
 
 # dependencies 
 dep_thread = dependency('threads')
@@ -32,11 +30,18 @@ endif
 # FLAGS
 generic_flags = ['-g','-Wall']
 
-e = executable('homura', 
-                sources: homura_sources,
-                dependencies: all_dep,
-                include_directories: inc_myhtml,
-                c_args : generic_flags)
+# Sources
+homura_sources = ['src/main.cpp','src/homura.cpp','src/errlib.cpp','src/magnet_table.cpp','src/curl_container.cpp'
+,'src/tree_container.cpp','src/url_table.cpp','src/torrent_parser.cpp']
+
+homura_include = include_directories('include')
+all_includes = [homura_include,inc_myhtml]
+
+e = executable('homura' ,
+               sources: homura_sources,
+               dependencies: all_dep,
+               include_directories: all_includes, 
+               c_args: generic_flags)
 
 # Tests
 test ('default' , e, args : ['-v','dumbbell nan kilo moteru'])

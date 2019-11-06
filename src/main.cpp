@@ -54,7 +54,7 @@ void print_usage() {
   fprintf (stdout,"\n");
 }
 
-void parse_args (int argc, char **argv) {
+HOMURA_ERRCODE parse_args (int argc, char **argv) {
    int opt;
    int numt;
    while (1) {  
@@ -79,45 +79,45 @@ void parse_args (int argc, char **argv) {
          homura::options::set_debug_level(2);
          break;
        case 'h':
-	 print_usage();
-         return;
+	     print_usage();
+         return homura::ERRCODE::SUCCESS;
        case 't':
          numt = atoi(optarg);
          if (numt < 1) {
            errprintf(homura::ERRCODE::FAILED_ARGPARSE,
 	   "error:-t,--thread expects a positive integer\n");
 	   errprintf(homura::ERRCODE::FAILED_ARGPARSE,"(recieved %s)\n", optarg);
-           return;
+           return homura::ERRCODE::FAILED_ARGPARSE;
          } 
          homura::options::set_thread_level(numt);
          break;
        case '?':
          errprintf(homura::ERRCODE::FAILED_ARGPARSE,"incorrect option %c\n",optopt);
          errprintf(homura::ERRCODE::FAILED_ARGPARSE,"for usage: homura --help\n");
+         return homura::ERRCODE::FAILED_ARGPARSE;
          break;
      }
    }
    if (optind + 1 > argc) {
      errprintf (homura::ERRCODE::FAILED_ARGPARSE,"No search term provided.\n");
      errprintf (homura::ERRCODE::FAILED_ARGPARSE,"for usage: homura --help \n");
+     return homura::ERRCODE::FAILED_ARGPARSE;
    }
    homura::homura_instance homuhomu = homura::homura_instance();
-   homuhomu.query_nyaasi(std::string(argv[optind]));
-   homuhomu.crawl();
+
+   int query_failed = homuhomu.query_nyaasi(std::string(argv[optind]));
+   if (query_failed) return query_failed; 
+
+   int crawl_failed = homuhomu.crawl();
+   if (crawl_failed) return crawl_failed;
+
+   return homura::ERRCODE::SUCCESS;
 }
 
 int main (int argc, char **argv) {
-  parse_args(argc,argv);
-  if (homura::options::debug_level) {
-    if (homura::error_handler::exit_code != EXIT_SUCCESS ) {
-      fprintf(stderr,"homura exited with error code %s\n",
-        homura::parse_error_exitcode(homura::error_handler::exit_code).c_str());
-
-      homura::unwind_exit_code_stack(homura::error_handler::exitcode_stack);
-    }
-    else {
-      fprintf(stdout,"homura exited sucessfully.\n");
-    }
+  int response = parse_args(argc,argv);
+  if (response) {
+    fprintf(stderr,"homura exited with status code %s\n",homura::parse_error_exitcode(response).c_str());
   }
-  return homura::error_handler::exit_code;
+  return response;
 }

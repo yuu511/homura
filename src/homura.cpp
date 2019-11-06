@@ -56,7 +56,7 @@ std::shared_ptr<homura::url_table> homura_instance::get_table
   return new_table;
 }
 
-void homura_instance::crawl() {
+HOMURA_ERRCODE homura_instance::crawl() {
   bool finished = false;
   while (!finished) {
     finished = true;
@@ -79,9 +79,10 @@ void homura_instance::crawl() {
       }
     }
   }
+  return ERRCODE::SUCCESS;
 }
 
-bool homura_instance::query_nyaasi(std::string args) {
+HOMURA_ERRCODE homura_instance::query_nyaasi(std::string args) {
 
    std::shared_ptr<url_table> table = get_table(website::nyaasi,std::chrono::milliseconds(5000));
 
@@ -97,10 +98,15 @@ bool homura_instance::query_nyaasi(std::string args) {
 
   tree_container first_tree = tree_container();
   first_tree.parse_HTML(first.get_HTML_aschar());
-  if (!first_tree.nyaasi_parse_pageinfo()) return false;  
+  int failed_parse = first_tree.nyaasi_parse_pageinfo();
+  if (failed_parse) return failed_parse;
 
   int total = first_tree.nyaasi_pageinfo_total();
   int per_page = first_tree.nyaasi_pageinfo_results_per_page();
+  if ( total <= 1 || per_page <= 1) {
+    fprintf(stdout, "no results found for %s!\n",args.c_str());
+    return ERRCODE::FAILED_NO_RESULTS;
+  }
   // rounds up integer division (overflow not expected, max results = 1000)
   int num_pages = ( total + (per_page - 1) ) / per_page;
 
@@ -113,8 +119,8 @@ bool homura_instance::query_nyaasi(std::string args) {
   // parse the first page we already downloaded for torrents
 
   std::vector<std::string> magnets = first_tree.nyaasi_parse_torrents();
-  for (auto itor: magnets) {
-    torrenter.extract_magnet_information(itor);
-  }
-  return true;
+  // for (auto itor: magnets) {
+  //   torrenter.extract_magnet_information(itor);
+  // }
+  return ERRCODE::SUCCESS;
 }

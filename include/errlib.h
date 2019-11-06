@@ -6,10 +6,12 @@
 
 // small error and option handling module
 
+#define HOMURA_ERRCODE int
+
 namespace homura {
   /* error */
   enum ERRCODE {
-    success,
+    SUCCESS,
     FAILED_ARGPARSE,
     FAILED_CURL,
     FAILED_PARSE,
@@ -17,7 +19,8 @@ namespace homura {
     FAILED_FREE,
     FAILED_INTCAST,
     FAILED_MYHTML_TREE_INIT,
-    FAILED_BOUNDS
+    FAILED_BOUNDS,
+    FAILED_NO_RESULTS
   };
 
   /* options */

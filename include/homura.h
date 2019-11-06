@@ -10,6 +10,7 @@
 #include "magnet_table.h"
 #include "url_table.h"
 #include "torrent_parser.h"
+#include "errlib.h"
 
 using milliseconds = std::chrono::milliseconds;
 
@@ -25,8 +26,8 @@ namespace homura {
     homura_instance();
     ~homura_instance();
     
-    void crawl();
-    bool query_nyaasi(std::string args);
+    HOMURA_ERRCODE crawl();
+    HOMURA_ERRCODE query_nyaasi(std::string args);
   private:
     magnet_table *results;
     std::vector<std::shared_ptr<homura::url_table>> requests;
