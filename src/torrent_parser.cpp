@@ -15,9 +15,11 @@
 using namespace homura;
 
 torrent_parser::torrent_parser()
-: ses(){}
+: ses()
+{}
 
-void torrent_parser::extract_magnet_information(std::string magnet) {
+void torrent_parser::extract_magnet_information(std::string magnet) 
+{
 
   int item_limit = 1000000;
   int depth_limit = 1000;

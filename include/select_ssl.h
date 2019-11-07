@@ -5,7 +5,8 @@
 
 GCRY_THREAD_OPTION_PTHREAD_IMPL;
 
-void init_locks(void) {
+void init_locks(void) 
+{
   gcry_control(GCRYCTL_SET_THREAD_CBS);
   if (homura::options::debug_level)
     fprintf(stdout, "curl with GNUTLS selected\n");
@@ -18,7 +19,8 @@ void init_locks(void) {
 
 std::deque<std::mutex> locks;
 
-static void lock_callback(int mode, int type, char *file, int line) {
+static void lock_callback(int mode, int type, char *file, int line) 
+{
   (void)file;
   (void)line;
   if(mode & CRYPTO_LOCK) {
@@ -29,11 +31,13 @@ static void lock_callback(int mode, int type, char *file, int line) {
   }
 }
 
-static unsigned long thread_id() {
+static unsigned long thread_id() 
+{
   return static_cast<unsigned long> (pthread_self());
 }
 
-static void init_locks() {
+static void init_locks() 
+{
   locks.resize(CRYPTO_num_locks());
   CRYPTO_set_id_callback(&thread_id);
   CRYPTO_set_locking_callback(&lock_callback);

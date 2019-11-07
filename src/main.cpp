@@ -11,16 +11,19 @@ using namespace homura;
 /* print_usage helper functions */
 // n space indent for all strings
 // first part of option string will be a minimum of 30 characters long 
-void println(int whitespace, const char *line) {
+void println(int whitespace, const char *line) 
+{
   fprintf(stdout,"%*s%s\n",whitespace,"", line);
 }
 
-void printopt(int whitespace, const char *option, const char *description) {
+void printopt(int whitespace, const char *option, const char *description) 
+{
   fprintf(stdout,"%*s%-30s%s\n",whitespace, "", option, description);
 }
 
 /* print_usage */ 
-void print_usage() {
+void print_usage() 
+{
   fprintf(stdout,"\n");
   println(5,"USAGE:");
   println(5,"homura [-vdt:] ARG");
@@ -56,7 +59,8 @@ void print_usage() {
   fprintf (stdout,"\n");
 }
 
-HOMURA_ERRCODE parse_args (int argc, char **argv) {
+HOMURA_ERRCODE parse_args (int argc, char **argv) 
+{
    int opt;
    int numt;
    while (1) {  
@@ -109,7 +113,8 @@ HOMURA_ERRCODE parse_args (int argc, char **argv) {
    return ERRCODE::SUCCESS;
 }
 
-HOMURA_ERRCODE crawl(){
+HOMURA_ERRCODE crawl()
+{
    homura_instance homuhomu = homura_instance();
 
    int status;
@@ -122,7 +127,8 @@ HOMURA_ERRCODE crawl(){
    return ERRCODE::SUCCESS;
 }
 
-int main (int argc, char **argv) {
+int main (int argc, char **argv) 
+{
   int status;
   status = parse_args(argc,argv);
 
@@ -130,7 +136,7 @@ int main (int argc, char **argv) {
     status = crawl();
   }
 
-  if (status != ERRCODE::SUCCESS){
+  if (status != ERRCODE::SUCCESS) {
     errprintf(status,"%s failed with errcode %s\n",argv[0],parse_error_exitcode(status));
   }
 

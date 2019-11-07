@@ -10,7 +10,8 @@
 
 using urls = std::vector<std::pair<std::string,std::unique_ptr<homura::curl_container>>>;
 
-namespace homura {
+namespace homura 
+{
   class url_table {
   public:
     url_table(int website, std::chrono::milliseconds delay, 

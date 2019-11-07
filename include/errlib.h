@@ -8,7 +8,8 @@
 
 #define HOMURA_ERRCODE int
 
-namespace homura {
+namespace homura 
+{
   /* error */
   enum ERRCODE {
     SUCCESS,

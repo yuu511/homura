@@ -10,7 +10,8 @@
 #include "url_table.h"
 #include "errlib.h"
 
-namespace homura {
+namespace homura 
+{
   enum website {
     nyaasi, 
     nyaapantsu, 

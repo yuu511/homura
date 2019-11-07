@@ -7,23 +7,26 @@
 
 using namespace homura;
 
-url_table::url_table (
- int website, 
- std::chrono::milliseconds delay, 
- std::chrono::steady_clock::time_point last_written )
-   : website(website), 
-     delay(delay), 
-     url_list(std::make_shared<urls>()),
-     last_written(last_written) {}
+url_table::url_table 
+( int website, 
+  std::chrono::milliseconds delay, 
+  std::chrono::steady_clock::time_point last_written )
+: website(website), 
+  delay(delay), 
+  url_list(std::make_shared<urls>()),
+  last_written(last_written) 
+{}
 
-void url_table::insert(std::string url) {
+void url_table::insert(std::string url) 
+{
   url_list->emplace_back(url,std::make_unique<curl_container>());
   if (homura::options::debug_level) {
     std::cout << "Inserted key " << url << std::endl;
   }
 }
 
-void url_table::update_time() {
+void url_table::update_time() 
+{
   auto orig = last_written;
   last_written = std::chrono::steady_clock::now();
   if (homura::options::debug_level > 2) {
@@ -35,11 +38,13 @@ void url_table::update_time() {
   }
 }
 
-std::chrono::milliseconds url_table::get_delay() {
+std::chrono::milliseconds url_table::get_delay() 
+{
   return delay;
 }
 
-bool url_table::ready_for_request() {
+bool url_table::ready_for_request() 
+{
   auto diff = 
     std::chrono::duration_cast<std::chrono::milliseconds>
       (std::chrono::steady_clock::now() - last_written);
@@ -51,6 +56,7 @@ bool url_table::ready_for_request() {
   return false;
 }
 
-std::shared_ptr<urls> url_table::get_urls() {
+std::shared_ptr<urls> url_table::get_urls() 
+{
   return url_list;
 }

@@ -14,7 +14,8 @@
 
 using milliseconds = std::chrono::milliseconds;
 
-namespace homura {
+namespace homura 
+{
   enum website {
     nyaasi, 
     nyaapantsu, 

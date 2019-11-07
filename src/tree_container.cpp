@@ -7,14 +7,16 @@
 
 using namespace homura;
 
-pagination_information::pagination_information(int first, int last, int total) {
+pagination_information::pagination_information(int first, int last, int total) 
+{
   first_result = first;
   last_result = last;
   total_result = total;
 }
 
 tree_container::tree_container(int threads)
-  : nyaasi_pageinfo (pagination_information(0,0,0)) {
+  : nyaasi_pageinfo (pagination_information(0,0,0)) 
+{
   handle = myhtml_create();
   myhtml_init(handle, MyHTML_OPTIONS_DEFAULT, threads, 0);
 
@@ -22,21 +24,24 @@ tree_container::tree_container(int threads)
   myhtml_tree_init(tree, handle);
 }
 
-HOMURA_ERRCODE tree_container::parse_HTML(const char *html_page) {
+HOMURA_ERRCODE tree_container::parse_HTML(const char *html_page) 
+{
   if (myhtml_parse(tree, MyENCODING_UTF_8, html_page,strlen(html_page)) != MyHTML_STATUS_OK){
     return ERRCODE::FAILED_PARSE;
   }
   return ERRCODE::SUCCESS;
 }
 
-tree_container::~tree_container() {
+tree_container::~tree_container() 
+{
   if (tree)
     myhtml_tree_destroy(tree);
   if (handle)
     myhtml_destroy(handle);
 }
 
-HOMURA_ERRCODE tree_container::nyaasi_extract_pageinfo() {
+HOMURA_ERRCODE tree_container::nyaasi_extract_pageinfo() 
+{
   if (!tree || !handle) { 
     errprintf(ERRCODE::FAILED_MYHTML_TREE_INIT, "No tree or handle detected in"
       "get_pagination_information\n");
@@ -186,15 +191,17 @@ std::vector<std::string> tree_container::nyaasi_parse_torrents() {
   return magnet_list;
 }
 
-int tree_container::nyaasi_pageinfo_first() {
+int tree_container::nyaasi_pageinfo_first() 
+{
   return nyaasi_pageinfo.first_result;
 }
 
-int tree_container::nyaasi_per_page() {
+int tree_container::nyaasi_per_page() 
+{
   return nyaasi_pageinfo.last_result;
 }
 
-int tree_container::nyaasi_pages_total() {
+int tree_container::nyaasi_pages_total() 
+{
   return nyaasi_pageinfo.total_result;
 }
-

@@ -6,7 +6,8 @@
 #include <string>
 #include "errlib.h"
 
-namespace homura {
+namespace homura 
+{
   struct pagination_information {
     pagination_information(int first_result,int last_result,int total_result);
     int first_result;

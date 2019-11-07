@@ -8,7 +8,8 @@
 #include <memory>
 #include "errlib.h"
 
-namespace homura {
+namespace homura 
+{
   class curl_container {
   public:
     curl_container();

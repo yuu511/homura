@@ -4,9 +4,10 @@
 #include <libtorrent/session.hpp>
 #include <string>
 
-namespace homura {
-
-  class torrent_parser {
+namespace homura 
+{
+  class torrent_parser 
+  {
   public:
     torrent_parser();
     void extract_magnet_information(std::string magnet);

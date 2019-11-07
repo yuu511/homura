@@ -21,19 +21,22 @@ using namespace homura;
 
 homura_instance::homura_instance() 
   : results(nullptr),
-    torrenter() {
+    torrenter() 
+{
   curl_global_init(CURL_GLOBAL_ALL);
   init_locks();
 }
 
-homura_instance::~homura_instance() {
+homura_instance::~homura_instance() 
+{
   curl_global_cleanup();
 }
 
 // if the table exists for a kind of url, return pointer to it
 // otherwise allcoate a new one and insert it into request hash and request vector
 std::shared_ptr<homura::url_table> homura_instance::get_table
-(int website, std::chrono::milliseconds delay) {
+  (int website, std::chrono::milliseconds delay) 
+{
   
   // lookup
   auto it = requests_hash.find(website); 
@@ -56,7 +59,8 @@ std::shared_ptr<homura::url_table> homura_instance::get_table
   return new_table;
 }
 
-HOMURA_ERRCODE homura_instance::crawl() {
+HOMURA_ERRCODE homura_instance::crawl() 
+{
   bool finished = false;
   while (!finished) {
     finished = true;
@@ -82,7 +86,8 @@ HOMURA_ERRCODE homura_instance::crawl() {
   return ERRCODE::SUCCESS;
 }
 
-HOMURA_ERRCODE homura_instance::query_nyaasi(std::string args) {
+HOMURA_ERRCODE homura_instance::query_nyaasi(std::string args) 
+{
   /* nyaa.si has no official api, and we must manually
      find out how many results to expect by sending a request 
      and parsing the query result information */

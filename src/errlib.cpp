@@ -12,27 +12,32 @@ int homura::options::debug_level = 0;
 int homura::options::threads = 1;
 std::string homura::options::search_term = "Gochuumon Wa Usagi Desu Ka?";
 
-void homura::options::set_debug_level(int level) {
+void homura::options::set_debug_level(int level) 
+{
   homura::options::debug_level = 
     std::max(level,homura::options::debug_level);
 }
 
-void homura::options::set_thread_level(int numt) {
+void homura::options::set_thread_level(int numt) 
+{
   homura::options::threads = numt;
 }
 
-void homura::options::set_search_term(std::string term) {
+void homura::options::set_search_term(std::string term) 
+{
   homura::options::search_term = term;
 }
 
 /* error */
 int homura::error_handler::exit_code = ERRCODE::SUCCESS;
 
-void homura::error_handler::set_error_exitcode(int code) {
+void homura::error_handler::set_error_exitcode(int code) 
+{
   homura::error_handler::exit_code = code;
 }
 
-std::string homura::parse_error_exitcode(int code) {
+std::string homura::parse_error_exitcode(int code) 
+{
   std::string message;
   switch(code) {
     case FAILED_ARGPARSE:
@@ -69,7 +74,8 @@ std::string homura::parse_error_exitcode(int code) {
   return message;
 }
 
-void homura::errprintf(int error_code, const char *format, ...) {
+void homura::errprintf(int error_code, const char *format, ...) 
+{
   assert(format != nullptr);
   fflush(nullptr);
   homura::error_handler::set_error_exitcode(error_code);
