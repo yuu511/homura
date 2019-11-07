@@ -27,6 +27,8 @@ namespace homura {
   namespace options {
     extern int debug_level;
     extern int threads;
+    extern std::string search_term;
+    void set_search_term(std::string term);
     void set_debug_level(int level);
     void set_thread_level(int numt);
   }
@@ -34,10 +36,8 @@ namespace homura {
   namespace error_handler {
     void set_error_exitcode(int code);
     extern int exit_code;  
-    extern std::vector <int> exitcode_stack;
   }
 
-  void unwind_exit_code_stack(std::vector<int> exitcode_stack);
   std::string parse_error_exitcode(int code);
   // sets the return, prints out error message through stderr
   void errprintf(int error_code, const char *format, ...);

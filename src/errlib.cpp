@@ -1,6 +1,5 @@
 #include <string>
 #include <algorithm>
-#include <stdlib.h>
 #include <stdarg.h>
 #include <assert.h>
 #include <stdio.h>
@@ -11,6 +10,7 @@
 /* options */
 int homura::options::debug_level = 0;
 int homura::options::threads = 1;
+std::string homura::options::search_term = "Gochuumon Wa Usagi Desu Ka?";
 
 void homura::options::set_debug_level(int level) {
   homura::options::debug_level = 
@@ -21,21 +21,15 @@ void homura::options::set_thread_level(int numt) {
   homura::options::threads = numt;
 }
 
+void homura::options::set_search_term(std::string term) {
+  homura::options::search_term = term;
+}
+
 /* error */
-int homura::error_handler::exit_code = EXIT_SUCCESS;
-std::vector<int> homura::error_handler::exitcode_stack;
+int homura::error_handler::exit_code = ERRCODE::SUCCESS;
 
 void homura::error_handler::set_error_exitcode(int code) {
   homura::error_handler::exit_code = code;
-  homura::error_handler::exitcode_stack.push_back(code);
-}
-
-void homura::unwind_exit_code_stack(std::vector<int> exitcode_stack) {
-  fprintf(stderr, "UNWINDING STACK:\n\n");
-  for (auto itor : exitcode_stack) {
-    fprintf(stderr, "FAILED WITH CODE %s\n",parse_error_exitcode(itor).c_str());
-  }
-  fprintf(stderr, "\n END ERRCODE STACK");
 }
 
 std::string homura::parse_error_exitcode(int code) {

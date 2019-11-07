@@ -6,6 +6,8 @@
 #include "homura.h"
 #include "errlib.h"
 
+using namespace homura;
+
 /* print_usage helper functions */
 // n space indent for all strings
 // first part of option string will be a minimum of 30 characters long 
@@ -73,51 +75,64 @@ HOMURA_ERRCODE parse_args (int argc, char **argv) {
        break;
      switch (opt) {
        case 'v':
-         homura::options::set_debug_level(1);
+         options::set_debug_level(1);
          break;
        case 'd':
-         homura::options::set_debug_level(2);
+         options::set_debug_level(2);
          break;
        case 'h':
 	     print_usage();
-         return homura::ERRCODE::SUCCESS;
+         return ERRCODE::SUCCESS;
        case 't':
          numt = atoi(optarg);
          if (numt < 1) {
-           errprintf(homura::ERRCODE::FAILED_ARGPARSE,
+           errprintf(ERRCODE::FAILED_ARGPARSE,
 	   "error:-t,--thread expects a positive integer\n");
-	   errprintf(homura::ERRCODE::FAILED_ARGPARSE,"(recieved %s)\n", optarg);
-           return homura::ERRCODE::FAILED_ARGPARSE;
+	   errprintf(ERRCODE::FAILED_ARGPARSE,"(recieved %s)\n", optarg);
+           return ERRCODE::FAILED_ARGPARSE;
          } 
-         homura::options::set_thread_level(numt);
+         options::set_thread_level(numt);
          break;
        case '?':
-         errprintf(homura::ERRCODE::FAILED_ARGPARSE,"incorrect option %c\n",optopt);
-         errprintf(homura::ERRCODE::FAILED_ARGPARSE,"for usage: homura --help\n");
-         return homura::ERRCODE::FAILED_ARGPARSE;
+         errprintf(ERRCODE::FAILED_ARGPARSE,"incorrect option %c\n",optopt);
+         errprintf(ERRCODE::FAILED_ARGPARSE,"for usage: homura --help\n");
+         return ERRCODE::FAILED_ARGPARSE;
          break;
      }
    }
    if (optind + 1 > argc) {
-     errprintf (homura::ERRCODE::FAILED_ARGPARSE,"No search term provided.\n");
-     errprintf (homura::ERRCODE::FAILED_ARGPARSE,"for usage: homura --help \n");
-     return homura::ERRCODE::FAILED_ARGPARSE;
+     errprintf (ERRCODE::FAILED_ARGPARSE,"No search term provided.\n");
+     errprintf (ERRCODE::FAILED_ARGPARSE,"for usage: homura --help \n");
+     return ERRCODE::FAILED_ARGPARSE;
    }
-   homura::homura_instance homuhomu = homura::homura_instance();
+   options::set_search_term(std::string(argv[optind]));
+   return ERRCODE::SUCCESS;
+}
 
-   int query_failed = homuhomu.query_nyaasi(std::string(argv[optind]));
-   if (query_failed) return query_failed; 
+HOMURA_ERRCODE crawl(){
+   homura_instance homuhomu = homura_instance();
 
-   int crawl_failed = homuhomu.crawl();
-   if (crawl_failed) return crawl_failed;
+   int status;
+   status = homuhomu.query_nyaasi(options::search_term);
+   if (status != ERRCODE::SUCCESS) return status;
 
-   return homura::ERRCODE::SUCCESS;
+   status = homuhomu.crawl();
+   if (status != ERRCODE::SUCCESS) return status;
+
+   return ERRCODE::SUCCESS;
 }
 
 int main (int argc, char **argv) {
-  int response = parse_args(argc,argv);
-  if (response) {
-    fprintf(stderr,"homura exited with status code %s\n",homura::parse_error_exitcode(response).c_str());
+  int status;
+  status = parse_args(argc,argv);
+
+  if (status == ERRCODE::SUCCESS) { 
+    status = crawl();
   }
-  return response;
+
+  if (status != ERRCODE::SUCCESS){
+    errprintf(status,"%s failed with errcode %s\n",argv[0],parse_error_exitcode(status));
+  }
+
+  return status;
 }

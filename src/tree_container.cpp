@@ -23,9 +23,10 @@ tree_container::tree_container(int threads)
 }
 
 HOMURA_ERRCODE tree_container::parse_HTML(const char *html_page) {
-  if (!html_page || MyHTML_STATUS_OK == myhtml_parse(tree, MyENCODING_UTF_8, html_page,strlen(html_page)))
+  if (myhtml_parse(tree, MyENCODING_UTF_8, html_page,strlen(html_page)) != MyHTML_STATUS_OK){
     return ERRCODE::FAILED_PARSE;
-  return  ERRCODE::SUCCESS;
+  }
+  return ERRCODE::SUCCESS;
 }
 
 tree_container::~tree_container() {
@@ -35,7 +36,7 @@ tree_container::~tree_container() {
     myhtml_destroy(handle);
 }
 
-HOMURA_ERRCODE tree_container::nyaasi_parse_pageinfo() {
+HOMURA_ERRCODE tree_container::nyaasi_extract_pageinfo() {
   if (!tree || !handle) { 
     errprintf(ERRCODE::FAILED_MYHTML_TREE_INIT, "No tree or handle detected in"
       "get_pagination_information\n");
@@ -99,8 +100,8 @@ HOMURA_ERRCODE tree_container::nyaasi_parse_pageinfo() {
                     "%d\nlast result (results per page) %d\ntotal results %d\n\n",
             page_information,
             this->nyaasi_pageinfo_first(),
-            this->nyaasi_pageinfo_results_per_page(),
-            this->nyaasi_pageinfo_total());
+            this->nyaasi_per_page(),
+            this->nyaasi_pages_total());
   }
 
   return ERRCODE::SUCCESS;
@@ -166,8 +167,6 @@ void print_tree(myhtml_tree_t* tree, myhtml_tree_node_t *node, size_t inc)
 
 std::vector<std::string> tree_container::nyaasi_parse_torrents() {
   std::vector<std::string> magnet_list;
-  // parse html
-  // myhtml_collection_t *collection = myhtml_get_nodes_by_tag_id(tree, NULL, MyHTML_TAG_TBODY, NULL);
   const char *mag_k = "href";
   const char *mag_v = "magnet";
   myhtml_collection_t *magnets = myhtml_get_nodes_by_attribute_value_contain(tree, NULL, NULL, true,
@@ -191,11 +190,11 @@ int tree_container::nyaasi_pageinfo_first() {
   return nyaasi_pageinfo.first_result;
 }
 
-int tree_container::nyaasi_pageinfo_results_per_page() {
+int tree_container::nyaasi_per_page() {
   return nyaasi_pageinfo.last_result;
 }
 
-int tree_container::nyaasi_pageinfo_total() {
+int tree_container::nyaasi_pages_total() {
   return nyaasi_pageinfo.total_result;
 }
 

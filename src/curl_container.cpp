@@ -3,27 +3,20 @@
 #include "errlib.h"
 
 using namespace homura;
-const char *curl_container::user_agent = "libcurl-agent/1.0";
 
-std::shared_ptr<std::vector<unsigned char>> curl_container::get_HTML() {
-  return buffer;
-}
-
-const char *curl_container::get_HTML_aschar() {
+const char *curl_container::get_HTML_aschar() 
+{
   return reinterpret_cast<const char*>(buffer->data());
 }
 
-size_t curl_container::get_data_sz() {
-  return data_sz;
-}
-
-std::chrono::steady_clock::time_point curl_container::get_time_sent() {
+std::chrono::steady_clock::time_point curl_container::get_time_sent() 
+{
   return time_sent;
 }
 
-bool curl_container::curlcode_pass(CURLcode code,std::string where) {
+bool check_curlcode(CURLcode code) 
+{
   std::string s;
-  response = code;
   if (CURLE_OK != code) {
     switch(code) {
       case CURLE_UNSUPPORTED_PROTOCOL:
@@ -37,13 +30,14 @@ bool curl_container::curlcode_pass(CURLcode code,std::string where) {
       default: 
         s = "CURLM_unkown"; break;
     }
-    errprintf (ERRCODE::FAILED_CURL,"ERROR: %s returns %s\n",where.c_str(), s.c_str());
+    errprintf (ERRCODE::FAILED_CURL,"ERROR: curl failed with error %s", s.c_str());
     return false;
   }
   return true;
 }
 
-size_t curl_container::writecb(const unsigned char *ptr, size_t size, size_t nmemb, void *userp) {
+size_t curl_container::writecb(const unsigned char *ptr, size_t size, size_t nmemb, void *userp) 
+{
   try {
     curl_container *data = static_cast<curl_container*>(userp); 
     size_t len = size * nmemb;
@@ -60,64 +54,42 @@ size_t curl_container::writecb(const unsigned char *ptr, size_t size, size_t nme
 }
 
 curl_container::curl_container()
-  : buffer (std::make_shared<std::vector<unsigned char>>()),
-    data_sz(0),
-    easyhandle (curl_easy_init()) {
-
-  CURLcode code;
-  try {
-     code = curl_easy_setopt(easyhandle,CURLOPT_WRITEDATA, &*this);
-     if (!curlcode_pass(code,"curl_one: CURLOPT_WRITEDATA")) throw std::runtime_error("CURLOPT_WRITEDATA");
-
-     code = curl_easy_setopt(easyhandle,CURLOPT_WRITEFUNCTION,&curl_container::writecb);
-     if (!curlcode_pass(code,"curl_one: CURLOPT_WRITEFUNCTION")) throw std::runtime_error("CURLOPT_WRITEFUNCTION");
-
-     code = curl_easy_setopt(easyhandle,CURLOPT_USERAGENT,"libcurl-agent/1.0");
-     if (!curlcode_pass(code,"curl_one: CURLOPT_USERAGENT")) throw std::runtime_error("CURLOPT_USERAGENT");
-
-     response = code;
-  }
-  catch ( const std::runtime_error &e ) {
-    errprintf(ERRCODE::FAILED_CURL, "CURL initialization exited at %s\n",e);
-    return;
-  }
+: buffer (std::make_unique<std::vector<unsigned char>>()),
+  data_sz(0),
+  easyhandle (curl_easy_init()) 
+{
+    curl_easy_setopt(easyhandle,CURLOPT_WRITEDATA, this);
+    curl_easy_setopt(easyhandle,CURLOPT_WRITEFUNCTION,&curl_container::writecb);
+    curl_easy_setopt(easyhandle,CURLOPT_USERAGENT,"libcurl-agent/1.0");
 }
 
-bool curl_container::perform_curl(const std::string &url) {
-  CURLcode code;
-  try {
-     buffer = std::make_shared<std::vector<unsigned char>>();
-     data_sz = 0;
-
-     code = curl_easy_setopt(easyhandle,CURLOPT_URL,url.c_str());
-     if (!curlcode_pass(code, "curl_container: CURLOPT_URL" )) throw std::runtime_error("CURLOPT_URL");
-  }
-  catch ( const std::runtime_error &e ) {
-    errprintf(ERRCODE::FAILED_CURL, "CURL initialization exited at %s\n",e);
-    return false;
-  }
-  
+HOMURA_ERRCODE curl_container::perform_curl(const std::string &url) 
+{
+  this->data_sz = 0;
   this->time_sent = std::chrono::steady_clock::now();
-  bool pass = CURLE_OK == curl_easy_perform(easyhandle);
+
+  curl_easy_setopt(this->easyhandle,CURLOPT_URL,url.c_str());
+  
+  bool pass = check_curlcode(curl_easy_perform(easyhandle));
 
   if (pass) {
     if (homura::options::debug_level) {
-      fprintf (stdout,"== Size of data / size of string ==\n");
-      fprintf (stdout,"sizeof data: %zd\nsizeof string %zd\n\n",
-        this->get_HTML()->size(),this->get_data_sz());
+      fprintf (stdout,"== Size of string ==\n");
+      fprintf (stdout,"sizeof string %zd\n\n",
+               this->buffer->size());
     }
-    if (homura::options::debug_level > 2) {
+    if (homura::options::debug_level > 1) {
       fprintf (stdout,"%s\n\n", this->get_HTML_aschar());
     }
   }
+  else {
+    errprintf(ERRCODE::FAILED_CURL,"Curl failed at url %s",url.c_str());
+    return ERRCODE::FAILED_CURL;
+  }
 
-  return pass;
-}
-
-void curl_container::clear() {
-  curl_easy_cleanup(easyhandle);
+  return ERRCODE::SUCCESS;
 }
 
 curl_container::~curl_container() {
-  clear();
+  curl_easy_cleanup(easyhandle);
 }

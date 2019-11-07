@@ -21,12 +21,12 @@ namespace homura {
 
     HOMURA_ERRCODE parse_HTML(const char *html_page);
 
-    HOMURA_ERRCODE nyaasi_parse_pageinfo();
+    HOMURA_ERRCODE nyaasi_extract_pageinfo();
     std::vector<std::string> nyaasi_parse_torrents();
 
     int nyaasi_pageinfo_first();
-    int nyaasi_pageinfo_results_per_page();
-    int nyaasi_pageinfo_total();
+    int nyaasi_per_page();
+    int nyaasi_pages_total();
 
   private:
     myhtml_t *handle;
