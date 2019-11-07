@@ -11,13 +11,7 @@
 #include "tree_container.h"
 #include "select_ssl.h"
 
-//testing only, rm later
-#include <thread>
-
 using namespace homura;
-
-// mix of c and c++ for torrent scraping
-// use char* for html parsing, store results in string
 
 homura_instance::homura_instance() 
   : results(nullptr),
@@ -34,10 +28,10 @@ homura_instance::~homura_instance()
 
 // if the table exists for a kind of url, return pointer to it
 // otherwise allcoate a new one and insert it into request hash and request vector
-std::shared_ptr<homura::url_table> homura_instance::get_table
-  (int website, std::chrono::milliseconds delay) 
+std::shared_ptr<homura::url_table> 
+homura_instance::get_table( int website, 
+                            std::chrono::milliseconds delay) 
 {
-  
   // lookup
   auto it = requests_hash.find(website); 
   if (it != requests_hash.end() ) {

@@ -123,7 +123,6 @@ void test_urlinserter() {
   }
   inserter(url,url_hash, nyaapantsu_urls); 
 
-
   // add 10 more hsub urls 
   auto hsub_urls2 = 
   std::make_shared<homura::url_table>(homura::website::horriblesubs, std::chrono::milliseconds(5000));

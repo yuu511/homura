@@ -7,11 +7,10 @@
 
 using namespace homura;
 
-url_table::url_table 
-( int website, 
-  std::chrono::milliseconds delay, 
-  std::chrono::steady_clock::time_point last_written )
-: website(website), 
+url_table::url_table ( int website, 
+                       std::chrono::milliseconds delay, 
+                       std::chrono::steady_clock::time_point last_written )
+  : website(website), 
   delay(delay), 
   url_list(std::make_shared<urls>()),
   last_written(last_written) 

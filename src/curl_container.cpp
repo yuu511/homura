@@ -36,7 +36,10 @@ bool check_curlcode(CURLcode code)
   return true;
 }
 
-size_t curl_container::writecb(const unsigned char *ptr, size_t size, size_t nmemb, void *userp) 
+size_t curl_container::writecb(const unsigned char *ptr, 
+                               size_t size, 
+                               size_t nmemb,
+                               void *userp) 
 {
   try {
     curl_container *data = static_cast<curl_container*>(userp); 
@@ -54,9 +57,9 @@ size_t curl_container::writecb(const unsigned char *ptr, size_t size, size_t nme
 }
 
 curl_container::curl_container()
-: buffer (std::make_unique<std::vector<unsigned char>>()),
-  data_sz(0),
-  easyhandle (curl_easy_init()) 
+  : buffer (std::make_unique<std::vector<unsigned char>>()),
+    data_sz(0),
+    easyhandle (curl_easy_init()) 
 {
     curl_easy_setopt(easyhandle,CURLOPT_WRITEDATA, this);
     curl_easy_setopt(easyhandle,CURLOPT_WRITEFUNCTION,&curl_container::writecb);

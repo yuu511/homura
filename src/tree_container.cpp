@@ -7,7 +7,9 @@
 
 using namespace homura;
 
-pagination_information::pagination_information(int first, int last, int total) 
+pagination_information::pagination_information(int first, 
+                                               int last,
+                                               int total) 
 {
   first_result = first;
   last_result = last;
