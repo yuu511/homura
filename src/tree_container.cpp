@@ -172,7 +172,8 @@ void print_tree(myhtml_tree_t* tree, myhtml_tree_node_t *node, size_t inc)
     }
 }
 
-std::vector<std::string> tree_container::nyaasi_parse_torrents() {
+std::vector<std::string> tree_container::nyaasi_parse_torrents() 
+{
   std::vector<std::string> magnet_list;
   const char *mag_k = "href";
   const char *mag_v = "magnet";

@@ -19,7 +19,10 @@ namespace homura
   };
 }
 
-void thread_function(homura::url_table *test, std::string insert, std::chrono::steady_clock::time_point epoch) {
+void thread_function(homura::url_table *test, 
+                     std::string insert, 
+                     std::chrono::steady_clock::time_point epoch) 
+{
   test->update_time();    
 }
 

@@ -15,7 +15,7 @@
 using namespace homura;
 
 torrent_parser::torrent_parser()
-: ses()
+  : ses()
 {}
 
 void torrent_parser::extract_magnet_information(std::string magnet) 
