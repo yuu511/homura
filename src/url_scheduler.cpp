@@ -30,6 +30,21 @@ url_scheduler::get_or_insert(std::string check,
   return new_table;
 }
 
+void url_scheduler::crawl() 
+{
+  bool finished = false;
+  while (!finished) {
+    finished = true;
+    for (auto table: entries) {
+      if (table->empty()) continue;
+      finished = false;
+      if (table->ready_for_request()) {
+        table->parse_one_url();
+      }
+    }
+  }
+}
+
 void url_scheduler::print_table(){
   for (auto itor : entries) {
     std::cout << "Entry Name: " 

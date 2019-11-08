@@ -29,28 +29,7 @@ homura_instance::~homura_instance()
 
 HOMURA_ERRCODE homura_instance::crawl() 
 {
-  // bool finished = false;
-  // while (!finished) {
-  //   finished = true;
-  //   for (auto table : requests) {
-  //     if (!table->get_urls()->empty()) {
-  //       finished = false;
-  //       if (table->ready_for_request()) {
-  //         table->update_time();
-  //         if (options::debug_level) {
-  //           fprintf(stdout, "Parsing url %s\n" , table->get_urls()->back().first.c_str());
-  //         }
-  //     // auto p = table->get_urls()->back();
-  //     // table->get_urls().second->perform_curl(table->get_urls()->
-  //         // p.second->perform_curl(p.first);
-  //         table->get_urls()->back().second->perform_curl(table->get_urls()->back().first);
-  //             table->get_urls()->pop_back();
-  //       }
-  //     } else {
-  //       continue;
-  //     }
-  //   }
-  // }
+  scheduler.crawl();
   return ERRCODE::SUCCESS;
 }
 
@@ -60,19 +39,25 @@ HOMURA_ERRCODE homura_instance::query_nyaasi(std::string args)
      find out how many results to expect by sending a request 
      and parsing the query result information */
 
+  // get existing table of requests to parse from nyaa.si,
+  // or create and return table if it doesn't exist.
+  auto table = this->scheduler.get_or_insert("nyaa.si",std::chrono::milliseconds(5000));
+
   std::replace(args.begin(), args.end(), ' ', '+');
   const std::string base_url = "https://nyaa.si/?f=0&c=0_0&q=" + args;
 
+  table->insert_url(base_url);
+  table->parse_one_url();
   int status;
 
-  curl_container curler = curl_container();
-
-  status = curler.perform_curl(base_url);
-  if (status != ERRCODE::SUCCESS) return status;
-
+//  curl_container curler = curl_container();
+//
+//  status = curler.perform_curl(base_url);
+//  if (status != ERRCODE::SUCCESS) return status;
+//
   tree_container html_tree_creator = tree_container();
 
-  status = html_tree_creator.parse_HTML(curler.get_HTML_aschar());
+  status = html_tree_creator.parse_HTML(table->get_last_download());
   if (status != ERRCODE::SUCCESS) return status;
 
   status = html_tree_creator.nyaasi_extract_pageinfo();
@@ -86,10 +71,6 @@ HOMURA_ERRCODE homura_instance::query_nyaasi(std::string args)
   }
   // rounds up integer division (overflow not expected, max results = 1000)
   int num_pages = ( total + (per_page - 1) ) / per_page;
-
-  // get existing table for nyaa.si url table from the scheduler, 
-  // or create/return table if it doesn't exist.
-  auto table = this->scheduler.get_or_insert("nyaa.si",std::chrono::milliseconds(5000));
 
   for (int i = 2; i <= num_pages; i++) {
     table->insert_url( base_url + "&p=" + std::to_string(i) );  

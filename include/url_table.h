@@ -17,14 +17,20 @@ namespace homura
     void insert_url(std::string url);
     void update_time();
     bool ready_for_request();
+
     std::chrono::milliseconds get_delay();
     std::string get_website();
     std::vector<std::string> get_url_list();
+
+    void parse_one_url();
+    const char *get_last_download();
+    bool empty();
   private:
     std::string website;
     std::chrono::milliseconds delay;
     std::vector<std::string> website_urls;
     std::chrono::steady_clock::time_point last_request;
+    curl_container curler;
   };
 }
 

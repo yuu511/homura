@@ -68,10 +68,12 @@ curl_container::curl_container()
 
 HOMURA_ERRCODE curl_container::perform_curl(const std::string &url) 
 {
-  this->data_sz = 0;
-  this->time_sent = std::chrono::steady_clock::now();
+  buffer.reset(); 
+  buffer = std::make_unique<std::vector<unsigned char>>();
+  data_sz = 0;
+  time_sent = std::chrono::steady_clock::now();
 
-  curl_easy_setopt(this->easyhandle,CURLOPT_URL,url.c_str());
+  curl_easy_setopt(easyhandle,CURLOPT_URL,url.c_str());
   
   bool pass = check_curlcode(curl_easy_perform(easyhandle));
 
@@ -79,10 +81,10 @@ HOMURA_ERRCODE curl_container::perform_curl(const std::string &url)
     if (homura::options::debug_level) {
       fprintf (stdout,"== Size of string ==\n");
       fprintf (stdout,"sizeof string %zd\n\n",
-               this->buffer->size());
+               buffer->size());
     }
     if (homura::options::debug_level > 1) {
-      fprintf (stdout,"%s\n\n", this->get_HTML_aschar());
+      fprintf (stdout,"%s\n\n", get_HTML_aschar());
     }
   }
   else {

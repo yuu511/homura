@@ -16,6 +16,7 @@ namespace homura
       get_or_insert(std::string check, 
                     std::chrono::milliseconds delay);
     void print_table();
+    void crawl();
   private:
     std::vector<std::shared_ptr<url_table>> entries;
     std::unordered_map<std::string,std::shared_ptr<url_table>> entry_hashtable;
