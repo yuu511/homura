@@ -32,7 +32,7 @@ generic_flags = ['-g','-Wall']
 
 # Sources
 homura_sources = ['src/main.cpp','src/homura.cpp','src/errlib.cpp','src/magnet_table.cpp','src/curl_container.cpp'
-,'src/tree_container.cpp','src/url_table.cpp','src/torrent_parser.cpp']
+,'src/tree_container.cpp','src/url_table.cpp','src/torrent_parser.cpp','src/url_scheduler.cpp']
 
 homura_include = include_directories('include')
 all_includes = [homura_include,inc_myhtml]

@@ -7,55 +7,38 @@
 
 using namespace homura;
 
-url_table::url_table ( int website, 
-                       std::chrono::milliseconds delay, 
-                       std::chrono::steady_clock::time_point last_written )
-  : website(website), 
-    delay(delay), 
-    url_list(std::make_shared<urls>()),
-    last_written(last_written) 
-{}  
+url_table::url_table(std::string website, 
+                     std::chrono::milliseconds delay)
+  : website(website),
+    delay(delay),
+    last_request(std::chrono::steady_clock::now())
+{}
 
-void url_table::insert(std::string url) 
+void url_table::insert_url(std::string new_url) 
 {
-  url_list->emplace_back(url,std::make_unique<curl_container>());
-  if (homura::options::debug_level) {
-    std::cout << "Inserted key " << url << std::endl;
-  }
+  this->website_urls.emplace_back(new_url);
 }
 
-void url_table::update_time() 
+void url_table::update_time()
 {
-  auto orig = last_written;
-  last_written = std::chrono::steady_clock::now();
-  if (homura::options::debug_level > 2) {
-    std::cout << "it has been " 
-    << std::chrono::duration_cast<std::chrono::microseconds>(last_written - orig).count() 
-    << " microseconds since the url table of " 
-    << website 
-    << " has been updated" << std::endl;
-  }
-}
-
-std::chrono::milliseconds url_table::get_delay() 
-{
-  return delay;
+  this->last_request = std::chrono::steady_clock::now();
 }
 
 bool url_table::ready_for_request() 
 {
-  auto diff = 
-    std::chrono::duration_cast<std::chrono::milliseconds>
-      (std::chrono::steady_clock::now() - last_written);
+  auto diff = std::chrono::duration_cast<std::chrono::milliseconds>
+    (std::chrono::steady_clock::now() - this->last_request);
 
-  if ( diff.count() >= delay.count() ) {
-    return true;
-  }
-
-  return false;
+  bool ready = diff.count() >= this->delay.count() ? true : false;
+  return ready;
 }
 
-std::shared_ptr<urls> url_table::get_urls() 
+std::string url_table::get_website()
 {
-  return url_list;
+  return this->website;
+}
+
+std::vector<std::string> url_table::get_url_list()
+{
+  return this->website_urls;
 }

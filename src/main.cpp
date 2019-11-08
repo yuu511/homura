@@ -91,8 +91,8 @@ HOMURA_ERRCODE parse_args (int argc, char **argv)
          numt = atoi(optarg);
          if (numt < 1) {
            errprintf(ERRCODE::FAILED_ARGPARSE,
-	   "error:-t,--thread expects a positive integer\n");
-	   errprintf(ERRCODE::FAILED_ARGPARSE,"(recieved %s)\n", optarg);
+	         "error:-t,--thread expects a positive integer\n"
+             "(recieved %s)\n",optarg);
            return ERRCODE::FAILED_ARGPARSE;
          } 
          options::set_thread_level(numt);
@@ -118,6 +118,7 @@ HOMURA_ERRCODE crawl()
    homura_instance homuhomu = homura_instance();
 
    int status;
+
    status = homuhomu.query_nyaasi(options::search_term);
    if (status != ERRCODE::SUCCESS) return status;
 

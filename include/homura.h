@@ -7,9 +7,10 @@
 #include <unordered_map>
 #include <memory>
 
-#include "magnet_table.h"
 #include "url_table.h"
+#include "url_scheduler.h"
 #include "torrent_parser.h"
+#include "magnet_table.h"
 #include "errlib.h"
 
 using milliseconds = std::chrono::milliseconds;
@@ -31,12 +32,8 @@ namespace homura
     HOMURA_ERRCODE query_nyaasi(std::string args);
   private:
     magnet_table *results;
-    std::vector<std::shared_ptr<homura::url_table>> requests;
-    std::unordered_map<int,std::shared_ptr<homura::url_table>> requests_hash;
     torrent_parser torrenter;
-   
-    // helper methods
-    std::shared_ptr<homura::url_table> get_table(int website, std::chrono::milliseconds delay);
+    url_scheduler scheduler;
   };
 }
 

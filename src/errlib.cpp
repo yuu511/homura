@@ -10,7 +10,7 @@
 /* options */
 int homura::options::debug_level = 0;
 int homura::options::threads = 1;
-std::string homura::options::search_term = "Gochuumon Wa Usagi Desu Ka?";
+std::string homura::options::search_term = "";
 
 void homura::options::set_debug_level(int level) 
 {

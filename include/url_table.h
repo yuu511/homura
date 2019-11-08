@@ -4,31 +4,27 @@
 #include <chrono>
 #include <string>
 #include <vector>
-#include <mutex>
 #include <memory>
 #include "curl_container.h"
-
-using urls = std::vector<std::pair<std::string,std::unique_ptr<homura::curl_container>>>;
 
 namespace homura 
 {
   class url_table {
   public:
-    url_table(int website, std::chrono::milliseconds delay, 
-      std::chrono::steady_clock::time_point last_written = std::chrono::steady_clock::now());  
+    url_table(std::string website, 
+              std::chrono::milliseconds delay);
 
-    void insert(std::string url);
-
+    void insert_url(std::string url);
     void update_time();
     bool ready_for_request();
     std::chrono::milliseconds get_delay();
-
-    std::shared_ptr <urls> get_urls();
+    std::string get_website();
+    std::vector<std::string> get_url_list();
   private:
-    int website;
+    std::string website;
     std::chrono::milliseconds delay;
-    std::shared_ptr<urls> url_list;
-    std::chrono::steady_clock::time_point last_written;
+    std::vector<std::string> website_urls;
+    std::chrono::steady_clock::time_point last_request;
   };
 }
 
