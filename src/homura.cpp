@@ -41,8 +41,19 @@ HOMURA_ERRCODE homura_instance::query_nyaasi(std::string args)
 
   // get existing table of requests to parse from nyaa.si,
   // or create and return table if it doesn't exist.
-  auto table = this->scheduler.get_or_insert("nyaa.si",std::chrono::milliseconds(5000));
+  
+  std::string key = "nyaa.si";
+  std::shared_ptr<url_table> table;
+  auto pos = scheduler.get_table_position(key);
+  // i had to i'm sorry
+  table = scheduler.table_exists(pos) 
+  ? pos->second : scheduler.insert_table(key,std::chrono::milliseconds(5000))->second;
 
+//   if (!scheduler.table_exists(key)) {
+//     scheduler.insert_table(key,std::chrono::milliseconds(5000));
+//   } 
+//   table = scheduler.get_table(key);
+// 
   std::replace(args.begin(), args.end(), ' ', '+');
   const std::string base_url = "https://nyaa.si/?f=0&c=0_0&q=" + args;
 
