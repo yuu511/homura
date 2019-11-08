@@ -39,7 +39,7 @@ namespace homura
     extern int exit_code;  
   }
 
-  std::string parse_error_exitcode(int code);
+  void parse_error_exitcode(int code);
   // sets the return, prints out error message through stderr
   void errprintf(int error_code, const char *format, ...);
 }

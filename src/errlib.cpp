@@ -36,10 +36,13 @@ void homura::error_handler::set_error_exitcode(int code)
   homura::error_handler::exit_code = code;
 }
 
-std::string homura::parse_error_exitcode(int code) 
+void homura::parse_error_exitcode(int code) 
 {
   std::string message;
   switch(code) {
+    case SUCCESS:
+      fprintf(stderr,"Exited Sucessfully.\n");
+      return;
     case FAILED_ARGPARSE:
       message = "FAILED_ARGPARSE";
       break;
@@ -71,7 +74,7 @@ std::string homura::parse_error_exitcode(int code)
       message = "UNKNOWN_ERROR";
       break;
   }
-  return message;
+  fprintf (stderr,"Exited with error code %s.\n",message.c_str());
 }
 
 void homura::errprintf(int error_code, const char *format, ...) 

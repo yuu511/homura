@@ -136,8 +136,8 @@ int main (int argc, char **argv)
     status = crawl();
   }
 
-  if (status != ERRCODE::SUCCESS) {
-    errprintf(status,"%s failed with errcode %s\n",argv[0],parse_error_exitcode(status));
+  if (options::debug_level > 0) {
+    parse_error_exitcode(status);
   }
 
   return status;
