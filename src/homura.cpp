@@ -87,21 +87,23 @@ HOMURA_ERRCODE homura_instance::query_nyaasi(std::string args)
   // rounds up integer division (overflow not expected, max results = 1000)
   int num_pages = ( total + (per_page - 1) ) / per_page;
 
-  url_table table =  
-    this->scheduler.get_or_insert("nyaa.si",std::chrono::milliseconds(5000));
+  // get existing table for nyaa.si url table from the scheduler, 
+  // or create/return table if it doesn't exist.
+  auto table = this->scheduler.get_or_insert("nyaa.si",std::chrono::milliseconds(5000));
 
   for (int i = 2; i <= num_pages; i++) {
-    table->insert( base_url + "&p=" + std::to_string(i) );  
+    table->insert_url( base_url + "&p=" + std::to_string(i) );  
   }
   table->update_time();
-  // parse the first page we already downloaded for torrents
 
+  // parse the first page we already downloaded for torrents
   std::vector<std::string> magnets = html_tree_creator.nyaasi_parse_torrents();
   if (options::debug_level > 0) {
     for (auto itor: magnets) {
       fprintf(stderr,"%s\n\n", itor.c_str());
     }
   }
+
   // for (auto itor: magnets) {
   //   torrenter.extract_magnet_information(itor);
   // }

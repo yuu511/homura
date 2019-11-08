@@ -2,6 +2,8 @@
 #define __URLSCHEDULER_H_
 
 #include <string>
+#include <memory>
+#include <unordered_map>
 #include "url_table.h"
 
 namespace homura
@@ -10,11 +12,13 @@ namespace homura
   public:
     url_scheduler();
     void extract_magnets();
-    void insert_entry_back(url_table new_entry);   
-    url_table get_or_insert(std::string check, 
-                             std::chrono::milliseconds delay) ;
+    std::shared_ptr<url_table> 
+      get_or_insert(std::string check, 
+                    std::chrono::milliseconds delay);
+    void print_table();
   private:
-    std::vector<url_table> entries;
+    std::vector<std::shared_ptr<url_table>> entries;
+    std::unordered_map<std::string,std::shared_ptr<url_table>> entry_hashtable;
     std::vector<std::string> magnets;
   };
 }

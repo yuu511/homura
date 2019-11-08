@@ -1,3 +1,4 @@
+#include <iostream>
 #include "url_scheduler.h"
 #include "errlib.h"
 
@@ -7,20 +8,33 @@ url_scheduler::url_scheduler() {}
 
 void url_scheduler::extract_magnets(){};
 
-void url_scheduler::insert_entry_back(url_table new_entry) 
+std::shared_ptr<url_table> 
+url_scheduler::get_or_insert(std::string check,
+                             std::chrono::milliseconds delay) 
 {
-  this->entries.emplace_back(new_entry);
+  auto it = entry_hashtable.find(check);
+  if (it != entry_hashtable.end()) {
+    return it->second;
+  }
+
+  auto new_table = std::make_shared<url_table>(check,delay);
+  auto itor = entries.begin();
+  while (itor != entries.end()) {
+    if (new_table->get_delay().count() > (*itor)->get_delay().count()){
+      break;
+    }
+    ++itor;
+  }
+  entries.insert(itor,new_table);
+  entry_hashtable.emplace(new_table->get_website(),new_table);
+  return new_table;
 }
 
-url_table 
-url_scheduler::get_or_insert(std::string check,
-                                   std::chrono::milliseconds delay) 
-{
-  for (auto itor:this->entries){
-    if (itor.get_website() == check)
-      return itor;
+void url_scheduler::print_table(){
+  for (auto itor : entries) {
+    std::cout << "Entry Name: " 
+    << itor->get_website()
+    << " Entry Delay: "
+    << itor->get_delay().count() << std::endl;
   }
-  url_table new_entry = url_table(check,delay); 
-  insert_entry_back(new_entry);
-  return this->entries.back();
 }

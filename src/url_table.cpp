@@ -33,6 +33,11 @@ bool url_table::ready_for_request()
   return ready;
 }
 
+std::chrono::milliseconds url_table::get_delay()
+{
+  return this->delay;
+}
+
 std::string url_table::get_website()
 {
   return this->website;
