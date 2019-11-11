@@ -2,6 +2,8 @@
 #define __NYAASI_PARSER_H_
 
 #include "errlib.h"
+#include "tree_container.h"
+#include "curl_container.h"
 #include <myhtml/myhtml.h>
 
 namespace homura {
@@ -14,11 +16,13 @@ namespace homura {
   
   class nyaasi_parser {
   public:
-    nyaasi_parser(myhtml_tree *tree);
+    nyaasi_parser(const std::string first_website);
     HOMURA_ERRCODE extract_pageinfo();
-    std::vector<std::string> extract_magnets();
+    HOMURA_ERRCODE get_urls(std::shared_ptr <curl_container> curler);
+    HOMURA_ERRCODE get_magnets(std::shared_ptr <curl_container> curler);
   private:
-    myhtml_tree *tree;
+    const std::string first_website;
+    tree_container html_parser;
     pagination_information pageinfo;
   };
 }

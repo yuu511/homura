@@ -7,12 +7,10 @@
 
 using namespace homura;
 
-tree_container::tree_container(std::string website_, int threads)
-  : website(website_)
+tree_container::tree_container(int threads)
 {
   handle = myhtml_create();
   myhtml_init(handle, MyHTML_OPTIONS_DEFAULT, threads, 0);
-
   tree = myhtml_tree_create();
   myhtml_tree_init(tree, handle);
 }
@@ -35,13 +33,9 @@ myhtml_tree *tree_container::get_tree()
   return tree;
 }
 
-std::string tree_container::get_website() 
-{
-  return website;
-}
-
 tree_container::~tree_container() 
 {
+  fprintf(stderr,"die");
   if (tree)
     myhtml_tree_destroy(tree);
   if (handle)

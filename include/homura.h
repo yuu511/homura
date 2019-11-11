@@ -27,7 +27,7 @@ namespace homura
   private:
     magnet_table *results;
     torrent_parser torrenter;
-    url_scheduler scheduler;
+  //  url_scheduler scheduler;
   };
 }
 

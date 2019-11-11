@@ -7,26 +7,27 @@
 
 using namespace homura;
 
-url_table::url_table(std::string website_,
-                     std::chrono::milliseconds delay_) 
-  : curler(curl_container()), 
+url_table_base::url_table_base(std::string website_,
+                               std::chrono::milliseconds delay_) 
+  : curler(std::make_shared<curl_container>()), 
     website(website_),
     delay(delay_),
     last_request(std::chrono::steady_clock::now())
 {}
 
+url_table_base::~url_table_base(){}
 
-void url_table::insert_url(std::string new_url) 
+void url_table_base::insert_url(std::string new_url) 
 {
   website_urls.emplace_back(new_url);
 }
 
-void url_table::update_time()
+void url_table_base::update_time()
 {
   last_request = std::chrono::steady_clock::now();
 }
 
-bool url_table::ready_for_request() 
+bool url_table_base::ready_for_request() 
 {
   auto diff = std::chrono::duration_cast<std::chrono::milliseconds>
     (std::chrono::steady_clock::now() - last_request);
@@ -35,37 +36,45 @@ bool url_table::ready_for_request()
   return ready;
 }
 
-std::chrono::milliseconds url_table::get_delay()
+std::chrono::milliseconds url_table_base::get_delay()
 {
   return delay;
 }
 
-std::vector<std::string> url_table::get_url_list()
+std::vector<std::string> url_table_base::get_url_list()
 {
   return website_urls;
 }
 
-void url_table::download_one_url() 
+std::string url_table_base::get_website() 
 {
-  curler.perform_curl(website_urls.back());
+  return website;
+}
+
+std::shared_ptr<curl_container> url_table_base::get_curler()
+{
+  return curler;
+}
+
+void url_table_base::download_one_url() 
+{
+  curler->perform_curl(website_urls.back());
   website_urls.pop_back();
   update_time();
 }
 
-const char *url_table::get_last_download()
+const char *url_table_base::get_last_download()
 {
-  return curler.get_HTML_aschar();
+  return curler->get_HTML_aschar();
 }
 
-bool url_table::empty() 
+bool url_table_base::empty() 
 {
   return website_urls.empty() ? true : false;
 }
 
-std::string url_table::get_website() 
-{
-  return website;
-}
+HOMURA_ERRCODE url_table_base::populate_url_list(){}
+HOMURA_ERRCODE url_table_base::extract_magnets(){}
 
 // std::vector<std::string> url_table::getURLS() 
 // {
