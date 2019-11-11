@@ -90,26 +90,24 @@ HOMURA_ERRCODE nyaasi_parser::get_urls(std::shared_ptr <curl_container> curler)
 
   int status;
 
-  // status = curler->perform_curl(first_website);
-  // if (status != ERRCODE::SUCCESS) return status; 
+  status = curler->perform_curl(first_website);
+  if (status != ERRCODE::SUCCESS) return status; 
 
-  // const char *downloaded = curler->get_HTML_aschar();
-  // fprintf(stderr,"%s",downloaded);
-  // html_parser.create_tree(downloaded);
-  // status = extract_pageinfo();
-  // if (status != ERRCODE::SUCCESS) return status; 
+  html_parser.create_tree(curler->get_HTML_aschar());
+  status = extract_pageinfo();
+  if (status != ERRCODE::SUCCESS) return status; 
 
-  // int total = pageinfo.total_result;
-  // int per_page = pageinfo.last_result;
-  // if ( total <= 1 || per_page <= 1) {
-  //   errprintf(ERRCODE::FAILED_NO_RESULTS,"no results found for %s!\n",first_website.c_str());
-  //   return ERRCODE::FAILED_NO_RESULTS;
-  // }
-  // int num_pages = ( total + (per_page - 1) ) / per_page;
-  // for (int i = 2; i <= num_pages; i++) {
-  //   std::string result =  first_website + "&p=" + std::to_string(i) ;  
-  //   fprintf (stderr,"%s",result.c_str());
-  // }
+  int total = pageinfo.total_result;
+  int per_page = pageinfo.last_result;
+  if ( total <= 1 || per_page <= 1) {
+    errprintf(ERRCODE::FAILED_NO_RESULTS,"no results found for %s!\n",first_website.c_str());
+    return ERRCODE::FAILED_NO_RESULTS;
+  }
+  int num_pages = ( total + (per_page - 1) ) / per_page;
+  for (int i = 2; i <= num_pages; i++) {
+    std::string result =  first_website + "&p=" + std::to_string(i) ;  
+    fprintf (stderr,"%s",result.c_str());
+  }
   return ERRCODE::SUCCESS;
 }
 

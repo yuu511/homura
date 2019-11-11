@@ -42,7 +42,7 @@ HOMURA_ERRCODE homura_instance::query_nyaasi(std::string args)
                                      std::chrono::milliseconds(5000),
                                      new_parser);  
 
-  // status = new_table.populate_url_list();
+  status = new_table.populate_url_list();
 
 //  std::string key = "nyaa.si";
 //  auto pos = scheduler.get_table_position(key);

@@ -73,8 +73,8 @@ bool url_table_base::empty()
   return website_urls.empty() ? true : false;
 }
 
-HOMURA_ERRCODE url_table_base::populate_url_list(){}
-HOMURA_ERRCODE url_table_base::extract_magnets(){}
+HOMURA_ERRCODE url_table_base::populate_url_list(){return 1;}
+HOMURA_ERRCODE url_table_base::extract_magnets(){return 1;}
 
 // std::vector<std::string> url_table::getURLS() 
 // {
