@@ -17,12 +17,6 @@ using milliseconds = std::chrono::milliseconds;
 
 namespace homura 
 {
-  enum website {
-    nyaasi, 
-    nyaapantsu, 
-    horriblesubs
-  };
-
   class homura_instance {
   public:
     homura_instance();

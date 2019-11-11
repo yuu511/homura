@@ -8,6 +8,25 @@
 
 namespace homura 
 {
+  class tree_container {
+  public:
+    tree_container(std::string website, int threads = 1);
+    virtual ~tree_container();
+
+    HOMURA_ERRCODE create_tree(const char *html_page);
+
+    virtual std::vector<std::string> parse_torrents();
+
+    myhtml_t *get_handle();
+    myhtml_tree *get_tree();
+    std::string get_website();
+
+  private:
+    std::string website;
+    myhtml_t *handle;
+    myhtml_tree *tree; 
+  };
+
   struct pagination_information {
     pagination_information(int first_result,int last_result,int total_result);
     int first_result;
@@ -15,26 +34,18 @@ namespace homura
     int total_result;
   };
 
-  class tree_container {
+  class nyaasi_tree : public tree_container {
   public:
-    tree_container(int threads = 1);
-    ~tree_container();
-
-    HOMURA_ERRCODE parse_HTML(const char *html_page);
+    nyaasi_tree(int threads = 1);
+    ~nyaasi_tree();
 
     HOMURA_ERRCODE nyaasi_extract_pageinfo();
-    std::vector<std::string> nyaasi_parse_torrents();
-
-    int nyaasi_pageinfo_first();
-    int nyaasi_per_page();
-    int nyaasi_pages_total();
-
+    std::vector<std::string> parse_torrents();
+    int pageinfo_first();
+    int per_page();
+    int pages_total();
   private:
-    myhtml_t *handle;
-    myhtml_tree *tree; 
     pagination_information nyaasi_pageinfo;
   };
-
 }
-
 #endif

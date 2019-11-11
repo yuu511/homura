@@ -7,10 +7,10 @@
 
 using namespace homura;
 
-url_table::url_table(std::string website, 
-                     std::chrono::milliseconds delay)
-  : website(website),
-    delay(delay),
+url_table::url_table(tree_container parser_, 
+                     std::chrono::milliseconds delay_)
+  : parser(parser_),
+    delay(delay_),
     last_request(std::chrono::steady_clock::now()),
     curler(curl_container())
 {}
@@ -41,7 +41,7 @@ std::chrono::milliseconds url_table::get_delay()
 
 std::string url_table::get_website()
 {
-  return website;
+  return parser.get_website();
 }
 
 std::vector<std::string> url_table::get_url_list()

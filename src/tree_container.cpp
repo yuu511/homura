@@ -7,17 +7,8 @@
 
 using namespace homura;
 
-pagination_information::pagination_information(int first, 
-                                               int last,
-                                               int total) 
-{
-  first_result = first;
-  last_result = last;
-  total_result = total;
-}
-
-tree_container::tree_container(int threads)
-  : nyaasi_pageinfo (pagination_information(0,0,0)) 
+tree_container::tree_container(std::string website_, int threads)
+  : website(website_)
 {
   handle = myhtml_create();
   myhtml_init(handle, MyHTML_OPTIONS_DEFAULT, threads, 0);
@@ -26,12 +17,33 @@ tree_container::tree_container(int threads)
   myhtml_tree_init(tree, handle);
 }
 
-HOMURA_ERRCODE tree_container::parse_HTML(const char *html_page) 
+HOMURA_ERRCODE tree_container::create_tree(const char *html_page) 
 {
   if (myhtml_parse(tree, MyENCODING_UTF_8, html_page,strlen(html_page)) != MyHTML_STATUS_OK){
     return ERRCODE::FAILED_PARSE;
   }
   return ERRCODE::SUCCESS;
+}
+
+std::vector<std::string> tree_container::parse_torrents()
+{
+  std::vector<std::string> a;
+  return a;
+}
+
+myhtml_t *tree_container::get_handle() 
+{
+  return handle;
+}
+
+myhtml_tree *tree_container::get_tree()
+{
+  return tree;
+}
+
+std::string tree_container::get_website() 
+{
+  return website;
 }
 
 tree_container::~tree_container() 
@@ -42,8 +54,29 @@ tree_container::~tree_container()
     myhtml_destroy(handle);
 }
 
-HOMURA_ERRCODE tree_container::nyaasi_extract_pageinfo() 
+pagination_information::pagination_information(int first, 
+                                               int last,
+                                               int total) 
 {
+  first_result = first;
+  last_result = last;
+  total_result = total;
+}
+
+
+
+nyaasi_tree::nyaasi_tree(int threads) 
+  : tree_container("nyaa.si",threads),
+    nyaasi_pageinfo(pagination_information(0,0,0))
+{}
+
+nyaasi_tree::~nyaasi_tree(){}
+
+HOMURA_ERRCODE nyaasi_tree::nyaasi_extract_pageinfo() 
+{
+  auto tree = get_tree();
+  auto handle = get_handle();
+
   if (!tree || !handle) { 
     errprintf(ERRCODE::FAILED_MYHTML_TREE_INIT, "No tree or handle detected in"
       "get_pagination_information\n");
@@ -106,9 +139,9 @@ HOMURA_ERRCODE tree_container::nyaasi_extract_pageinfo()
     fprintf (stdout,"String: \"%s\" \nfirst result "
                     "%d\nlast result (results per page) %d\ntotal results %d\n\n",
             page_information,
-            this->nyaasi_pageinfo_first(),
-            this->nyaasi_per_page(),
-            this->nyaasi_pages_total());
+            pageinfo_first(),
+            per_page(),
+            pages_total());
   }
 
   return ERRCODE::SUCCESS;
@@ -172,12 +205,12 @@ void print_tree(myhtml_tree_t* tree, myhtml_tree_node_t *node, size_t inc)
     }
 }
 
-std::vector<std::string> tree_container::nyaasi_parse_torrents() 
+std::vector<std::string> nyaasi_tree::parse_torrents() 
 {
   std::vector<std::string> magnet_list;
   const char *mag_k = "href";
   const char *mag_v = "magnet";
-  myhtml_collection_t *magnets = myhtml_get_nodes_by_attribute_value_contain(tree, NULL, NULL, true,
+  myhtml_collection_t *magnets = myhtml_get_nodes_by_attribute_value_contain(get_tree(), NULL, NULL, true,
                                                                              mag_k, strlen(mag_k),
                                                                              mag_v, strlen(mag_v), NULL);
   
@@ -194,17 +227,17 @@ std::vector<std::string> tree_container::nyaasi_parse_torrents()
   return magnet_list;
 }
 
-int tree_container::nyaasi_pageinfo_first() 
+int nyaasi_tree::pageinfo_first() 
 {
   return nyaasi_pageinfo.first_result;
 }
 
-int tree_container::nyaasi_per_page() 
+int nyaasi_tree::per_page() 
 {
   return nyaasi_pageinfo.last_result;
 }
 
-int tree_container::nyaasi_pages_total() 
+int nyaasi_tree::pages_total() 
 {
   return nyaasi_pageinfo.total_result;
 }

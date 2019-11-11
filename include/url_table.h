@@ -6,12 +6,13 @@
 #include <vector>
 #include <memory>
 #include "curl_container.h"
+#include "tree_container.h"
 
 namespace homura 
 {
   class url_table {
   public:
-    url_table(std::string website, 
+    url_table(tree_container parser,
               std::chrono::milliseconds delay);
 
     void insert_url(std::string url);
@@ -26,10 +27,10 @@ namespace homura
     const char *get_last_download();
     bool empty();
   private:
-    std::string website;
+    tree_container parser;
     std::chrono::milliseconds delay;
-    std::vector<std::string> website_urls;
     std::chrono::steady_clock::time_point last_request;
+    std::vector<std::string> website_urls;
     curl_container curler;
   };
 }
