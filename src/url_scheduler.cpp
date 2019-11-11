@@ -43,17 +43,17 @@ void url_scheduler::crawl()
       if (table->empty()) continue;
       finished = false;
       if (table->ready_for_request()) {
-        table->parse_one_url();
+        table->download_one_url();
       }
     }
   }
 }
 
 void url_scheduler::print_table(){
-  for (auto itor : entries) {
-    std::cout << "Entry Name: " 
-    << itor->get_website()
-    << " Entry Delay: "
-    << itor->get_delay().count() << std::endl;
-  }
+  //for (auto itor : entries) {
+  //  std::cout << "Entry Name: " 
+  //  << itor->get_website()
+  //  << " Entry Delay: "
+  //  << itor->get_delay().count() << std::endl;
+  //}
 }

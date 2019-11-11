@@ -8,7 +8,6 @@
 #include "magnet_table.h"
 #include "errlib.h"
 #include "curl_container.h"
-#include "tree_container.h"
 #include "select_ssl.h"
 
 using namespace homura;
@@ -39,18 +38,18 @@ HOMURA_ERRCODE homura_instance::query_nyaasi(std::string args)
      find out how many results to expect by sending a request 
      and parsing the query result information */
 
-  std::string key = "nyaa.si";
-  auto pos = scheduler.get_table_position(key);
-
-  std::shared_ptr<url_table> table;
-
-  if (scheduler.table_exists(pos)) {
-    table = pos->second;
-  }
-  else {
-    auto newtable = url_table(nyaasi_tree(),std::chrono::milliseconds(5000));
-  }
-
+//  std::string key = "nyaa.si";
+//  auto pos = scheduler.get_table_position(key);
+//
+//  std::shared_ptr<url_table> table;
+//
+//  if (scheduler.table_exists(pos)) {
+//    table = pos->second;
+//  }
+//  else {
+//    auto newtable = url_table(nyaasi_tree(),std::chrono::milliseconds(5000));
+//  }
+//
 //  std::string key = "nyaa.si";
 //  std::shared_ptr<url_table> table;
 //  auto pos = scheduler.get_table_position(key);

@@ -7,13 +7,14 @@
 
 using namespace homura;
 
-url_table::url_table(tree_container parser_, 
-                     std::chrono::milliseconds delay_)
-  : parser(parser_),
+url_table::url_table(std::string website_,
+                     std::chrono::milliseconds delay_) 
+  : curler(curl_container()), 
+    website(website_),
     delay(delay_),
-    last_request(std::chrono::steady_clock::now()),
-    curler(curl_container())
+    last_request(std::chrono::steady_clock::now())
 {}
+
 
 void url_table::insert_url(std::string new_url) 
 {
@@ -39,17 +40,12 @@ std::chrono::milliseconds url_table::get_delay()
   return delay;
 }
 
-std::string url_table::get_website()
-{
-  return parser.get_website();
-}
-
 std::vector<std::string> url_table::get_url_list()
 {
   return website_urls;
 }
 
-void url_table::parse_one_url() 
+void url_table::download_one_url() 
 {
   curler.perform_curl(website_urls.back());
   website_urls.pop_back();
@@ -65,3 +61,19 @@ bool url_table::empty()
 {
   return website_urls.empty() ? true : false;
 }
+
+std::string url_table::get_website() 
+{
+  return website;
+}
+
+// std::vector<std::string> url_table::getURLS() 
+// {
+//   url_populator.get_urls();
+// }
+// 
+// std::vector<std::string> getTorrent()
+// {
+//   new_magnets = extractor.extract_magnets();  
+//   magnets.insert (magnets.end(),new_magnets.begin(),new_magnets.end());
+// }
