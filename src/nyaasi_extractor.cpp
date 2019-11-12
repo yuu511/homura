@@ -12,12 +12,25 @@ pagination_information::pagination_information(int first_,
   total_result = total_;
 }
 
-nyaasi_extractor::nyaasi_extractor(std::string current_website_) 
+nyaasi_extractor::nyaasi_extractor() 
   : curler(std::make_shared<curl_container>()), 
-    current_website(current_website_),
     html_parser(tree_container()),
     pageinfo(pagination_information(0,0,0))
 {}
+
+
+HOMURA_ERRCODE nyaasi_extractor::curl_and_create_tree(std::string url)
+{
+  int status;
+  status = curler->perform_curl(url);
+  if (status != ERRCODE::SUCCESS) return status; 
+
+  html_parser.reset_tree();
+  status = html_parser.create_tree(curler->get_HTML_aschar());
+  if (status != ERRCODE::SUCCESS) return status; 
+
+  return ERRCODE::SUCCESS;
+}
 
 HOMURA_ERRCODE nyaasi_extractor::extract_pageinfo() 
 {
@@ -82,45 +95,6 @@ HOMURA_ERRCODE nyaasi_extractor::extract_pageinfo()
   return ERRCODE::SUCCESS;
 }
 
-HOMURA_ERRCODE nyaasi_extractor::curl_and_create_tree(std::string url)
-{
-  int status;
-  status = curler->perform_curl(url);
-  if (status != ERRCODE::SUCCESS) return status; 
-
-  html_parser.reset_tree();
-  status = html_parser.create_tree(curler->get_HTML_aschar());
-  if (status != ERRCODE::SUCCESS) return status; 
-
-  return ERRCODE::SUCCESS;
-}
-
-std::vector<std::string> nyaasi_extractor::get_urls()
-{
-  /* nyaa.si has no official api, and we must manually
-     find out how many results to expect by sending a request 
-     and parsing the query result information */
-
-  int status;
-  std::vector<std::string>urls;
-  status = curl_and_create_tree(current_website);
-  if (status != ERRCODE::SUCCESS) return urls; 
-  status = extract_pageinfo();
-  if (status != ERRCODE::SUCCESS) return urls; 
-
-  int total = pageinfo.total_result;
-  int per_page = pageinfo.last_result;
-  if ( total <= 1 || per_page <= 1) {
-    errprintf(ERRCODE::FAILED_NO_RESULTS,"no results found for %s!\n",current_website.c_str());
-    return urls;
-  }
-  int num_pages = ( total + (per_page - 1) ) / per_page;
-  for (int i = 2; i <= num_pages; i++) {
-    urls.emplace_back(current_website + "&p=" + std::to_string(i)) ;  
-  }
-  return urls;
-}
-
 std::vector<std::string> nyaasi_extractor::extract_tree_magnets() 
 {
   std::vector<std::string> magnet_list;
@@ -144,9 +118,30 @@ std::vector<std::string> nyaasi_extractor::extract_tree_magnets()
   return magnet_list;
 }
 
-void nyaasi_extractor::set_new_website(std::string website)
+std::vector<std::string> nyaasi_extractor::get_urls(std::string page)
 {
-  current_website = website;
+  /* nyaa.si has no official api, and we must manually
+     find out how many results to expect by sending a request 
+     and parsing the query result information */
+
+  int status;
+  std::vector<std::string>urls;
+  status = curl_and_create_tree(page);
+  if (status != ERRCODE::SUCCESS) return urls; 
+  status = extract_pageinfo();
+  if (status != ERRCODE::SUCCESS) return urls; 
+
+  int total = pageinfo.total_result;
+  int per_page = pageinfo.last_result;
+  if ( total <= 1 || per_page <= 1) {
+    errprintf(ERRCODE::FAILED_NO_RESULTS,"no results found for %s!\n",page.c_str());
+    return urls;
+  }
+  int num_pages = ( total + (per_page - 1) ) / per_page;
+  for (int i = 1; i <= num_pages; i++) {
+    urls.emplace_back(page + "&p=" + std::to_string(i)) ;  
+  }
+  return urls;
 }
 
 std::vector<std::string> nyaasi_extractor::get_magnets(std::string url)

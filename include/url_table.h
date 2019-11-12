@@ -26,7 +26,7 @@ namespace homura
     bool empty();
     std::string pop_one_url();
 
-    virtual void get_urls();
+    virtual void get_urls(std::string page);
     virtual void extract_magnets();
 
     void insert_urls(std::vector<std::string> urls);
@@ -48,19 +48,15 @@ namespace homura
               std::shared_ptr<parser> extractor_)
       : url_table_base(website_,delay_),         
         extractor(extractor_){}
-    void get_urls() 
+    void get_urls(std::string page) 
     {
       update_time();
-      insert_urls(extractor->get_urls());  
+      insert_urls(extractor->get_urls(page));  
     }
     void extract_magnets()
     {
       update_time();
       insert_magnets(extractor->get_magnets(pop_one_url()));  
-    }
-   std::shared_ptr<parser> return_extractor()
-    {
-      return extractor;
     }
   private:
     std::shared_ptr<parser> extractor;

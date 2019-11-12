@@ -57,8 +57,12 @@ std::string url_table_base::pop_one_url()
   return back;
 }
 
-void url_table_base::get_urls(){return;}
-void url_table_base::extract_magnets(){return;}
+void url_table_base::get_urls(std::string page){return;}
+void url_table_base::extract_magnets()
+{
+  fprintf(stderr,"you should never see this.");
+  return;
+}
 
 void url_table_base::insert_urls(std::vector<std::string> new_urls)
 {

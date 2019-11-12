@@ -24,8 +24,8 @@ void url_scheduler::insert_table(std::shared_ptr<url_table_base> new_entry)
       break;
     }
     ++itor;
-    sorted_url_tables.insert(itor,new_entry);
   }
+  sorted_url_tables.insert(itor,new_entry);
 }
 
 HOMURA_ERRCODE url_scheduler::crawl() 
@@ -38,7 +38,6 @@ HOMURA_ERRCODE url_scheduler::crawl()
       finished = false;
       if (table->ready_for_request()) {
         table->extract_magnets();
-        table->update_time();
       }
     }
   }
