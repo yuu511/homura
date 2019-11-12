@@ -25,7 +25,7 @@ namespace homura
     HOMURA_ERRCODE query_nyaasi(std::string args);
   private:
     torrent_parser torrenter;
-  //  url_scheduler scheduler;
+    url_scheduler scheduler;
   };
 }
 

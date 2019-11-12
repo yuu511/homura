@@ -12,9 +12,9 @@ pagination_information::pagination_information(int first_,
   total_result = total_;
 }
 
-nyaasi_extractor::nyaasi_extractor(const std::string first_website_) 
+nyaasi_extractor::nyaasi_extractor(std::string current_website_) 
   : curler(std::make_shared<curl_container>()), 
-    first_website(first_website_),
+    current_website(current_website_),
     html_parser(tree_container()),
     pageinfo(pagination_information(0,0,0))
 {}
@@ -82,12 +82,13 @@ HOMURA_ERRCODE nyaasi_extractor::extract_pageinfo()
   return ERRCODE::SUCCESS;
 }
 
-HOMURA_ERRCODE nyaasi_extractor::curl_and_create_tree(const std::string url)
+HOMURA_ERRCODE nyaasi_extractor::curl_and_create_tree(std::string url)
 {
   int status;
   status = curler->perform_curl(url);
   if (status != ERRCODE::SUCCESS) return status; 
 
+  html_parser.reset_tree();
   status = html_parser.create_tree(curler->get_HTML_aschar());
   if (status != ERRCODE::SUCCESS) return status; 
 
@@ -102,7 +103,7 @@ std::vector<std::string> nyaasi_extractor::get_urls()
 
   int status;
   std::vector<std::string>urls;
-  status = curl_and_create_tree(first_website);
+  status = curl_and_create_tree(current_website);
   if (status != ERRCODE::SUCCESS) return urls; 
   status = extract_pageinfo();
   if (status != ERRCODE::SUCCESS) return urls; 
@@ -110,12 +111,12 @@ std::vector<std::string> nyaasi_extractor::get_urls()
   int total = pageinfo.total_result;
   int per_page = pageinfo.last_result;
   if ( total <= 1 || per_page <= 1) {
-    errprintf(ERRCODE::FAILED_NO_RESULTS,"no results found for %s!\n",first_website.c_str());
+    errprintf(ERRCODE::FAILED_NO_RESULTS,"no results found for %s!\n",current_website.c_str());
     return urls;
   }
   int num_pages = ( total + (per_page - 1) ) / per_page;
   for (int i = 2; i <= num_pages; i++) {
-    urls.emplace_back(first_website + "&p=" + std::to_string(i)) ;  
+    urls.emplace_back(current_website + "&p=" + std::to_string(i)) ;  
   }
   return urls;
 }
@@ -143,9 +144,13 @@ std::vector<std::string> nyaasi_extractor::extract_tree_magnets()
   return magnet_list;
 }
 
-std::vector<std::string> nyaasi_extractor::get_magnets(const std::string url)
+void nyaasi_extractor::set_new_website(std::string website)
+{
+  current_website = website;
+}
+
+std::vector<std::string> nyaasi_extractor::get_magnets(std::string url)
 {
   int status = curl_and_create_tree(url);
-  if (status != ERRCODE::SUCCESS) return std::vector<std::string>(); 
   return status != ERRCODE::SUCCESS ? std::vector<std::string>() : extract_tree_magnets();
 }

@@ -7,23 +7,25 @@
 #include <unordered_map>
 #include "url_table.h"
 
-// namespace homura
-// {
-//   typedef std::unordered_map<std::string,std::shared_ptr<url_table>>::iterator table_iterator;
-//   class url_scheduler {
-//   public:
-//     url_scheduler();
-//     void extract_magnets();
-//     table_iterator get_table_position(std::string check);
-//     bool table_exists(table_iterator check); 
-//     table_iterator insert_table(std::string check, std::chrono::milliseconds delay);
-//     void print_table();
-//     void crawl();
-//   private:
-//     std::vector<std::shared_ptr<url_table>> entries;
-//     std::unordered_map<std::string,std::shared_ptr<url_table>> entry_hashtable;
-//     std::vector<std::string> magnets;
-//   };
-// }
+namespace homura 
+{
+  typedef std::unordered_map<std::string,std::shared_ptr<url_table_base>> urlhash; 
+  typedef std::vector<std::shared_ptr<url_table_base>> urlvector;
+  class url_scheduler {
+  public:
+    url_scheduler();
+
+    urlhash::iterator table_position(std::string key);
+    bool exists_in_table(urlhash::iterator it);
+
+    void insert_table(std::shared_ptr<url_table_base> to_insert);
+
+    HOMURA_ERRCODE crawl();
+  private:
+    urlhash hashed_url_tables;
+    urlvector sorted_url_tables;
+    std::vector<std::string> all_magnets;
+  };
+}
 
 #endif

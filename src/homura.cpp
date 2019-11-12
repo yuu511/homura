@@ -31,19 +31,20 @@ HOMURA_ERRCODE homura_instance::crawl()
 
 HOMURA_ERRCODE homura_instance::query_nyaasi(std::string args) 
 {
-  int status;
-
-  std::string key= "nyaa.si";
   std::replace(args.begin(), args.end(), ' ', '+');
   const std::string base_url = "https://nyaa.si/?f=0&c=0_0&q=" + args;
-  auto new_extractor = std::make_shared<nyaasi_extractor>(base_url);
 
-  url_table<nyaasi_extractor> new_table(key,
-                                        std::chrono::milliseconds(5000),
-                                        new_extractor);  
+  std::string key= "nyaa.si";
+ auto new_extractor = std::make_shared<nyaasi_extractor>(base_url);
+ auto table = 
+      std::make_shared<url_table<nyaasi_extractor>>(key,
+                                                    std::chrono::milliseconds(5000),
+                                                    new_extractor);  
+ scheduler.insert_table(table);
+ table->get_urls();
+ auto new_magnets = new_extractor->extract_tree_magnets();
+ table->insert_magnets(new_magnets);
 
-  new_table.get_urls();
-  std::vector<std::string> first_magnets = new_extractor->extract_tree_magnets();
-  new_table.insert_magnets(first_magnets);
+
   return ERRCODE::SUCCESS;
 }

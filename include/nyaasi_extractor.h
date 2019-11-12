@@ -17,17 +17,18 @@ namespace homura {
   
   class nyaasi_extractor {
   public:
-    HOMURA_ERRCODE curl_and_create_tree(const std::string first_website);
-    nyaasi_extractor(const std::string base_url);
+    HOMURA_ERRCODE curl_and_create_tree(std::string current_website);
+    nyaasi_extractor(std::string base_url);
     HOMURA_ERRCODE extract_pageinfo();
     std::vector<std::string> extract_tree_magnets();
+    void set_new_website(std::string website);
 
     // template functions
     std::vector<std::string> get_urls();
-    std::vector<std::string> get_magnets(const std::string url);
+    std::vector<std::string> get_magnets(std::string url);
   private:
     std::shared_ptr<curl_container> curler;
-    const std::string first_website;
+    std::string current_website;
     tree_container html_parser;
     pagination_information pageinfo;
   };

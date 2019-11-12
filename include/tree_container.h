@@ -16,11 +16,9 @@ namespace homura
 
     HOMURA_ERRCODE create_tree(const char *html_page);
     void reset_tree();
-
-    myhtml_t *get_handle();
     myhtml_tree *get_tree();
-    int get_threads();
 
+    int get_threads();
     void set_threads(int threads);
   private:
     int threads = 1;

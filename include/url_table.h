@@ -58,6 +58,10 @@ namespace homura
       update_time();
       insert_magnets(extractor->get_magnets(pop_one_url()));  
     }
+   std::shared_ptr<parser> return_extractor()
+    {
+      return extractor;
+    }
   private:
     std::shared_ptr<parser> extractor;
   };

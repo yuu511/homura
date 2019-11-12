@@ -1,4 +1,3 @@
-#include <limits.h>
 #include <string.h>
 #include <stdio.h>
 #include <vector>
@@ -43,11 +42,6 @@ void tree_container::reset_tree()
   myhtml_tree_destroy(tree);  
   tree = myhtml_tree_create();
   myhtml_tree_init(tree, handle);
-}
-
-myhtml_t *tree_container::get_handle() 
-{
-  return handle;
 }
 
 myhtml_tree *tree_container::get_tree()
