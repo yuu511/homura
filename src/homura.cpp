@@ -5,15 +5,13 @@
 #include <pthread.h>
 
 #include "homura.h"
-#include "nyaasi_parser.h"
+#include "nyaasi_extractor.h"
 #include "select_ssl.h"
 
 using namespace homura;
 
 homura_instance::homura_instance() 
-  : results(nullptr),
-    torrenter()
-    // scheduler()
+  : torrenter()
 {
   curl_global_init(CURL_GLOBAL_ALL);
   init_locks();
@@ -33,14 +31,15 @@ HOMURA_ERRCODE homura_instance::crawl()
 HOMURA_ERRCODE homura_instance::query_nyaasi(std::string args) 
 {
   int status;
+
   std::string key= "nyaa.si";
   std::replace(args.begin(), args.end(), ' ', '+');
   const std::string base_url = "https://nyaa.si/?f=0&c=0_0&q=" + args;
-  nyaasi_parser new_parser = nyaasi_parser(base_url);
+  nyaasi_extractor new_extractor = nyaasi_extractor(base_url);
 
-  url_table<nyaasi_parser> new_table(key,
-                                     std::chrono::milliseconds(5000),
-                                     new_parser);  
+  url_table<nyaasi_extractor> new_table(key,
+                                        std::chrono::milliseconds(5000),
+                                        new_extractor);  
 
   status = new_table.populate_url_list();
 

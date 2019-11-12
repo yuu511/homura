@@ -1,4 +1,4 @@
-#include "nyaasi_parser.h"
+#include "nyaasi_extractor.h"
 #include <climits>
 
 using namespace homura;
@@ -12,14 +12,14 @@ pagination_information::pagination_information(int first_,
   total_result = total_;
 }
 
-nyaasi_parser::nyaasi_parser(const std::string first_website_) 
-  : first_website(first_website_),
+nyaasi_extractor::nyaasi_extractor(const std::string base_url_) 
+  : base_url(base_url_),
     html_parser(tree_container()),
     pageinfo(pagination_information(0,0,0))
 {
 }
 
-HOMURA_ERRCODE nyaasi_parser::extract_pageinfo() 
+HOMURA_ERRCODE nyaasi_extractor::extract_pageinfo() 
 {
   auto tree = html_parser.get_tree();
   if (!tree) { 
@@ -82,7 +82,7 @@ HOMURA_ERRCODE nyaasi_parser::extract_pageinfo()
   return ERRCODE::SUCCESS;
 }
 
-HOMURA_ERRCODE nyaasi_parser::get_urls(std::shared_ptr <curl_container> curler)
+HOMURA_ERRCODE nyaasi_extractor::get_urls(std::shared_ptr <curl_container> curler)
 {
   /* nyaa.si has no official api, and we must manually
      find out how many results to expect by sending a request 
@@ -90,7 +90,7 @@ HOMURA_ERRCODE nyaasi_parser::get_urls(std::shared_ptr <curl_container> curler)
 
   int status;
 
-  status = curler->perform_curl(first_website);
+  status = curler->perform_curl(base_url);
   if (status != ERRCODE::SUCCESS) return status; 
 
   html_parser.create_tree(curler->get_HTML_aschar());
@@ -100,18 +100,18 @@ HOMURA_ERRCODE nyaasi_parser::get_urls(std::shared_ptr <curl_container> curler)
   int total = pageinfo.total_result;
   int per_page = pageinfo.last_result;
   if ( total <= 1 || per_page <= 1) {
-    errprintf(ERRCODE::FAILED_NO_RESULTS,"no results found for %s!\n",first_website.c_str());
+    errprintf(ERRCODE::FAILED_NO_RESULTS,"no results found for %s!\n",base_url.c_str());
     return ERRCODE::FAILED_NO_RESULTS;
   }
   int num_pages = ( total + (per_page - 1) ) / per_page;
   for (int i = 2; i <= num_pages; i++) {
-    std::string result =  first_website + "&p=" + std::to_string(i) ;  
+    std::string result =  base_url + "&p=" + std::to_string(i) ;  
     fprintf (stderr,"%s",result.c_str());
   }
   return ERRCODE::SUCCESS;
 }
 
-HOMURA_ERRCODE nyaasi_parser::get_magnets(std::shared_ptr <curl_container> curler)
+HOMURA_ERRCODE nyaasi_extractor::get_magnets(std::shared_ptr <curl_container> curler)
 {
   return ERRCODE::SUCCESS;
 }
@@ -174,7 +174,7 @@ HOMURA_ERRCODE nyaasi_parser::get_magnets(std::shared_ptr <curl_container> curle
 //     }
 // }
 // 
-// std::vector<std::string> nyaasi_parser::extract_magnets() 
+// std::vector<std::string> nyaasi_extractor::extract_magnets() 
 // {
 //   std::vector<std::string> magnet_list;
 //   const char *mag_k = "href";

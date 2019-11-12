@@ -1,5 +1,5 @@
-#ifndef __NYAASI_PARSER_H_
-#define __NYAASI_PARSER_H_
+#ifndef __NYAASI_EXTRACTOR_H_
+#define __NYAASI_EXTRACTOR_H_
 
 #include "errlib.h"
 #include "tree_container.h"
@@ -14,14 +14,14 @@ namespace homura {
     int total_result;
   };
   
-  class nyaasi_parser {
+  class nyaasi_extractor {
   public:
-    nyaasi_parser(const std::string first_website);
+    nyaasi_extractor(const std::string base_url);
     HOMURA_ERRCODE extract_pageinfo();
     HOMURA_ERRCODE get_urls(std::shared_ptr <curl_container> curler);
     HOMURA_ERRCODE get_magnets(std::shared_ptr <curl_container> curler);
   private:
-    const std::string first_website;
+    const std::string base_url;
     tree_container html_parser;
     pagination_information pageinfo;
   };
