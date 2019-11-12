@@ -1,5 +1,5 @@
-#ifndef __NYAASI_PARSER_H_
-#define __NYAASI_PARSER_H_
+#ifndef __NYAASI_EXTRACTOR_H_
+#define __NYAASI_EXTRACTOR_H_
 
 #include "errlib.h"
 #include "tree_container.h"
@@ -15,11 +15,10 @@ namespace homura {
     int total_result;
   };
   
-  class nyaasi_parser {
+  class nyaasi_extractor {
   public:
-    nyaasi_parser(const std::string first_website);
-
-    HOMURA_ERRCODE curl_and_create_tree(const std::string url);
+    HOMURA_ERRCODE curl_and_create_tree(const std::string first_website);
+    nyaasi_extractor(const std::string base_url);
     HOMURA_ERRCODE extract_pageinfo();
     std::vector<std::string> extract_tree_magnets();
 

@@ -1,4 +1,4 @@
-#include "nyaasi_parser.h"
+#include "nyaasi_extractor.h"
 #include <climits>
 
 using namespace homura;
@@ -12,14 +12,14 @@ pagination_information::pagination_information(int first_,
   total_result = total_;
 }
 
-nyaasi_parser::nyaasi_parser(const std::string first_website_) 
+nyaasi_extractor::nyaasi_extractor(const std::string first_website_) 
   : curler(std::make_shared<curl_container>()), 
     first_website(first_website_),
     html_parser(tree_container()),
     pageinfo(pagination_information(0,0,0))
 {}
 
-HOMURA_ERRCODE nyaasi_parser::extract_pageinfo() 
+HOMURA_ERRCODE nyaasi_extractor::extract_pageinfo() 
 {
   auto tree = html_parser.get_tree();
   if (!tree) { 
@@ -82,7 +82,7 @@ HOMURA_ERRCODE nyaasi_parser::extract_pageinfo()
   return ERRCODE::SUCCESS;
 }
 
-HOMURA_ERRCODE nyaasi_parser::curl_and_create_tree(const std::string url)
+HOMURA_ERRCODE nyaasi_extractor::curl_and_create_tree(const std::string url)
 {
   int status;
   status = curler->perform_curl(url);
@@ -94,7 +94,7 @@ HOMURA_ERRCODE nyaasi_parser::curl_and_create_tree(const std::string url)
   return ERRCODE::SUCCESS;
 }
 
-std::vector<std::string> nyaasi_parser::get_urls()
+std::vector<std::string> nyaasi_extractor::get_urls()
 {
   /* nyaa.si has no official api, and we must manually
      find out how many results to expect by sending a request 
@@ -102,7 +102,6 @@ std::vector<std::string> nyaasi_parser::get_urls()
 
   int status;
   std::vector<std::string>urls;
-
   status = curl_and_create_tree(first_website);
   if (status != ERRCODE::SUCCESS) return urls; 
   status = extract_pageinfo();
@@ -121,7 +120,7 @@ std::vector<std::string> nyaasi_parser::get_urls()
   return urls;
 }
 
-std::vector<std::string> nyaasi_parser::extract_tree_magnets() 
+std::vector<std::string> nyaasi_extractor::extract_tree_magnets() 
 {
   std::vector<std::string> magnet_list;
   const char *mag_k = "href";
@@ -144,7 +143,7 @@ std::vector<std::string> nyaasi_parser::extract_tree_magnets()
   return magnet_list;
 }
 
-std::vector<std::string> nyaasi_parser::get_magnets(const std::string url)
+std::vector<std::string> nyaasi_extractor::get_magnets(const std::string url)
 {
   int status = curl_and_create_tree(url);
   if (status != ERRCODE::SUCCESS) return std::vector<std::string>(); 
