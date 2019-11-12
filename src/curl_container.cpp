@@ -4,6 +4,37 @@
 
 using namespace homura;
 
+curl_container::curl_container()
+  : buffer (std::make_unique<std::vector<unsigned char>>()),
+    data_sz(0),
+    easyhandle (curl_easy_init()) 
+{
+    curl_easy_setopt(easyhandle,CURLOPT_WRITEDATA, this);
+    curl_easy_setopt(easyhandle,CURLOPT_WRITEFUNCTION,&curl_container::writecb);
+    curl_easy_setopt(easyhandle,CURLOPT_USERAGENT,"libcurl-agent/1.0");
+}
+
+curl_container::curl_container(const curl_container& c) 
+{
+  easyhandle = curl_easy_init();
+  curl_easy_setopt(easyhandle,CURLOPT_WRITEDATA, this);
+  curl_easy_setopt(easyhandle,CURLOPT_WRITEFUNCTION,&curl_container::writecb);
+  curl_easy_setopt(easyhandle,CURLOPT_USERAGENT,"libcurl-agent/1.0");
+  buffer = std::make_unique<std::vector<unsigned char>>();   
+  buffer->resize(c.buffer->size());
+  std::copy(c.buffer->begin(),c.buffer->end(),buffer->begin());
+  data_sz = c.data_sz;
+  response = c.response;
+  time_sent = c.time_sent;
+}
+
+
+curl_container::~curl_container() 
+{
+  curl_easy_cleanup(easyhandle);
+}
+
+
 const char *curl_container::get_HTML_aschar() 
 {
   return reinterpret_cast<const char*>(buffer->data());
@@ -56,16 +87,6 @@ size_t curl_container::writecb(const unsigned char *ptr,
   return 0;
 }
 
-curl_container::curl_container()
-  : buffer (std::make_unique<std::vector<unsigned char>>()),
-    data_sz(0),
-    easyhandle (curl_easy_init()) 
-{
-    curl_easy_setopt(easyhandle,CURLOPT_WRITEDATA, this);
-    curl_easy_setopt(easyhandle,CURLOPT_WRITEFUNCTION,&curl_container::writecb);
-    curl_easy_setopt(easyhandle,CURLOPT_USERAGENT,"libcurl-agent/1.0");
-}
-
 HOMURA_ERRCODE curl_container::perform_curl(const std::string &url) 
 {
   buffer.reset(); 
@@ -93,8 +114,4 @@ HOMURA_ERRCODE curl_container::perform_curl(const std::string &url)
   }
 
   return ERRCODE::SUCCESS;
-}
-
-curl_container::~curl_container() {
-  curl_easy_cleanup(easyhandle);
 }

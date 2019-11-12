@@ -13,11 +13,11 @@ pagination_information::pagination_information(int first_,
 }
 
 nyaasi_parser::nyaasi_parser(const std::string first_website_) 
-  : first_website(first_website_),
+  : curler(std::make_shared<curl_container>()), 
+    first_website(first_website_),
     html_parser(tree_container()),
     pageinfo(pagination_information(0,0,0))
-{
-}
+{}
 
 HOMURA_ERRCODE nyaasi_parser::extract_pageinfo() 
 {
@@ -82,117 +82,71 @@ HOMURA_ERRCODE nyaasi_parser::extract_pageinfo()
   return ERRCODE::SUCCESS;
 }
 
-HOMURA_ERRCODE nyaasi_parser::get_urls(std::shared_ptr <curl_container> curler)
+HOMURA_ERRCODE nyaasi_parser::curl_and_create_tree(const std::string url)
+{
+  int status;
+  status = curler->perform_curl(url);
+  if (status != ERRCODE::SUCCESS) return status; 
+
+  status = html_parser.create_tree(curler->get_HTML_aschar());
+  if (status != ERRCODE::SUCCESS) return status; 
+
+  return ERRCODE::SUCCESS;
+}
+
+std::vector<std::string> nyaasi_parser::get_urls()
 {
   /* nyaa.si has no official api, and we must manually
      find out how many results to expect by sending a request 
      and parsing the query result information */
 
   int status;
+  std::vector<std::string>urls;
 
-  status = curler->perform_curl(first_website);
-  if (status != ERRCODE::SUCCESS) return status; 
-
-  html_parser.create_tree(curler->get_HTML_aschar());
+  status = curl_and_create_tree(first_website);
+  if (status != ERRCODE::SUCCESS) return urls; 
   status = extract_pageinfo();
-  if (status != ERRCODE::SUCCESS) return status; 
+  if (status != ERRCODE::SUCCESS) return urls; 
 
   int total = pageinfo.total_result;
   int per_page = pageinfo.last_result;
   if ( total <= 1 || per_page <= 1) {
     errprintf(ERRCODE::FAILED_NO_RESULTS,"no results found for %s!\n",first_website.c_str());
-    return ERRCODE::FAILED_NO_RESULTS;
+    return urls;
   }
   int num_pages = ( total + (per_page - 1) ) / per_page;
   for (int i = 2; i <= num_pages; i++) {
-    std::string result =  first_website + "&p=" + std::to_string(i) ;  
-    fprintf (stderr,"%s",result.c_str());
+    urls.emplace_back(first_website + "&p=" + std::to_string(i)) ;  
   }
-  return ERRCODE::SUCCESS;
+  return urls;
 }
 
-HOMURA_ERRCODE nyaasi_parser::get_magnets(std::shared_ptr <curl_container> curler)
+std::vector<std::string> nyaasi_parser::extract_tree_magnets() 
 {
-  return ERRCODE::SUCCESS;
+  std::vector<std::string> magnet_list;
+  const char *mag_k = "href";
+  const char *mag_v = "magnet";
+  myhtml_collection_t *magnets = 
+  myhtml_get_nodes_by_attribute_value_contain(html_parser.get_tree(), NULL, NULL, true,
+                                              mag_k, strlen(mag_k),
+                                              mag_v, strlen(mag_v), NULL);
+  
+  if(magnets && magnets->list && magnets->length) {
+    for (size_t i = 0; i < magnets->length; i++){
+      myhtml_tree_attr_t *attr = myhtml_node_attribute_first(magnets->list[i]);
+      const char *magnet_link = myhtml_attribute_value(attr,NULL);
+      if (magnet_link) {
+        magnet_list.push_back(magnet_link);
+      }
+    }
+  }
+  myhtml_collection_destroy(magnets);
+  return magnet_list;
 }
-// 
-// void print_node_attr(myhtml_tree_node_t *node)
-// {
-//     myhtml_tree_attr_t *attr = myhtml_node_attribute_first(node);
-//     
-//     while (attr) {
-//         const char *name = myhtml_attribute_key(attr, NULL);
-//         
-//         if(name) {
-//             printf(" %s", name);
-//             
-//             const char *value = myhtml_attribute_value(attr, NULL);
-//             
-//             if(value)
-//                 printf("=\"%s\"", value);
-//         }
-//         
-//         attr = myhtml_attribute_next(attr);
-//     }
-// }
-// 
-// void print_tree(myhtml_tree_t* tree, myhtml_tree_node_t *node, size_t inc)
-// {
-//     while (node)
-//     {
-//         for(size_t i = 0; i < inc; i++)
-//             printf("\t");
-//         
-//         // print current element
-//         const char *tag_name = myhtml_tag_name_by_id(tree, myhtml_node_tag_id(node), NULL);
-//         
-//         if(tag_name)
-//             printf("<%s", tag_name);
-//         else
-//             // it can not be
-//             printf("<!something is wrong!");
-//         
-//         // print node attributes
-//         print_node_attr(node);
-//         
-//         if(myhtml_node_is_close_self(node))
-//             printf(" /");
-//         
-//         myhtml_tag_id_t tag_id = myhtml_node_tag_id(node);
-//         
-//         if(tag_id == MyHTML_TAG__TEXT || tag_id == MyHTML_TAG__COMMENT) {
-//             const char* node_text = myhtml_node_text(node, NULL);
-//             printf(">: %s\n", node_text);
-//         }
-//         else {
-//             printf(">\n");
-//         }
-//         
-//         // print children
-//         print_tree(tree, myhtml_node_child(node), (inc + 1));
-//         node = myhtml_node_next(node);
-//     }
-// }
-// 
-// std::vector<std::string> nyaasi_parser::extract_magnets() 
-// {
-//   std::vector<std::string> magnet_list;
-//   const char *mag_k = "href";
-//   const char *mag_v = "magnet";
-//   myhtml_collection_t *magnets = myhtml_get_nodes_by_attribute_value_contain(tree, NULL, NULL, true,
-//                                                                              mag_k, strlen(mag_k),
-//                                                                              mag_v, strlen(mag_v), NULL);
-//   
-//   if(magnets && magnets->list && magnets->length) {
-//     for (size_t i = 0; i < magnets->length; i++){
-//       myhtml_tree_attr_t *attr = myhtml_node_attribute_first(magnets->list[i]);
-//       const char *magnet_link = myhtml_attribute_value(attr,NULL);
-//       if (magnet_link) {
-//         magnet_list.push_back(magnet_link);
-//       }
-//     }
-//   }
-// 
-//   return magnet_list;
-// }
-// 
+
+std::vector<std::string> nyaasi_parser::get_magnets(const std::string url)
+{
+  int status = curl_and_create_tree(url);
+  if (status != ERRCODE::SUCCESS) return std::vector<std::string>(); 
+  return status != ERRCODE::SUCCESS ? std::vector<std::string>() : extract_tree_magnets();
+}

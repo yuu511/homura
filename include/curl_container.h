@@ -14,6 +14,7 @@ namespace homura
   public:
     curl_container();
     ~curl_container();
+    curl_container(const curl_container& c);
     
     const char *get_HTML_aschar(); 
     std::chrono::steady_clock::time_point get_time_sent();

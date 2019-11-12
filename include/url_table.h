@@ -16,24 +16,23 @@ namespace homura
                    std::chrono::milliseconds delay_);
     virtual ~url_table_base();
 
-    void insert_url(std::string url);
     void update_time();
     bool ready_for_request();
 
     std::chrono::milliseconds get_delay();
     std::vector<std::string> get_url_list();
     std::string get_website();
-    std::shared_ptr<curl_container> get_curler();
 
-    void download_one_url();
-    const char *get_last_download();
     bool empty();
+    std::string pop_one_url();
 
-    virtual HOMURA_ERRCODE populate_url_list();
-    virtual HOMURA_ERRCODE extract_magnets();
+    virtual void get_urls();
+    virtual void extract_magnets();
+
+    void insert_urls(std::vector<std::string> urls);
+    void insert_magnets(std::vector<std::string> urls);
 
   private:
-    std::shared_ptr<curl_container> curler;
     std::string website;
     std::chrono::milliseconds delay;
     std::chrono::steady_clock::time_point last_request;
@@ -46,19 +45,21 @@ namespace homura
   public:
     url_table(std::string website_,
               std::chrono::milliseconds delay_,
-              parser extractor_)
+              std::shared_ptr<parser> extractor_)
       : url_table_base(website_,delay_),         
         extractor(extractor_){}
-    HOMURA_ERRCODE populate_url_list() 
+    void get_urls() 
     {
-      return extractor.get_urls(url_table_base::get_curler());  
+      update_time();
+      insert_urls(extractor->get_urls());  
     }
-    HOMURA_ERRCODE extract_magnets()
+    void extract_magnets()
     {
-      return extractor.get_magnets(url_table_base::get_curler());  
+      update_time();
+      insert_magnets(extractor->get_magnets(pop_one_url()));  
     }
   private:
-    parser extractor;
+    std::shared_ptr<parser> extractor;
   };
 }
 

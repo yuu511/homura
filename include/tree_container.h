@@ -15,6 +15,7 @@ namespace homura
     tree_container(const tree_container& c);
 
     HOMURA_ERRCODE create_tree(const char *html_page);
+    void reset_tree();
 
     myhtml_t *get_handle();
     myhtml_tree *get_tree();

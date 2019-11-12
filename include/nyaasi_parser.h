@@ -4,6 +4,7 @@
 #include "errlib.h"
 #include "tree_container.h"
 #include "curl_container.h"
+#include <memory>
 #include <myhtml/myhtml.h>
 
 namespace homura {
@@ -17,10 +18,16 @@ namespace homura {
   class nyaasi_parser {
   public:
     nyaasi_parser(const std::string first_website);
+
+    HOMURA_ERRCODE curl_and_create_tree(const std::string url);
     HOMURA_ERRCODE extract_pageinfo();
-    HOMURA_ERRCODE get_urls(std::shared_ptr <curl_container> curler);
-    HOMURA_ERRCODE get_magnets(std::shared_ptr <curl_container> curler);
+    std::vector<std::string> extract_tree_magnets();
+
+    // template functions
+    std::vector<std::string> get_urls();
+    std::vector<std::string> get_magnets(const std::string url);
   private:
+    std::shared_ptr<curl_container> curler;
     const std::string first_website;
     tree_container html_parser;
     pagination_information pageinfo;
