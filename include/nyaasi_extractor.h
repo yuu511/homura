@@ -23,8 +23,9 @@ namespace homura {
     std::vector<std::string> extract_tree_magnets();
 
     // template functions
-    std::vector<std::string> get_urls(std::string page);
+    std::vector<std::string> populate_url_list(std::string page);
     std::vector<std::string> get_magnets(std::string url);
+    std::vector<std::string> parse_first_page();
   private:
     std::shared_ptr<curl_container> curler;
     tree_container html_parser;

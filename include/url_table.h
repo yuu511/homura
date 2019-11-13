@@ -21,12 +21,13 @@ namespace homura
 
     std::chrono::milliseconds get_delay();
     std::vector<std::string> get_url_list();
+    std::vector<std::string> get_magnets();
     std::string get_website();
 
     bool empty();
     std::string pop_one_url();
 
-    virtual void get_urls(std::string page);
+    virtual void populate_url_list(std::string page);
     virtual void extract_magnets();
 
     void insert_urls(std::vector<std::string> urls);
@@ -48,15 +49,17 @@ namespace homura
               std::shared_ptr<parser> extractor_)
       : url_table_base(website_,delay_),         
         extractor(extractor_){}
-    void get_urls(std::string page) 
+    // template functions
+    void populate_url_list(std::string page) 
     {
+      insert_urls(extractor->populate_url_list(page));  
+      insert_magnets(extractor->parse_first_page());
       update_time();
-      insert_urls(extractor->get_urls(page));  
     }
     void extract_magnets()
     {
+      extractor->get_magnets(pop_one_url());  
       update_time();
-      insert_magnets(extractor->get_magnets(pop_one_url()));  
     }
   private:
     std::shared_ptr<parser> extractor;

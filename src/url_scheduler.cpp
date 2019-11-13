@@ -28,6 +28,11 @@ void url_scheduler::insert_table(std::shared_ptr<url_table_base> new_entry)
   sorted_url_tables.insert(itor,new_entry);
 }
 
+urlvector url_scheduler::return_table()
+{
+  return sorted_url_tables;
+}
+
 HOMURA_ERRCODE url_scheduler::crawl() 
 {
   bool finished = false;
@@ -38,6 +43,14 @@ HOMURA_ERRCODE url_scheduler::crawl()
       finished = false;
       if (table->ready_for_request()) {
         table->extract_magnets();
+      }
+    }
+    if (options::debug_level > 0) {
+      for (auto table : sorted_url_tables) {
+        std::vector magnets = table->get_magnets();   
+        for (auto itor : magnets) {
+           fprintf(stderr,"%s\n",itor.c_str());
+        }
       }
     }
   }

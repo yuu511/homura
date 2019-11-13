@@ -40,6 +40,11 @@ std::vector<std::string> url_table_base::get_url_list()
   return website_urls;
 }
 
+std::vector<std::string> url_table_base::get_magnets()
+{
+  return magnets;
+}
+
 std::string url_table_base::get_website() 
 {
   return website;
@@ -57,7 +62,11 @@ std::string url_table_base::pop_one_url()
   return back;
 }
 
-void url_table_base::get_urls(std::string page){return;}
+void url_table_base::populate_url_list(std::string page)
+{
+  fprintf(stderr,"you should never see this.");
+  return;
+}
 void url_table_base::extract_magnets()
 {
   fprintf(stderr,"you should never see this.");

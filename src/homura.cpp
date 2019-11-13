@@ -11,8 +11,7 @@
 using namespace homura;
 
 homura_instance::homura_instance() 
-  : //results(nullptr),
-    torrenter(),
+  : torrenter(),
     scheduler()
 {
   curl_global_init(CURL_GLOBAL_ALL);
@@ -27,6 +26,13 @@ homura_instance::~homura_instance()
 HOMURA_ERRCODE homura_instance::crawl() 
 {
   scheduler.crawl();
+  auto table = scheduler.return_table();
+  for (auto itor : table) {
+    std::vector magnets = itor->get_magnets();
+    for (auto entry : magnets) {
+      torrenter.extract_magnet_information(entry);
+    }
+  }
   return ERRCODE::SUCCESS;
 }
 
@@ -39,7 +45,7 @@ HOMURA_ERRCODE homura_instance::query_nyaasi(std::string args)
 
   auto iterator = scheduler.table_position(key);
   if (scheduler.exists_in_table(iterator)) {
-    iterator->second->get_urls(base_url);
+    iterator->second->populate_url_list(base_url);
   } 
   else {
     auto new_extractor = std::make_shared<nyaasi_extractor>();
@@ -48,7 +54,7 @@ HOMURA_ERRCODE homura_instance::query_nyaasi(std::string args)
                                   std::chrono::milliseconds(5000),
                                   new_extractor);
     scheduler.insert_table(new_table);
-    new_table->get_urls(base_url);
+    new_table->populate_url_list(base_url);
   }
   return ERRCODE::SUCCESS;
 }

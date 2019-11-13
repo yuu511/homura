@@ -19,12 +19,12 @@ namespace homura
     bool exists_in_table(urlhash::iterator it);
 
     void insert_table(std::shared_ptr<url_table_base> to_insert);
+    urlvector return_table();
 
     HOMURA_ERRCODE crawl();
   private:
     urlhash hashed_url_tables;
     urlvector sorted_url_tables;
-    std::vector<std::string> all_magnets;
   };
 }
 

@@ -118,7 +118,7 @@ std::vector<std::string> nyaasi_extractor::extract_tree_magnets()
   return magnet_list;
 }
 
-std::vector<std::string> nyaasi_extractor::get_urls(std::string page)
+std::vector<std::string> nyaasi_extractor::populate_url_list(std::string page)
 {
   /* nyaa.si has no official api, and we must manually
      find out how many results to expect by sending a request 
@@ -138,7 +138,7 @@ std::vector<std::string> nyaasi_extractor::get_urls(std::string page)
     return urls;
   }
   int num_pages = ( total + (per_page - 1) ) / per_page;
-  for (int i = 1; i <= num_pages; i++) {
+  for (int i = 2; i <= num_pages; i++) {
     urls.emplace_back(page + "&p=" + std::to_string(i)) ;  
   }
   return urls;
@@ -148,4 +148,9 @@ std::vector<std::string> nyaasi_extractor::get_magnets(std::string url)
 {
   int status = curl_and_create_tree(url);
   return status != ERRCODE::SUCCESS ? std::vector<std::string>() : extract_tree_magnets();
+}
+
+std::vector<std::string> nyaasi_extractor::parse_first_page()
+{
+  return extract_tree_magnets();
 }
