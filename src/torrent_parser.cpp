@@ -1,5 +1,7 @@
 #include <cstdlib>
 #include <cstdio>
+#include <fstream>
+#include <iostream>
 #include <memory>
 #include <boost/make_shared.hpp>
 #include <libtorrent/session.hpp>
@@ -22,7 +24,7 @@ torrent_parser::torrent_parser()
 
 void torrent_parser::extract_magnet_information(std::string magnet) 
 {
-  fprintf (stderr,"magnet %s ",magnet.c_str());
+  fprintf (stderr,"%s\n",magnet.c_str());
   lt::session s;
   s.add_extension(&libtorrent::create_ut_metadata_plugin);
   s.add_extension(&libtorrent::create_ut_pex_plugin);
@@ -38,7 +40,24 @@ void torrent_parser::extract_magnet_information(std::string magnet)
   p.flags &= ~p.flag_auto_managed;
   lt::torrent_handle h = s.add_torrent(p);
   while(!h.is_valid()){;}
-  p.ti = boost::make_shared<lt::torrent_info>(h.info_hash());
-  // auto info = lt::torrent_info(h.info_hash());
-  std::fprintf(stderr,"name %d\n",p.ti->num_pieces());
+  lt::torrent_info const t(h.info_hash());
+  std::stringstream ih;
+  ih << t.info_hash();
+  std::printf("number of pieces: %d\n"
+    "piece length %d\n"
+    "info hash %s\n"
+    "comment %s\n"
+    "created by %s\n"
+    "magnet link %s\n"
+    "name: %s\n"
+    "number of files %d\n\n"
+    , t.num_pieces()
+    , t.piece_length()
+    , ih.str().c_str()
+    , t.comment().c_str()
+    , t.creator().c_str()
+    , make_magnet_uri(t).c_str()
+    , t.name().c_str()
+    , t.num_files());
+
 }
