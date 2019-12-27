@@ -1,6 +1,7 @@
 #ifndef __TORRENT_PARSER_H_
 #define __TORRENT_PARSER_H_
 
+#include <libtorrent/session.hpp>
 #include <string>
 
 namespace homura 
@@ -11,6 +12,7 @@ namespace homura
     void extract_magnet_information(std::string magnet);
   private:
     std::string magnet_information;
+    lt::session s;
   };
 }
 
