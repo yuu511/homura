@@ -4,6 +4,7 @@
 #include <iostream>
 #include <memory>
 #include <utility>
+#include <libtorrent/torrent_flags.hpp>
 #include <libtorrent/session_handle.hpp>
 #include <libtorrent/add_torrent_params.hpp>
 #include <libtorrent/torrent_handle.hpp>
@@ -31,42 +32,11 @@ torrent_parser::torrent_parser()
 void torrent_parser::extract_magnet_information(std::string magnet) 
 {
   fprintf (stderr,"%s\n",magnet.c_str());
-  lt::add_torrent_params p;
   lt::error_code ec;
-  libtorrent::parse_magnet_uri(magnet,p,ec);
+  lt::add_torrent_params = lt::parse_magnet_uri(magnet,ec);
   p.save_path = "/tmp/";
-  p.flags |= p.flag_upload_mode;
-  p.flags &= ~p.flag_auto_managed;
+  p.flags |= lt::torrent_flags::upload_mode;
+  p.flags &= ~lt::torrent_flags::auto_managed;
   lt::torrent_handle h = s.add_torrent(p);
-  lt::torrent_status stat = h.status();
-  while(!h.is_valid() && !stat.has_metadata){;}
-  lt::torrent_info const t(h.info_hash());
-  std::stringstream ih;
-  ih << t.info_hash();
-  if (options::debug_level > 0 ) {
-    std::printf("number of pieces: %d\n"
-      "piece length %d\n"
-      "info hash %s\n"
-      "comment %s\n"
-      "created by %s\n"
-      "magnet link %s\n"
-      "name: %s\n"
-      "number of files %d\n\n"
-      , t.num_pieces()
-      , t.piece_length()
-      , ih.str().c_str()
-      , t.comment().c_str()
-      , t.creator().c_str()
-      , make_magnet_uri(t).c_str()
-      , t.name().c_str()
-      , t.num_files());
-
-      std::printf("Number of DHT nodes: %zd\n",t.nodes().size());
-      for (auto itor : t.nodes()) {
-         std::printf("Tracker %s Port %d \n "
-                     , itor.first.c_str()
-                     , itor.second);
-      }
-   }
-   s.post_dht_stats();
+  while(!h.status().has_metadata){;}
 }
