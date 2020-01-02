@@ -115,3 +115,12 @@ HOMURA_ERRCODE curl_container::perform_curl(const std::string &url)
 
   return ERRCODE::SUCCESS;
 }
+
+HOMURA_ERRCODE curl_container::try_curl_N(const std::string &url,int attempts) 
+{
+  while (attempts) {
+    if (perform_curl(url) == ERRCODE::SUCCESS) return ERRCODE::SUCCESS;
+    --attempts;
+  }
+  return ERRCODE::FAILED_CURL;
+}

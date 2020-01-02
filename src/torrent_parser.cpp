@@ -33,7 +33,7 @@ void torrent_parser::extract_magnet_information(std::string magnet)
 {
   fprintf (stderr,"%s\n",magnet.c_str());
   lt::error_code ec;
-  lt::add_torrent_params = lt::parse_magnet_uri(magnet,ec);
+  lt::add_torrent_params p = lt::parse_magnet_uri(magnet,ec);
   p.save_path = "/tmp/";
   p.flags |= lt::torrent_flags::upload_mode;
   p.flags &= ~lt::torrent_flags::auto_managed;
