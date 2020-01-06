@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <unordered_map>
 #include "curl_container.h"
 #include "tree_container.h"
 
@@ -29,6 +30,7 @@ namespace homura
 
     virtual void populate_url_list(std::string page);
     virtual void extract_magnets();
+    virtual void parse_first_page();
 
     void insert_urls(std::vector<std::string> urls);
     void insert_magnets(std::vector<std::string> urls);
@@ -53,13 +55,20 @@ namespace homura
     void populate_url_list(std::string page) 
     {
       insert_urls(extractor->populate_url_list(page));  
-      insert_magnets(extractor->parse_first_page());
+      // insert_magnets(extractor->parse_first_page());
       update_time();
     }
     void extract_magnets()
     {
-      extractor->get_magnets(pop_one_url());  
-      update_time();
+      extractor->get_magnets(pop_one_url()); 
+      // std::vector<std::string> result = extractor->get_magnets(pop_one_url());  
+      // update_time();
+    }
+    void parse_first_page()
+    {
+      // extractor->get_magnets(pop_one_url()); 
+      // insert_magnets(extractor->parse_first_page());
+      // update_time();
     }
   private:
     std::shared_ptr<parser> extractor;

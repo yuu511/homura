@@ -73,6 +73,12 @@ void url_table_base::extract_magnets()
   return;
 }
 
+void url_table_base::parse_first_page()
+{
+  fprintf(stderr,"you should never see this.");
+  return;
+}
+
 void url_table_base::insert_urls(std::vector<std::string> new_urls)
 {
   website_urls.insert(website_urls.end(),new_urls.begin(),new_urls.end());

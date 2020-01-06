@@ -6,6 +6,9 @@
 #include "curl_container.h"
 #include <memory>
 #include <myhtml/myhtml.h>
+#include <unordered_map>
+
+using name_magnet = std::unordered_map<std::string,std::string>;
 
 namespace homura {
   struct pagination_information {
@@ -20,12 +23,12 @@ namespace homura {
     nyaasi_extractor();
     HOMURA_ERRCODE curl_and_create_tree(std::string url);
     HOMURA_ERRCODE extract_pageinfo();
-    std::vector<std::string> extract_tree_magnets();
+    name_magnet extract_tree_magnets();
 
     // template functions
     std::vector<std::string> populate_url_list(std::string page);
-    std::vector<std::string> get_magnets(std::string url);
-    std::vector<std::string> parse_first_page();
+    name_magnet parse_first_page();
+    name_magnet get_magnets(std::string url);
   private:
     std::shared_ptr<curl_container> curler;
     tree_container html_parser;
