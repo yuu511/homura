@@ -23,7 +23,6 @@ namespace homura {
     nyaasi_extractor();
     HOMURA_ERRCODE curl_and_create_tree(std::string url);
     HOMURA_ERRCODE extract_pageinfo();
-    name_magnet extract_tree_magnets();
 
     // template functions
     std::vector<std::string> populate_url_list(std::string page);
