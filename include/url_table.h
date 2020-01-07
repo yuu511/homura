@@ -9,6 +9,8 @@
 #include "curl_container.h"
 #include "tree_container.h"
 
+using name_magnet = std::unordered_map<std::string,std::string>;
+
 namespace homura 
 {
   class url_table_base {
@@ -21,8 +23,6 @@ namespace homura
     bool ready_for_request();
 
     std::chrono::milliseconds get_delay();
-    std::vector<std::string> get_url_list();
-    std::vector<std::string> get_magnets();
     std::string get_website();
 
     bool empty();
@@ -32,15 +32,15 @@ namespace homura
     virtual void extract_magnets();
     virtual void parse_first_page();
 
-    void insert_urls(std::vector<std::string> urls);
-    void insert_magnets(std::vector<std::string> urls);
+    void copy_url(std::vector<std::string> &urls);
+    void copy_nm_pair(name_magnet &nm);
 
   private:
     std::string website;
     std::chrono::milliseconds delay;
     std::chrono::steady_clock::time_point last_request;
     std::vector<std::string> website_urls;
-    std::vector<std::string> magnets;
+    name_magnet magnet_name_pair;
   };
 
   template <typename parser>
@@ -54,21 +54,20 @@ namespace homura
     // template functions
     void populate_url_list(std::string page) 
     {
-      insert_urls(extractor->populate_url_list(page));  
-      // insert_magnets(extractor->parse_first_page());
+      auto urls = extractor->populate_url_list(page);
+      copy_url(urls);
       update_time();
     }
     void extract_magnets()
     {
-      extractor->get_magnets(pop_one_url()); 
-      // std::vector<std::string> result = extractor->get_magnets(pop_one_url());  
-      // update_time();
+      auto nm = extractor->get_magnets(pop_one_url());
+      copy_nm_pair(nm);
+      update_time();
     }
     void parse_first_page()
     {
-      // extractor->get_magnets(pop_one_url()); 
-      // insert_magnets(extractor->parse_first_page());
-      // update_time();
+      auto nm = extractor->parse_first_page();
+      update_time();
     }
   private:
     std::shared_ptr<parser> extractor;

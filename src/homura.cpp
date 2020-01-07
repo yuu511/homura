@@ -26,13 +26,6 @@ homura_instance::~homura_instance()
 HOMURA_ERRCODE homura_instance::crawl() 
 {
   scheduler.crawl();
-  auto table = scheduler.return_table();
-  for (auto itor : table) {
-    std::vector magnets = itor->get_magnets();
-    for (auto entry : magnets) {
-      torrenter.extract_magnet_information(entry);
-    }
-  }
   return ERRCODE::SUCCESS;
 }
 

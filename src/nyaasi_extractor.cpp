@@ -95,19 +95,21 @@ HOMURA_ERRCODE nyaasi_extractor::extract_pageinfo()
   return ERRCODE::SUCCESS;
 }
 
-void get_name_magnet(myhtml_tree_t *tree, myhtml_collection_t *table, name_magnet &name_and_magnet) 
+void extract_tree_magnets(myhtml_tree_t *tree, name_magnet &name_and_magnet) 
 {
   const char *name = NULL;
   const char *magnet = NULL;
+
+  const char *tagname = "tr";
+  myhtml_collection_t *table = myhtml_get_nodes_by_name(tree,NULL,tagname,strlen(tagname),NULL);
+
   if (table && table->length > 1) {
     const char *title_attr = "colspan";
     const char *title_val = "2";
     for (size_t i = 1; i < table->length; ++i){
       myhtml_collection_t *title_table1 =
-      myhtml_get_nodes_by_attribute_value(tree,
-                                          NULL,
-                                          table->list[i],
-                                          true,
+      myhtml_get_nodes_by_attribute_value(tree, NULL,
+                                          table->list[i], true,
                                           title_attr, strlen(title_attr),
                                           title_val, strlen(title_val),
                                           NULL);
@@ -125,10 +127,8 @@ void get_name_magnet(myhtml_tree_t *tree, myhtml_collection_t *table, name_magne
       const char *mag_k = "href";
       const char *mag_v = "magnet";
       myhtml_collection_t *magnets = 
-      myhtml_get_nodes_by_attribute_value_contain(tree,
-                                                  NULL, 
-                                                  table->list[i], 
-                                                  true,
+      myhtml_get_nodes_by_attribute_value_contain(tree, NULL, 
+                                                  table->list[i], true,
                                                   mag_k, strlen(mag_k),
                                                   mag_v, strlen(mag_v), 
                                                   NULL);
@@ -152,45 +152,6 @@ void get_name_magnet(myhtml_tree_t *tree, myhtml_collection_t *table, name_magne
        name_and_magnet.emplace(std::string(magnet),std::string(name));
      }
   }
-}
-
-void extract_tree_magnets(myhtml_tree_t *ptree, name_magnet &name_and_magnet) 
-{
-  // for whatever reason, torrents can be in both <tr class = "sucess"> AND <tr class = "default">.
-//  const char *attribute = "class";
-//  const char *val1 = "success";
-//  const char *val2 = "default";
-//  const char *val2 = "danger";
-//  myhtml_collection_t *ttables_1 = 
-//  myhtml_get_nodes_by_attribute_value(ptree,
-//                                      NULL,
-//                                      NULL,
-//                                      true,
-//                                      attribute, strlen(attribute),
-//                                      val1, strlen(val1),
-//                                      NULL);
-//  myhtml_collection_t *ttables_2 = 
-//  myhtml_get_nodes_by_attribute_value(ptree,
-//                                      NULL,
-//                                      NULL,
-//                                      true,
-//                                      attribute, strlen(attribute),
-//                                      val2, strlen(val2),
-//                                      NULL);
-
-  const char *tagname = "tr";
-  myhtml_collection_t *ttable = myhtml_get_nodes_by_name(ptree,NULL,tagname,strlen(tagname),NULL);
-  // if (homura::options::debug_level) {
-  //   if (ttables_1 && ttables_1->length)
-  //     fprintf(stderr,"ttables_1 %zu \n",ttables_1->length);  
-  //   else 
-  //     fprintf (stderr,"ttables_1 not found !");
-  //   if (ttables_2 && ttables_2->length)
-  //     fprintf(stderr,"ttables_2 %zu \n",ttables_2->length);  
-  //   else 
-  //     fprintf (stderr,"ttables_2 not found !");
-  // }
-  get_name_magnet(ptree,ttable,name_and_magnet);
 }
 
 std::vector<std::string> nyaasi_extractor::populate_url_list(std::string page)

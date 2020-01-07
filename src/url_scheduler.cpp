@@ -45,14 +45,6 @@ HOMURA_ERRCODE url_scheduler::crawl()
         table->extract_magnets();
       }
     }
-    if (options::debug_level > 0) {
-      for (auto table : sorted_url_tables) {
-        std::vector magnets = table->get_magnets();   
-        for (auto itor : magnets) {
-           fprintf(stderr,"%s\n",itor.c_str());
-        }
-      }
-    }
   }
   return ERRCODE::SUCCESS;
 }

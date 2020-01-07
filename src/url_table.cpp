@@ -35,16 +35,6 @@ std::chrono::milliseconds url_table_base::get_delay()
   return delay;
 }
 
-std::vector<std::string> url_table_base::get_url_list()
-{
-  return website_urls;
-}
-
-std::vector<std::string> url_table_base::get_magnets()
-{
-  return magnets;
-}
-
 std::string url_table_base::get_website() 
 {
   return website;
@@ -79,12 +69,13 @@ void url_table_base::parse_first_page()
   return;
 }
 
-void url_table_base::insert_urls(std::vector<std::string> new_urls)
+void url_table_base::copy_url(std::vector<std::string> &urls)
 {
-  website_urls.insert(website_urls.end(),new_urls.begin(),new_urls.end());
+  website_urls = urls;
 }
 
-void url_table_base::insert_magnets(std::vector<std::string> new_magnets)
+void url_table_base::copy_nm_pair(name_magnet &nm)
 {
-  magnets.insert(magnets.end(),new_magnets.begin(),new_magnets.end());
+  magnet_name_pair = nm;
 }
+
