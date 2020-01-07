@@ -99,10 +99,10 @@ void get_name_magnet(myhtml_tree_t *tree, myhtml_collection_t *table, name_magne
 {
   const char *name = NULL;
   const char *magnet = NULL;
-  if (table && table->length) {
+  if (table && table->length > 1) {
     const char *title_attr = "colspan";
     const char *title_val = "2";
-    for (size_t i = 0; i < table->length; ++i){
+    for (size_t i = 1; i < table->length; ++i){
       myhtml_collection_t *title_table1 =
       myhtml_get_nodes_by_attribute_value(tree,
                                           NULL,
@@ -118,7 +118,7 @@ void get_name_magnet(myhtml_tree_t *tree, myhtml_collection_t *table, name_magne
             child = myhtml_node_child(child);
             name = myhtml_node_text(child,NULL);
             if (options::debug_level) {
-              if (name) fprintf(stdout,"name %s ",name);
+              if (name) fprintf(stdout,"name %s \n",name);
             }
         }
       }
@@ -139,17 +139,17 @@ void get_name_magnet(myhtml_tree_t *tree, myhtml_collection_t *table, name_magne
            magnet = myhtml_attribute_value(attr,NULL);
            if (options::debug_level) {
              if (magnet) {
-               fprintf(stdout,"magnet : %s \n",magnet);
+               fprintf(stdout,"magnet : %s \n\n",magnet);
              }
            }
          }
        }
 
        if (!magnet || !name){
-         errprintf(ERRCODE::FAILED_NO_RESULTS,"Unsucessfully parsed torrent at %zu",i);    
+         fprintf(stdout,"No torrent found at index %zu \n",i);    
+         continue;
        }
-       name_and_magnet.emplace(magnet ? std::string(magnet) : std::string(), 
-                               name ? std::string(name) : std::string());
+       name_and_magnet.emplace(std::string(magnet),std::string(name));
      }
   }
 }
@@ -157,39 +157,40 @@ void get_name_magnet(myhtml_tree_t *tree, myhtml_collection_t *table, name_magne
 void extract_tree_magnets(myhtml_tree_t *ptree, name_magnet &name_and_magnet) 
 {
   // for whatever reason, torrents can be in both <tr class = "sucess"> AND <tr class = "default">.
-  const char *attribute = "class";
-  const char *val1 = "success";
-  const char *val2 = "default";
-  const char *val2 = "danger";
-  myhtml_collection_t *ttables_1 = 
-  myhtml_get_nodes_by_attribute_value(ptree,
-                                      NULL,
-                                      NULL,
-                                      true,
-                                      attribute, strlen(attribute),
-                                      val1, strlen(val1),
-                                      NULL);
-  myhtml_collection_t *ttables_2 = 
-  myhtml_get_nodes_by_attribute_value(ptree,
-                                      NULL,
-                                      NULL,
-                                      true,
-                                      attribute, strlen(attribute),
-                                      val2, strlen(val2),
-                                      NULL);
+//  const char *attribute = "class";
+//  const char *val1 = "success";
+//  const char *val2 = "default";
+//  const char *val2 = "danger";
+//  myhtml_collection_t *ttables_1 = 
+//  myhtml_get_nodes_by_attribute_value(ptree,
+//                                      NULL,
+//                                      NULL,
+//                                      true,
+//                                      attribute, strlen(attribute),
+//                                      val1, strlen(val1),
+//                                      NULL);
+//  myhtml_collection_t *ttables_2 = 
+//  myhtml_get_nodes_by_attribute_value(ptree,
+//                                      NULL,
+//                                      NULL,
+//                                      true,
+//                                      attribute, strlen(attribute),
+//                                      val2, strlen(val2),
+//                                      NULL);
 
-  if (homura::options::debug_level) {
-    if (ttables_1 && ttables_1->length)
-      fprintf(stderr,"ttables_1 %zu \n",ttables_1->length);  
-    else 
-      fprintf (stderr,"ttables_1 not found !");
-    if (ttables_2 && ttables_2->length)
-      fprintf(stderr,"ttables_2 %zu \n",ttables_2->length);  
-    else 
-      fprintf (stderr,"ttables_2 not found !");
-  }
-  get_name_magnet(ptree,ttables_1,name_and_magnet);
-  get_name_magnet(ptree,ttables_2,name_and_magnet);
+  const char *tagname = "tr";
+  myhtml_collection_t *ttable = myhtml_get_nodes_by_name(ptree,NULL,tagname,strlen(tagname),NULL);
+  // if (homura::options::debug_level) {
+  //   if (ttables_1 && ttables_1->length)
+  //     fprintf(stderr,"ttables_1 %zu \n",ttables_1->length);  
+  //   else 
+  //     fprintf (stderr,"ttables_1 not found !");
+  //   if (ttables_2 && ttables_2->length)
+  //     fprintf(stderr,"ttables_2 %zu \n",ttables_2->length);  
+  //   else 
+  //     fprintf (stderr,"ttables_2 not found !");
+  // }
+  get_name_magnet(ptree,ttable,name_and_magnet);
 }
 
 std::vector<std::string> nyaasi_extractor::populate_url_list(std::string page)
