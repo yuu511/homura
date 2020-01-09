@@ -46,6 +46,11 @@ HOMURA_ERRCODE url_scheduler::crawl()
       }
     }
   }
+  if (options::debug_level) {
+    for (auto itor: sorted_url_tables) {
+      itor->sort_print();
+    }
+  }
   return ERRCODE::SUCCESS;
 }
 

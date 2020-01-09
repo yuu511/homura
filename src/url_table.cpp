@@ -1,6 +1,7 @@
 #include <time.h>
 #include <thread>
-#include <iostream>
+#include <algorithm>
+#include <stdio.h>
 
 #include "url_table.h"
 #include "errlib.h"
@@ -71,11 +72,30 @@ void url_table_base::parse_first_page()
 
 void url_table_base::copy_url(std::vector<std::string> &urls)
 {
-  website_urls = urls;
+  website_urls.insert(website_urls.end(),urls.begin(),urls.end());
 }
 
 void url_table_base::copy_nm_pair(name_magnet &nm)
 {
-  magnet_name_pair = nm;
+  magnet_name_pair.insert(magnet_name_pair.end(),nm.begin(),nm.end());
 }
 
+void url_table_base::sort_urltable()
+{
+  std::sort(magnet_name_pair.begin(),magnet_name_pair.end(), 
+              [](const std::pair<std::string,std::string> &x,  
+                 const std::pair<std::string,std::string> &y)
+  {
+     return x.second < y.second;
+  });
+}
+
+void url_table_base::sort_print()
+{
+  sort_urltable();
+  fprintf (stdout," == print_sorted_urltable() %s size %zd == \n\n",
+                  website.c_str(),magnet_name_pair.size());
+  for (auto itor : magnet_name_pair) {
+    fprintf (stdout, "%s\n%s\n\n",itor.first.c_str(),itor.second.c_str());
+  }
+}

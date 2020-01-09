@@ -4,11 +4,10 @@
 #include "errlib.h"
 #include "tree_container.h"
 #include "curl_container.h"
+#include "url_table.h"
 #include <memory>
 #include <myhtml/myhtml.h>
 #include <unordered_map>
-
-using name_magnet = std::unordered_map<std::string,std::string>;
 
 namespace homura {
   struct pagination_information {
@@ -29,7 +28,8 @@ namespace homura {
     name_magnet parse_first_page();
     name_magnet get_magnets(std::string url);
   private:
-    std::shared_ptr<curl_container> curler;
+    // std::shared_ptr<curl_container> curler;
+    curl_container curler;
     tree_container html_parser;
     pagination_information pageinfo;
   };

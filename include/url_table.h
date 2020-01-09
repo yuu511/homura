@@ -5,11 +5,13 @@
 #include <string>
 #include <vector>
 #include <memory>
-#include <unordered_map>
+#include <utility>
+#include <stdio.h>
+
 #include "curl_container.h"
 #include "tree_container.h"
 
-using name_magnet = std::unordered_map<std::string,std::string>;
+using name_magnet = std::vector<std::pair<std::string,std::string>>;
 
 namespace homura 
 {
@@ -31,6 +33,9 @@ namespace homura
     virtual void populate_url_list(std::string page);
     virtual void extract_magnets();
     virtual void parse_first_page();
+
+    void sort_urltable();
+    void sort_print();
 
     void copy_url(std::vector<std::string> &urls);
     void copy_nm_pair(name_magnet &nm);
@@ -67,6 +72,7 @@ namespace homura
     void parse_first_page()
     {
       auto nm = extractor->parse_first_page();
+      copy_nm_pair(nm);
       update_time();
     }
   private:

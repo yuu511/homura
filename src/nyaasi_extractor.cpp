@@ -13,7 +13,7 @@ pagination_information::pagination_information(int first_,
 }
 
 nyaasi_extractor::nyaasi_extractor() 
-  : curler(std::make_shared<curl_container>()), 
+  : curler(curl_container()), 
     html_parser(tree_container()),
     pageinfo(pagination_information(0,0,0))
 {}
@@ -22,11 +22,11 @@ nyaasi_extractor::nyaasi_extractor()
 HOMURA_ERRCODE nyaasi_extractor::curl_and_create_tree(std::string url)
 {
   int status;
-  status = curler->perform_curl(url);
+  status = curler.perform_curl(url);
   if (status != ERRCODE::SUCCESS) return status; 
 
   html_parser.reset_tree();
-  status = html_parser.create_tree(curler->get_HTML_aschar());
+  status = html_parser.create_tree(curler.get_HTML_aschar());
   if (status != ERRCODE::SUCCESS) return status; 
 
   return ERRCODE::SUCCESS;
@@ -149,7 +149,7 @@ void extract_tree_magnets(myhtml_tree_t *tree, name_magnet &name_and_magnet)
          fprintf(stdout,"No torrent found at index %zu \n",i);    
          continue;
        }
-       name_and_magnet.emplace(std::string(magnet),std::string(name));
+       name_and_magnet.push_back(std::make_pair(std::string(magnet),std::string(name)));
      }
   }
 }
