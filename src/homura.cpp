@@ -55,3 +55,8 @@ HOMURA_ERRCODE homura_instance::query_nyaasi(std::string args)
   }
   return ERRCODE::SUCCESS;
 }
+
+void homura_instance::print_tables() 
+{
+  scheduler.print_tables();
+}

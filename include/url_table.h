@@ -11,10 +11,10 @@
 #include "curl_container.h"
 #include "tree_container.h"
 
-using name_magnet = std::vector<std::pair<std::string,std::string>>;
 
 namespace homura 
 {
+  using name_magnet = std::vector<std::pair<std::string,std::string>>;
   class url_table_base {
   public:
     url_table_base(std::string website_,

@@ -54,3 +54,8 @@ HOMURA_ERRCODE url_scheduler::crawl()
   return ERRCODE::SUCCESS;
 }
 
+void url_scheduler::print_tables() {
+  for (auto itor : sorted_url_tables) {
+    itor->sort_print();
+  }
+}

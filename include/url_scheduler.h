@@ -21,6 +21,8 @@ namespace homura
     void insert_table(std::shared_ptr<url_table_base> to_insert);
     urlvector return_table();
 
+    void print_tables();
+
     HOMURA_ERRCODE crawl();
   private:
     urlhash hashed_url_tables;

@@ -105,12 +105,28 @@ HOMURA_ERRCODE parse_args (int argc, char **argv)
      }
    }
    if (optind + 1 > argc) {
-     errprintf (ERRCODE::FAILED_ARGPARSE,"No search term provided.\n");
+     errprintf (ERRCODE::FAILED_ARGPARSE,"No command provided.\n");
      errprintf (ERRCODE::FAILED_ARGPARSE,"for usage: homura --help \n");
      return ERRCODE::FAILED_ARGPARSE;
    }
-   options::set_search_term(std::string(argv[optind]));
+   options::set_command(std::string(argv[optind]));
    return ERRCODE::SUCCESS;
+}
+
+HOMURA_ERRCODE execute_command(int argc, char **argv) 
+{
+  homura_instance homuhomu = homura_instance();
+  if (options::command == "search") {
+    int search_index = optind + 1;
+    int status; 
+    options::set_search_term(std::string(argv[search_index]));
+    status = homuhomu.query_nyaasi(options::search_term);
+    if (status != ERRCODE::SUCCESS) return status;
+    status = homuhomu.crawl();
+    if (status != ERRCODE::SUCCESS) return status;
+    homuhomu.print_tables();
+  }
+  return ERRCODE::SUCCESS;
 }
 
 HOMURA_ERRCODE crawl()
@@ -134,7 +150,7 @@ int main (int argc, char **argv)
   status = parse_args(argc,argv);
 
   if (status == ERRCODE::SUCCESS) { 
-    status = crawl();
+    status = execute_command(argc,argv);
   }
 
   if (options::debug_level > 0) {

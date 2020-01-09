@@ -11,6 +11,7 @@
 int homura::options::debug_level = 0;
 int homura::options::threads = 1;
 std::string homura::options::search_term = "";
+std::string homura::options::command = "";
 
 void homura::options::set_debug_level(int level) 
 {
@@ -26,6 +27,11 @@ void homura::options::set_thread_level(int numt)
 void homura::options::set_search_term(std::string term) 
 {
   homura::options::search_term = term;
+}
+
+void homura::options::set_command(std::string command)
+{
+  homura::options::command = command;
 }
 
 /* error */
