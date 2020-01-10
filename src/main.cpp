@@ -26,40 +26,43 @@ void print_usage()
 {
   fprintf(stdout,"\n");
   println(5,"USAGE:");
-  println(5,"homura [-vdt:] ARG");
-  println(7,"Search nyaa.si for expression ARG.");
-  println(7,"Make sure to enclose the expression within a \"\".");
-  println(7,"optional args -v,-d,-t defined in OPTIONS");
+  println(5,"homura [FLAGS] [OPTION]");
+  println(7,"Refer to flags / options sections");
   fprintf(stdout,"\n");
   println(5,"homura --help");
   println(7,"print out usage message");
   fprintf(stdout,"\n");
-  println(5,"OPTIONS:");
+  println(5,"FLAGS:");
   printopt(5,"[-v,--verbose]"," : logging, prints out actions as they are preformed");
   printopt(5,"[-d,--debug]"," : more extensive logging, prints out full html files");
   printopt(5,"[-t,--threads] THREADCOUNT"," : use a pool of THREADCOUNT threads ");
   printopt(5,"","   (THREADCOUNT is a positive integer)");
   printopt(5,"[--help]"," : print out usage message");
   fprintf (stdout,"\n");
+  println(5,"OPTIONS:");
+  printopt(5,"search [TARGET]"," : query results for TARGET and print to stdout");
+  fprintf (stdout,"\n");
   println(5,"EXAMPLES:");
+  fprintf (stdout,"\n");
+  println(5,"[search]");
   println(5,"all site-defined advanced search options should work. ( \"\",|,(),- )");
   println(5,"for more information about advanced search options : https://nyaa.si/help");
   println(5,"REMINDER: if you need to use the \" operator, "
                    "use \\\" when inside a quote.");
-  fprintf (stdout,"\n");
-  println(5,"search examples:");
-  println(7,"\% homura \"Ping Pong The Animation\"");
-  println(7,"\% homura --threads 5 \"Initial D\"");
   fprintf(stdout,"\n");
-  println(5,"advanced search examples:");
-  println(7,"\% homura \"Monogatari|Madoka\"");
-  println(7,"// display results for \"Monogatari\" OR \"Madoka\"");
-  println(7,"\% homura \"\\\"School Days\\\"\"");
-  println(7,"// search for \"School Days\" but not \"Days School\".");
+  println(5,"simple search");
+  println(7,"\% homura search \"Ping Pong The Animation\"");
+  println(7,"\% homura --threads 5 search \"Initial D\"");
+  fprintf(stdout,"\n");
+  println(5,"advanced search");
+  println(7,"\% homura search \"Monogatari|Madoka\"");
+  println(7,"display results for \"Monogatari\" OR \"Madoka\"");
+  println(7,"\% homura search \"\\\"School Days\\\"\"");
+  println(7,"search for \"School Days\" but not \"Days School\".");
   fprintf (stdout,"\n");
 }
 
-HOMURA_ERRCODE parse_args (int argc, char **argv) 
+HOMURA_ERRCODE parse_flags (int argc, char **argv) 
 {
    int opt;
    int numt;
@@ -86,7 +89,7 @@ HOMURA_ERRCODE parse_args (int argc, char **argv)
          break;
        case 'h':
 	     print_usage();
-         return ERRCODE::SUCCESS;
+         exit(ERRCODE::SUCCESS);
        case 't':
          numt = atoi(optarg);
          if (numt < 1) {
@@ -104,20 +107,24 @@ HOMURA_ERRCODE parse_args (int argc, char **argv)
          break;
      }
    }
-   if (optind + 1 > argc) {
-     errprintf (ERRCODE::FAILED_ARGPARSE,"No command provided.\n");
-     errprintf (ERRCODE::FAILED_ARGPARSE,"for usage: homura --help \n");
-     return ERRCODE::FAILED_ARGPARSE;
-   }
-   options::set_command(std::string(argv[optind]));
    return ERRCODE::SUCCESS;
 }
 
 HOMURA_ERRCODE execute_command(int argc, char **argv) 
 {
-  homura_instance homuhomu = homura_instance();
+ if (optind + 1 > argc) {
+   errprintf (ERRCODE::FAILED_ARGPARSE,"No command provided.\n");
+   errprintf (ERRCODE::FAILED_ARGPARSE,"for usage: homura --help \n");
+   return ERRCODE::FAILED_ARGPARSE;
+ }
+ options::set_command(std::string(argv[optind]));
+ homura_instance homuhomu = homura_instance();
   if (options::command == "search") {
     int search_index = optind + 1;
+    if (optind + 1 >= argc) {
+      errprintf(ERRCODE::FAILED_ARGPARSE,"Incorrect # of options for search\n"); 
+      return ERRCODE::FAILED_ARGPARSE;
+    }
     int status; 
     options::set_search_term(std::string(argv[search_index]));
     status = homuhomu.query_nyaasi(options::search_term);
@@ -126,34 +133,23 @@ HOMURA_ERRCODE execute_command(int argc, char **argv)
     if (status != ERRCODE::SUCCESS) return status;
     homuhomu.print_tables();
   }
+  else {
+    errprintf(ERRCODE::FAILED_INVALID_COMMAND,"Invalid command \"%s\""
+    ", use homura --help for all possible options\n",options::command.c_str());
+  }
   return ERRCODE::SUCCESS;
-}
-
-HOMURA_ERRCODE crawl()
-{
-   homura_instance homuhomu = homura_instance();
-
-   int status;
-
-   status = homuhomu.query_nyaasi(options::search_term);
-   if (status != ERRCODE::SUCCESS) return status;
-
-   status = homuhomu.crawl();
-   if (status != ERRCODE::SUCCESS) return status;
-
-   return ERRCODE::SUCCESS;
 }
 
 int main (int argc, char **argv) 
 {
   int status;
-  status = parse_args(argc,argv);
+  status = parse_flags(argc,argv);
 
   if (status == ERRCODE::SUCCESS) { 
     status = execute_command(argc,argv);
   }
 
-  if (options::debug_level > 0) {
+  if (options::debug_level) {
     parse_error_exitcode(status);
   }
 

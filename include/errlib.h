@@ -21,7 +21,8 @@ namespace homura
     FAILED_INTCAST,
     FAILED_MYHTML_TREE_INIT,
     FAILED_BOUNDS,
-    FAILED_NO_RESULTS
+    FAILED_NO_RESULTS,
+    FAILED_INVALID_COMMAND
   };
 
   /* options */

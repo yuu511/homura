@@ -90,12 +90,13 @@ void url_table_base::sort_urltable()
   });
 }
 
-void url_table_base::sort_print()
+void url_table_base::print()
 {
-  sort_urltable();
-  fprintf (stdout," == print_sorted_urltable() %s size %zd == \n\n",
-                  website.c_str(),magnet_name_pair.size());
+  if (options::debug_level) {
+    fprintf (stdout," == url_table print() %s size %zd == \n\n",
+                     website.c_str(),magnet_name_pair.size());
+  }
   for (auto itor : magnet_name_pair) {
-    fprintf (stdout, "%s\n%s\n\n",itor.first.c_str(),itor.second.c_str());
+    fprintf (stdout, "%s\n",itor.second.c_str());
   }
 }

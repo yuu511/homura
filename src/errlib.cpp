@@ -76,6 +76,9 @@ void homura::parse_error_exitcode(int code)
     case FAILED_NO_RESULTS:
       message = "FAILED_NO_RESULTS";
       break;
+    case FAILED_INVALID_COMMAND:
+      message = "FAILED_INVALID_COMMAND";
+      break;
     default:
       message = "UNKNOWN_ERROR";
       break;

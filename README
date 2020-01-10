@@ -1,0 +1,7 @@
+homura
+
+WHAT:
+Personal project that scrapes torrents from nyaa.si (other websites coming soon)
+
+WHY:
+so output can be used with other shell utilities (I need grep in my life)

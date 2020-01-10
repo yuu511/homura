@@ -35,7 +35,7 @@ namespace homura
     virtual void parse_first_page();
 
     void sort_urltable();
-    void sort_print();
+    void print();
 
     void copy_url(std::vector<std::string> &urls);
     void copy_nm_pair(name_magnet &nm);

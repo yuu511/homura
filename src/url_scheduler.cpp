@@ -46,9 +46,9 @@ HOMURA_ERRCODE url_scheduler::crawl()
       }
     }
   }
-  if (options::debug_level) {
+  if (options::debug_level > 1) {
     for (auto itor: sorted_url_tables) {
-      itor->sort_print();
+      itor->print();
     }
   }
   return ERRCODE::SUCCESS;
@@ -56,6 +56,6 @@ HOMURA_ERRCODE url_scheduler::crawl()
 
 void url_scheduler::print_tables() {
   for (auto itor : sorted_url_tables) {
-    itor->sort_print();
+    itor->print();
   }
 }

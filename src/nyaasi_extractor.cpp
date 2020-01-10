@@ -119,7 +119,7 @@ void extract_tree_magnets(myhtml_tree_t *tree, name_magnet &name_and_magnet)
         if (child) {
             child = myhtml_node_child(child);
             name = myhtml_node_text(child,NULL);
-            if (options::debug_level) {
+            if (options::debug_level > 1) {
               if (name) fprintf(stdout,"name %s \n",name);
             }
         }
@@ -137,7 +137,7 @@ void extract_tree_magnets(myhtml_tree_t *tree, name_magnet &name_and_magnet)
          for (size_t i = 0; i < magnets->length; i++){
            myhtml_tree_attr_t *attr = myhtml_node_attribute_first(magnets->list[i]);
            magnet = myhtml_attribute_value(attr,NULL);
-           if (options::debug_level) {
+           if (options::debug_level > 1) {
              if (magnet) {
                fprintf(stdout,"magnet : %s \n\n",magnet);
              }
