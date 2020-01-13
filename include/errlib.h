@@ -6,7 +6,7 @@
 
 // small error and option handling module
 
-#define HOMURA_ERRCODE int
+typedef int HOMURA_ERRCODE
 
 namespace homura 
 {
