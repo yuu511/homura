@@ -1,6 +1,4 @@
 # Homura
-
-## What:
 Personal project that scrapes torrents from nyaa.si (other websites coming soon)
 
 ## Build:
@@ -11,7 +9,7 @@ ninja -C builddir
 
 Dependencies: 
 
-* libcurl
+* libcurl 
 * myHTML (https://github.com/lexborisov/myhtml)
 * libtorrent
 * pthreads
