@@ -11,10 +11,10 @@ ninja -C builddir
 
 Dependencies: 
 
-libcurl
-myHTML (https://github.com/lexborisov/myhtml)
-libtorrent
-pthreads
+*libcurl
+*myHTML (https://github.com/lexborisov/myhtml)
+*libtorrent
+*pthreads
 
 # Why:
 so output can be used with other shell utilities (I need grep in my life)
