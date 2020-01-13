@@ -12,7 +12,7 @@ dep_boost = dependency('boost', modules : ['serialization'])
 dep_myhtml = cc.find_library('myhtml',dirs:['/usr/local/lib/'])
 inc_myhtml = include_directories('/usr/local/lib')
 
-all_dep = [ dep_thread, dep_libtorrent, dep_curl, dep_myhtml, dep_boost ]
+all_dep = [ dep_thread, dep_libtorrent, dep_curl, dep_myhtml]
 
 # homura assumes libcurl is built with OpenSSL.
 # If you are using libcurl built with GNUTLS, pass the option -D GNUTLS=true.
