@@ -96,7 +96,7 @@ void url_table_base::print()
     fprintf (stdout," == url_table print() %s size %zd == \n\n",
                      website.c_str(),magnet_name_pair.size());
   }
-  for (auto itor : magnet_name_pair) {
+  for (auto const &itor : magnet_name_pair) {
     fprintf (stdout, "%s\n",itor.second.c_str());
   }
 }

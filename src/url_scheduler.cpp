@@ -38,7 +38,7 @@ HOMURA_ERRCODE url_scheduler::crawl()
   bool finished = false;
   while (!finished) {
     finished = true;
-    for (auto table: sorted_url_tables) {
+    for (auto &table: sorted_url_tables) {
       if (table->empty()) continue;
       finished = false;
       if (table->ready_for_request()) {
@@ -47,7 +47,7 @@ HOMURA_ERRCODE url_scheduler::crawl()
     }
   }
   if (options::debug_level > 1) {
-    for (auto itor: sorted_url_tables) {
+    for (auto const &itor: sorted_url_tables) {
       itor->print();
     }
   }
@@ -55,7 +55,7 @@ HOMURA_ERRCODE url_scheduler::crawl()
 }
 
 void url_scheduler::print_tables() {
-  for (auto itor : sorted_url_tables) {
+  for (auto const &itor : sorted_url_tables) {
     itor->print();
   }
 }
