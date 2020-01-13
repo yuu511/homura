@@ -33,14 +33,14 @@ HOMURA_ERRCODE homura_instance::crawl()
 HOMURA_ERRCODE homura_instance::query_nyaasi(std::string args) 
 {
   std::replace(args.begin(), args.end(), ' ', '+');
-  const std::string base_url = "https://nyaa.si/?f=0&c=0_0&q=" + args;
+  const std::string new_url = "https://nyaa.si/?f=0&c=0_0&q=" + args;
 
-  std::string key= "nyaa.si";
+  std::string key= "https://nyaa.si";
 
   auto iterator = scheduler.table_position(key);
   if (scheduler.exists_in_table(iterator)) {
     auto it = iterator->second;
-    it->populate_url_list(base_url);
+    it->populate_url_list(new_url);
     it->parse_first_page();
   } 
   else {
@@ -50,7 +50,7 @@ HOMURA_ERRCODE homura_instance::query_nyaasi(std::string args)
                       std::chrono::milliseconds(5000),
                       new_extractor);
     scheduler.insert_table(new_table);
-    new_table->populate_url_list(base_url);
+    new_table->populate_url_list(new_url);
     new_table->parse_first_page();
   }
   return ERRCODE::SUCCESS;
