@@ -15,7 +15,8 @@ pagination_information::pagination_information(int first_,
 nyaasi_extractor::nyaasi_extractor() 
   : curler(curl_container()), 
     html_parser(tree_container()),
-    pageinfo(pagination_information(0,0,0))
+    pageinfo(pagination_information(0,0,0)),
+    cached_pages(0)
 {}
 
 
@@ -203,13 +204,13 @@ name_magnet nyaasi_extractor::parse_first_page()
   return nm_map;
 }
 
-name_magnet get_cached_results()
+name_magnet nyaasi_extractor::get_cached_results()
 {
   name_magnet nm_cached;
   return nm_cached;
 }
 
-int gen_num_cached_pages(name_magnet magnets) 
+int nyaasi_extractor::gen_num_cached_pages(name_magnet magnets) 
 {
   // 75 magnets / page
   return ((int)magnets.size() + (75 - 1) ) / 75;

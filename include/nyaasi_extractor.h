@@ -33,6 +33,7 @@ namespace homura {
     curl_container curler;
     tree_container html_parser;
     pagination_information pageinfo;
+    int cached_pages;
   };
 }
 #endif

@@ -30,10 +30,10 @@ namespace homura
     bool empty();
     std::string pop_one_url();
 
-    virtual void populate_url_list(std::string page);
+    virtual void populate_url_list(int cached_pages, std::string page);
     virtual void extract_magnets();
     virtual void parse_first_page();
-    virtual int check_cache();
+    virtual void check_cache();
 
     void sort_urltable();
     void print();
@@ -60,7 +60,7 @@ namespace homura
     // template functions
     void populate_url_list(int cached_pages,std::string page) 
     {
-      auto urls = extractor->populate_url_list(page);
+      auto urls = extractor->populate_url_list(cached_pages,page);
       copy_url(urls);
       update_time();
     }
@@ -79,11 +79,10 @@ namespace homura
       update_time();
     }
 
-    int check_cache()
+    void check_cache()
     {
       auto nm = extractor->get_cached_results(); 
       copy_nm_pair(nm);
-      return extractor->gen_num_cached_pages(nm);
     }
   private:
     std::shared_ptr<parser> extractor;

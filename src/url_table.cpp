@@ -53,7 +53,7 @@ std::string url_table_base::pop_one_url()
   return back;
 }
 
-void url_table_base::populate_url_list(std::string page)
+void url_table_base::populate_url_list(int cached_pages, std::string page)
 {
   fprintf(stderr,"you should never see this.");
   return;
@@ -65,6 +65,12 @@ void url_table_base::extract_magnets()
 }
 
 void url_table_base::parse_first_page()
+{
+  fprintf(stderr,"you should never see this.");
+  return;
+}
+
+void url_table_base::check_cache()
 {
   fprintf(stderr,"you should never see this.");
   return;
