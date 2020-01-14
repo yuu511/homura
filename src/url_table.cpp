@@ -58,11 +58,6 @@ void url_table_base::populate_url_list(int cached_pages, std::string page)
   fprintf(stderr,"you should never see this.");
   return;
 }
-void url_table_base::extract_magnets()
-{
-  fprintf(stderr,"you should never see this.");
-  return;
-}
 
 void url_table_base::parse_first_page()
 {
@@ -76,12 +71,31 @@ void url_table_base::check_cache()
   return;
 }
 
+const char *url_table_base::download_next_URL()
+{
+  fprintf(stderr,"you should never see this.");
+  return "";
+}
+
+name_magnet url_table_base::parse_page(const char *HTML)
+{
+  name_magnet pl;
+  fprintf(stderr,"you should never see this.");
+  return pl;
+}
+
+void url_table_base::copy_results(const name_magnet &new_magnets)
+{
+  fprintf(stderr,"you should never see this.");
+  return;
+}
+
 void url_table_base::copy_url(std::vector<std::string> &urls)
 {
   website_urls.insert(website_urls.end(),urls.begin(),urls.end());
 }
 
-void url_table_base::copy_nm_pair(name_magnet &nm)
+void url_table_base::copy_nm_pair(const name_magnet &nm)
 {
   magnet_name_pair.insert(magnet_name_pair.end(),nm.begin(),nm.end());
 }

@@ -155,7 +155,7 @@ void extract_tree_magnets(myhtml_tree_t *tree, name_magnet &name_and_magnet)
   }
 }
 
-std::vector<std::string> nyaasi_extractor::populate_url_list(int cached_pages, std::string page)
+std::vector<std::string> nyaasi_extractor::getURLs(int cached_pages, std::string ref_page)
 {
   /* nyaa.si has no official api, and we must manually
      find out how many results to expect by sending a request 
@@ -163,7 +163,7 @@ std::vector<std::string> nyaasi_extractor::populate_url_list(int cached_pages, s
 
   int status;
   std::vector<std::string>urls;
-  status = curl_and_create_tree(page);
+  status = curl_and_create_tree(ref_page);
   if (status != ERRCODE::SUCCESS) return urls; 
   status = extract_pageinfo();
   if (status != ERRCODE::SUCCESS) return urls; 
@@ -171,21 +171,29 @@ std::vector<std::string> nyaasi_extractor::populate_url_list(int cached_pages, s
   int total = pageinfo.total_result;
   int per_page = pageinfo.last_result;
   if ( total <= 1 || per_page <= 1) {
-    errprintf(ERRCODE::FAILED_NO_RESULTS,"no results found for %s!\n",page.c_str());
+    errprintf(ERRCODE::FAILED_NO_RESULTS,"no results found for %s!\n",ref_page.c_str());
     return urls;
   }
   int num_pages = ( total + (per_page - 1) ) / per_page;
   for (int i = 2; i <= num_pages; i++) {
-    urls.emplace_back(page + "&p=" + std::to_string(i)) ;  
+    urls.emplace_back(ref_page + "&p=" + std::to_string(i)) ;  
   }
   return urls;
 }
 
-name_magnet nyaasi_extractor::get_magnets(std::string url)
+const char *nyaasi_extractor::downloadOne(std::string url) 
+{
+  int status;
+  status = curler.perform_curl(url);
+  return (status != ERRCODE::SUCCESS ? "" : curler.get_HTML_aschar());
+}
+
+name_magnet nyaasi_extractor::parse_HTML(const char *HTML)
 {
   name_magnet nm_map;
-  int status = curl_and_create_tree(url);
-  if (status == ERRCODE::SUCCESS) {
+  if (HTML[0] == '\0') return nm_map;   
+  html_parser.reset_tree();
+  if (html_parser.create_tree(HTML) == ERRCODE::SUCCESS) {
     extract_tree_magnets(html_parser.get_tree(),nm_map);
   }
   if (options::debug_level) {
@@ -204,7 +212,7 @@ name_magnet nyaasi_extractor::parse_first_page()
   return nm_map;
 }
 
-name_magnet nyaasi_extractor::get_cached_results()
+name_magnet nyaasi_extractor::get_cached()
 {
   name_magnet nm_cached;
   return nm_cached;

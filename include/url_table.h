@@ -30,8 +30,12 @@ namespace homura
     bool empty();
     std::string pop_one_url();
 
-    virtual void populate_url_list(int cached_pages, std::string page);
-    virtual void extract_magnets();
+    virtual void populate_url_list(int cached_pages, std::string ref_page);
+
+    virtual const char *download_next_URL();
+    virtual name_magnet parse_page(const char *HTML);
+    virtual void copy_results(const name_magnet &new_magnets); 
+
     virtual void parse_first_page();
     virtual void check_cache();
 
@@ -39,7 +43,7 @@ namespace homura
     void print();
 
     void copy_url(std::vector<std::string> &urls);
-    void copy_nm_pair(name_magnet &nm);
+    void copy_nm_pair(const name_magnet &nm);
 
   private:
     std::string website;
@@ -58,17 +62,10 @@ namespace homura
       : url_table_base(website_,delay_),         
         extractor(extractor_){}
     // template functions
-    void populate_url_list(int cached_pages,std::string page) 
+    void populate_url_list(int cached_pages,std::string ref_page) 
     {
-      auto urls = extractor->populate_url_list(cached_pages,page);
+      auto urls = extractor->getURLs(cached_pages,ref_page);
       copy_url(urls);
-      update_time();
-    }
-
-    void extract_magnets()
-    {
-      auto nm = extractor->get_magnets(pop_one_url());
-      copy_nm_pair(nm);
       update_time();
     }
 
@@ -79,9 +76,26 @@ namespace homura
       update_time();
     }
 
+    const char *download_next_URL()
+    {
+      auto result = extractor->downloadOne(pop_one_url());
+      update_time();
+      return result;
+    }
+
+    name_magnet parse_page(const char *HTML)
+    {
+      return extractor->parse_HTML(HTML);
+    }
+
+    void copy_results(const name_magnet &new_magnets)
+    {
+       copy_nm_pair(new_magnets);
+    }
+
     void check_cache()
     {
-      auto nm = extractor->get_cached_results(); 
+      auto nm = extractor->get_cached(); 
       copy_nm_pair(nm);
     }
   private:

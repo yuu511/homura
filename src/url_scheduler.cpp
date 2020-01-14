@@ -42,7 +42,9 @@ HOMURA_ERRCODE url_scheduler::crawl()
       if (table->empty()) continue;
       finished = false;
       if (table->ready_for_request()) {
-        table->extract_magnets();
+        auto webpage = table->download_next_URL();
+        auto results = table->parse_page(webpage);
+        table->copy_results(results);
       }
     }
   }
