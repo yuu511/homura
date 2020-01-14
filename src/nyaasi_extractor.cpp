@@ -154,7 +154,7 @@ void extract_tree_magnets(myhtml_tree_t *tree, name_magnet &name_and_magnet)
   }
 }
 
-std::vector<std::string> nyaasi_extractor::populate_url_list(std::string page)
+std::vector<std::string> nyaasi_extractor::populate_url_list(int cached_pages, std::string page)
 {
   /* nyaa.si has no official api, and we must manually
      find out how many results to expect by sending a request 
@@ -201,4 +201,16 @@ name_magnet nyaasi_extractor::parse_first_page()
     fprintf(stdout,"Number of magnet entries %zd\n", nm_map.size());
   }
   return nm_map;
+}
+
+name_magnet get_cached_results()
+{
+  name_magnet nm_cached;
+  return nm_cached;
+}
+
+int gen_num_cached_pages(name_magnet magnets) 
+{
+  // 75 magnets / page
+  return ((int)magnets.size() + (75 - 1) ) / 75;
 }

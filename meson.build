@@ -6,7 +6,7 @@ dep_thread = dependency('threads')
 dep_libtorrent = dependency('libtorrent-rasterbar')
 dep_curl = dependency('libcurl')
 
-dep_boost = dependency('boost', modules : ['serialization'])
+# dep_boost = dependency('boost', modules : ['serialization'])
 # note : myhtml is usually not found in package repositories,
 # install here: https://github.com/lexborisov/myhtml/blob/master/INSTALL.md 
 dep_myhtml = cc.find_library('myhtml',dirs:['/usr/local/lib/'])

@@ -4,7 +4,7 @@
 #include <iostream>
 #include <memory>
 #include <utility>
-#include <libtorrent/torrent_flags.hpp>
+// #include <libtorrent/torrent_flags.hpp>
 #include <libtorrent/session_handle.hpp>
 #include <libtorrent/add_torrent_params.hpp>
 #include <libtorrent/torrent_handle.hpp>
@@ -33,10 +33,14 @@ void torrent_parser::extract_magnet_information(std::string magnet)
 {
   fprintf (stderr,"%s\n",magnet.c_str());
   lt::error_code ec;
-  lt::add_torrent_params p = lt::parse_magnet_uri(magnet,ec);
+  lt::add_torrent_params p;
+  lt::parse_magnet_uri(magnet,p,ec);
+  // lt::add_torrent_params p = lt::parse_magnet_uri(magnet,ec);
   p.save_path = "/tmp/";
-  p.flags |= lt::torrent_flags::upload_mode;
-  p.flags &= ~lt::torrent_flags::auto_managed;
+  p.flags |= p.flag_upload_mode;
+  p.flags &= ~p.flag_auto_managed;
+  // p.flags |= lt::torrent_flags::upload_mode;
+  // p.flags &= ~lt::torrent_flags::auto_managed;
   lt::torrent_handle h = s.add_torrent(p);
   while(!h.status().has_metadata){;}
 }

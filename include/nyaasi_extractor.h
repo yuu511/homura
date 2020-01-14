@@ -24,11 +24,12 @@ namespace homura {
     HOMURA_ERRCODE extract_pageinfo();
 
     // template functions
-    std::vector<std::string> populate_url_list(std::string page);
+    std::vector<std::string> populate_url_list(int cached_pages, std::string page);
     name_magnet parse_first_page();
     name_magnet get_magnets(std::string url);
+    name_magnet get_cached_results();
+    int gen_num_cached_pages(name_magnet magnets);
   private:
-    // std::shared_ptr<curl_container> curler;
     curl_container curler;
     tree_container html_parser;
     pagination_information pageinfo;
