@@ -36,7 +36,6 @@ namespace homura
     virtual name_magnet parse_page(const char *HTML);
     virtual void copy_results(const name_magnet &new_magnets); 
 
-    virtual void parse_first_page();
     virtual void check_cache();
 
     void sort_urltable();
@@ -67,13 +66,8 @@ namespace homura
       auto urls = extractor->getURLs(cached_pages,ref_page);
       copy_url(urls);
       update_time();
-    }
-
-    void parse_first_page()
-    {
       auto nm = extractor->parse_first_page();
       copy_nm_pair(nm);
-      update_time();
     }
 
     const char *download_next_URL()

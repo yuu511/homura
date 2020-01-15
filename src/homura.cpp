@@ -41,7 +41,6 @@ HOMURA_ERRCODE homura_instance::query_nyaasi(std::string args)
   if (scheduler.exists_in_table(iterator)) {
     auto it = iterator->second;
     it->populate_url_list(0,new_url);
-    it->parse_first_page();
   } 
   else {
     auto new_extractor = std::make_shared<nyaasi_extractor>();
@@ -51,7 +50,6 @@ HOMURA_ERRCODE homura_instance::query_nyaasi(std::string args)
                       new_extractor);
     scheduler.insert_table(new_table);
     new_table->populate_url_list(0,new_url);
-    new_table->parse_first_page();
   }
   return ERRCODE::SUCCESS;
 }

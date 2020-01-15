@@ -59,12 +59,6 @@ void url_table_base::populate_url_list(int cached_pages, std::string page)
   return;
 }
 
-void url_table_base::parse_first_page()
-{
-  fprintf(stderr,"you should never see this.");
-  return;
-}
-
 void url_table_base::check_cache()
 {
   fprintf(stderr,"you should never see this.");

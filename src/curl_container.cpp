@@ -75,10 +75,11 @@ size_t curl_container::writecb(const unsigned char *ptr,
   try {
     curl_container *data = static_cast<curl_container*>(userp); 
     size_t len = size * nmemb;
-    data->buffer->resize (data->data_sz + len + 1);
+    auto new_sz = data->data_sz + len;
+    data->buffer->resize (new_sz + 1);
     std::copy(ptr, ptr + len, data->buffer->begin() + data->data_sz);
-    (*data->buffer)[data->data_sz + len] = '\0';
-    data->data_sz += len;
+    (*data->buffer)[new_sz] = '\0';
+    data->data_sz = new_sz;
     return len;
   }
   catch (std::bad_alloc &ba) {
