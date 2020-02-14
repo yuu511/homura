@@ -70,9 +70,9 @@ const char *url_table_base::download_next_URL()
   return "";
 }
 
-name_magnet url_table_base::parse_page(const char *HTML)
+torrent_map_entry url_table_base::parse_page(const char *HTML)
 {
-  name_magnet pl;
+  torrent_map_entry pl;
   fprintf(stderr,"you should never see this.");
   return pl;
 }
@@ -82,7 +82,7 @@ void url_table_base::copy_url(const std::vector<std::string> &urls)
   website_urls.insert(website_urls.end(),urls.begin(),urls.end());
 }
 
-void url_table_base::copy_nm_pair(const std::string &URL, const name_magnet &MAGNETS_IN_URL)
+void url_table_base::copy_nm_pair(const std::string &URL, const torrent_map_entry &MAGNETS_IN_URL)
 {
   torrentmap.push_back(std::make_pair(URL,MAGNETS_IN_URL));
 }

@@ -22,13 +22,13 @@ namespace homura {
     nyaasi_extractor();
     HOMURA_ERRCODE curl_and_create_tree(std::string url);
     HOMURA_ERRCODE extract_pageinfo();
-    int gen_num_cached_pages(name_magnet magnets);
+    int gen_num_cached_pages(torrent_map_entry magnets);
 
     // template functions
     std::vector<std::string> getURLs(int cached_pages, std::string ref_page);
     const char *downloadOne(std::string url);
-    name_magnet parse_HTML(const char *HTML);
-    name_magnet parse_first_page();
+    torrent_map_entry parse_HTML(const char *HTML);
+    torrent_map_entry parse_first_page();
   private:
     curl_container curler;
     tree_container html_parser;

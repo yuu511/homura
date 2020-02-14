@@ -18,8 +18,8 @@
 
 namespace homura 
 {
-  using name_magnet = std::vector<std::pair<std::string,std::string>>;
-  using torrent_map = std::vector<std::pair<std::string,name_magnet>>;
+  using torrent_map_entry = std::vector<std::pair<std::string,std::string>>;
+  using torrent_map = std::vector<std::pair<std::string,torrent_map_entry>>;
   class url_table_base {
   public:
     url_table_base(std::string website_,
@@ -33,7 +33,7 @@ namespace homura
     bool ready_for_request();
 
     void copy_url(const std::vector<std::string> &urls);
-    void copy_nm_pair(const std::string &URL, const name_magnet &MAGNETS_IN_URL);
+    void copy_nm_pair(const std::string &URL, const torrent_map_entry &MAGNETS_IN_URL);
 
     std::string cache_name_protocol();
     void cache();
@@ -46,7 +46,7 @@ namespace homura
 
     virtual void populate_url_list(int cached_pages, std::string first_page);
     virtual const char *download_next_URL();
-    virtual name_magnet parse_page(const char *HTML);
+    virtual torrent_map_entry parse_page(const char *HTML);
 
     void print();
   private:
@@ -83,7 +83,7 @@ namespace homura
       return result;
     }
 
-    name_magnet parse_page(const char *HTML)
+    torrent_map_entry parse_page(const char *HTML)
     {
       return extractor->parse_HTML(HTML);
     }

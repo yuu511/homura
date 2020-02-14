@@ -96,7 +96,7 @@ HOMURA_ERRCODE nyaasi_extractor::extract_pageinfo()
   return ERRCODE::SUCCESS;
 }
 
-void extract_tree_magnets(myhtml_tree_t *tree, name_magnet &name_and_magnet) 
+void extract_tree_magnets(myhtml_tree_t *tree, torrent_map_entry &name_and_magnet) 
 {
   const char *name = NULL;
   const char *magnet = NULL;
@@ -188,9 +188,9 @@ const char *nyaasi_extractor::downloadOne(std::string url)
   return (status != ERRCODE::SUCCESS ? "" : curler.get_HTML_aschar());
 }
 
-name_magnet nyaasi_extractor::parse_HTML(const char *HTML)
+torrent_map_entry nyaasi_extractor::parse_HTML(const char *HTML)
 {
-  name_magnet nm_map;
+  torrent_map_entry nm_map;
   if (HTML[0] == '\0') return nm_map;   
   html_parser.reset_tree();
   if (html_parser.create_tree(HTML) == ERRCODE::SUCCESS) {
@@ -202,9 +202,9 @@ name_magnet nyaasi_extractor::parse_HTML(const char *HTML)
   return nm_map;
 }
 
-name_magnet nyaasi_extractor::parse_first_page()
+torrent_map_entry nyaasi_extractor::parse_first_page()
 {
-  name_magnet nm_map;
+  torrent_map_entry nm_map;
   extract_tree_magnets(html_parser.get_tree(),nm_map);
   if (options::debug_level) {
     fprintf(stdout,"Number of magnet entries %zd\n", nm_map.size());
@@ -212,7 +212,7 @@ name_magnet nyaasi_extractor::parse_first_page()
   return nm_map;
 }
 
-int nyaasi_extractor::gen_num_cached_pages(name_magnet magnets) 
+int nyaasi_extractor::gen_num_cached_pages(torrent_map_entry magnets) 
 {
   // 75 magnets / page
   return ((int)magnets.size() + (75 - 1) ) / 75;
