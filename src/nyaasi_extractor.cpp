@@ -150,7 +150,7 @@ void extract_tree_magnets(myhtml_tree_t *tree, name_magnet &name_and_magnet)
          fprintf(stdout,"No torrent found at index %zu \n",i);    
          continue;
        }
-       name_and_magnet.push_back(std::make_pair(std::string(magnet),std::string(name)));
+       name_and_magnet.push_back(std::make_pair(std::string(name),std::string(magnet)));
      }
   }
 }
@@ -210,12 +210,6 @@ name_magnet nyaasi_extractor::parse_first_page()
     fprintf(stdout,"Number of magnet entries %zd\n", nm_map.size());
   }
   return nm_map;
-}
-
-name_magnet nyaasi_extractor::get_cached()
-{
-  name_magnet nm_cached;
-  return nm_cached;
 }
 
 int nyaasi_extractor::gen_num_cached_pages(name_magnet magnets) 

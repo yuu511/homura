@@ -39,20 +39,22 @@ HOMURA_ERRCODE url_scheduler::crawl()
   while (!finished) {
     finished = true;
     for (auto &table: sorted_url_tables) {
-      if (table->empty()) continue;
+      if (table->empty()) {
+        // table->cache();
+        continue;
+      }
       finished = false;
       if (table->ready_for_request()) {
         auto webpage = table->download_next_URL();
         auto results = table->parse_page(webpage);
-        table->copy_results(results);
+        table->copy_nm_pair(webpage,results);
       }
     }
   }
   if (options::debug_level > 1) {
-    for (auto const &itor: sorted_url_tables) {
-      itor->print();
-    }
+    this->print_tables();
   }
+
   return ERRCODE::SUCCESS;
 }
 

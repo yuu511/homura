@@ -2,6 +2,7 @@
 #include <thread>
 #include <algorithm>
 #include <stdio.h>
+#include <fstream>
 
 #include "url_table.h"
 #include "errlib.h"
@@ -14,6 +15,10 @@ url_table_base::url_table_base(std::string website_,
     delay(delay_),
     last_request(std::chrono::steady_clock::now())
 {}
+
+url_table_base::url_table_base()
+:  last_request(std::chrono::steady_clock::now()){}
+
 
 url_table_base::~url_table_base(){}
 
@@ -36,9 +41,9 @@ std::chrono::milliseconds url_table_base::get_delay()
   return delay;
 }
 
-std::string url_table_base::get_website() 
+void url_table_base::set_search_tag(std::string tag) 
 {
-  return website;
+  search_tag = tag;
 }
 
 bool url_table_base::empty() 
@@ -59,12 +64,6 @@ void url_table_base::populate_url_list(int cached_pages, std::string page)
   return;
 }
 
-void url_table_base::check_cache()
-{
-  fprintf(stderr,"you should never see this.");
-  return;
-}
-
 const char *url_table_base::download_next_URL()
 {
   fprintf(stderr,"you should never see this.");
@@ -78,39 +77,39 @@ name_magnet url_table_base::parse_page(const char *HTML)
   return pl;
 }
 
-void url_table_base::copy_results(const name_magnet &new_magnets)
-{
-  fprintf(stderr,"you should never see this.");
-  return;
-}
-
-void url_table_base::copy_url(std::vector<std::string> &urls)
+void url_table_base::copy_url(const std::vector<std::string> &urls)
 {
   website_urls.insert(website_urls.end(),urls.begin(),urls.end());
 }
 
-void url_table_base::copy_nm_pair(const name_magnet &nm)
+void url_table_base::copy_nm_pair(const std::string &URL, const name_magnet &MAGNETS_IN_URL)
 {
-  magnet_name_pair.insert(magnet_name_pair.end(),nm.begin(),nm.end());
-}
-
-void url_table_base::sort_urltable()
-{
-  std::sort(magnet_name_pair.begin(),magnet_name_pair.end(), 
-              [](const std::pair<std::string,std::string> &x,  
-                 const std::pair<std::string,std::string> &y)
-  {
-     return x.second < y.second;
-  });
+  torrentmap.push_back(std::make_pair(URL,MAGNETS_IN_URL));
 }
 
 void url_table_base::print()
 {
   if (options::debug_level) {
     fprintf (stdout," == url_table print() %s size %zd == \n\n",
-                     website.c_str(),magnet_name_pair.size());
+                     website.c_str(),torrentmap.size());
+    for (auto const &itor : torrentmap) {
+      fprintf(stdout, "URL: %s\n NAME OF TORRENT / TORRENT LINK: \n\n", itor.first.c_str());
+      for (auto const &itor2 : itor.second) {
+        fprintf(stdout, "%s : %s\n",itor2.first.c_str(),itor2.second.c_str());
+      }
+    }
   }
-  for (auto const &itor : magnet_name_pair) {
-    fprintf (stdout, "%s\n",itor.second.c_str());
-  }
+}
+
+std::string url_table_base::cache_name_protocol()
+{
+  return search_tag; 
+}
+
+void url_table_base::cache() 
+{
+}
+
+void url_table_base::load_cache()
+{
 }

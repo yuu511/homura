@@ -7,6 +7,10 @@
 #include <memory>
 #include <utility>
 #include <stdio.h>
+#include <boost/serialization/utility.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
 
 #include "curl_container.h"
 #include "tree_container.h"
@@ -15,41 +19,43 @@
 namespace homura 
 {
   using name_magnet = std::vector<std::pair<std::string,std::string>>;
+  using torrent_map = std::vector<std::pair<std::string,name_magnet>>;
   class url_table_base {
   public:
     url_table_base(std::string website_,
                    std::chrono::milliseconds delay_);
+    url_table_base();
     virtual ~url_table_base();
+
+    void set_search_tag(std::string tag);
 
     void update_time();
     bool ready_for_request();
 
-    std::chrono::milliseconds get_delay();
-    std::string get_website();
+    void copy_url(const std::vector<std::string> &urls);
+    void copy_nm_pair(const std::string &URL, const name_magnet &MAGNETS_IN_URL);
+
+    std::string cache_name_protocol();
+    void cache();
+    void load_cache();
 
     bool empty();
     std::string pop_one_url();
 
-    virtual void populate_url_list(int cached_pages, std::string ref_page);
+    std::chrono::milliseconds get_delay();
 
+    virtual void populate_url_list(int cached_pages, std::string first_page);
     virtual const char *download_next_URL();
     virtual name_magnet parse_page(const char *HTML);
-    virtual void copy_results(const name_magnet &new_magnets); 
 
-    virtual void check_cache();
-
-    void sort_urltable();
     void print();
-
-    void copy_url(std::vector<std::string> &urls);
-    void copy_nm_pair(const name_magnet &nm);
-
   private:
     std::string website;
+    std::string search_tag;
     std::chrono::milliseconds delay;
     std::chrono::steady_clock::time_point last_request;
     std::vector<std::string> website_urls;
-    name_magnet magnet_name_pair;
+    torrent_map torrentmap;
   };
 
   template <typename parser>
@@ -61,13 +67,13 @@ namespace homura
       : url_table_base(website_,delay_),         
         extractor(extractor_){}
     // template functions
-    void populate_url_list(int cached_pages,std::string ref_page) 
+    void populate_url_list(int cached_pages,std::string first_page) 
     {
-      auto urls = extractor->getURLs(cached_pages,ref_page);
+      auto urls = extractor->getURLs(cached_pages,first_page);
       copy_url(urls);
       update_time();
       auto nm = extractor->parse_first_page();
-      copy_nm_pair(nm);
+      copy_nm_pair(first_page,nm);
     }
 
     const char *download_next_URL()
@@ -80,17 +86,6 @@ namespace homura
     name_magnet parse_page(const char *HTML)
     {
       return extractor->parse_HTML(HTML);
-    }
-
-    void copy_results(const name_magnet &new_magnets)
-    {
-       copy_nm_pair(new_magnets);
-    }
-
-    void check_cache()
-    {
-      auto nm = extractor->get_cached(); 
-      copy_nm_pair(nm);
     }
   private:
     std::shared_ptr<parser> extractor;

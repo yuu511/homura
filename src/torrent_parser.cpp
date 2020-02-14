@@ -37,10 +37,10 @@ void torrent_parser::extract_magnet_information(std::string magnet)
   lt::parse_magnet_uri(magnet,p,ec);
   // lt::add_torrent_params p = lt::parse_magnet_uri(magnet,ec);
   p.save_path = "/tmp/";
-  p.flags |= p.flag_upload_mode;
-  p.flags &= ~p.flag_auto_managed;
+  // p.flags |= p.flag_upload_mode;
+  // p.flags &= ~p.flag_auto_managed;
   // p.flags |= lt::torrent_flags::upload_mode;
   // p.flags &= ~lt::torrent_flags::auto_managed;
-  lt::torrent_handle h = s.add_torrent(p);
-  while(!h.status().has_metadata){;}
+  // lt::torrent_handle h = s.add_torrent(p);
+  // while(!h.status().has_metadata){;}
 }

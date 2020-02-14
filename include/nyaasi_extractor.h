@@ -29,7 +29,6 @@ namespace homura {
     const char *downloadOne(std::string url);
     name_magnet parse_HTML(const char *HTML);
     name_magnet parse_first_page();
-    name_magnet get_cached();
   private:
     curl_container curler;
     tree_container html_parser;
