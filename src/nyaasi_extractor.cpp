@@ -125,6 +125,7 @@ void extract_tree_magnets(myhtml_tree_t *tree, torrent_map_entry &name_and_magne
             }
         }
       }
+      myhtml_collection_destroy(title_table1);
       const char *mag_k = "href";
       const char *mag_v = "magnet";
       myhtml_collection_t *magnets = 
@@ -145,6 +146,7 @@ void extract_tree_magnets(myhtml_tree_t *tree, torrent_map_entry &name_and_magne
            }
          }
        }
+       myhtml_collection_destroy(magnets);
 
        if (!magnet || !name){
          fprintf(stdout,"No torrent found at index %zu \n",i);    
@@ -153,6 +155,7 @@ void extract_tree_magnets(myhtml_tree_t *tree, torrent_map_entry &name_and_magne
        name_and_magnet.push_back(std::make_pair(std::string(name),std::string(magnet)));
      }
   }
+  myhtml_collection_destroy(table);
 }
 
 std::vector<std::string> nyaasi_extractor::getURLs(int cached_pages, std::string ref_page)
