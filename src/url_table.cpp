@@ -81,7 +81,7 @@ torrent_map_entry url_table_base::parse_page(const char *HTML)
   return pl;
 }
 
-void url_table_base::copy_url(const std::vector<std::string> &urls)
+void url_table_base::copy_url_table(const std::vector<std::string> &urls)
 {
   website_urls.insert(website_urls.end(),urls.begin(),urls.end());
 }

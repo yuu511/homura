@@ -166,7 +166,7 @@ void extract_tree_magnets(myhtml_tree_t *tree, torrent_map_entry &name_and_magne
   myhtml_collection_destroy(table);
 }
 
-std::vector<std::string> nyaasi_extractor::getURLs(int cached_pages, std::string ref_page)
+std::vector<std::string> nyaasi_extractor::getURLs(int cached_pages, std::string ref_page,const char *&firstpage)
 {
   /* nyaa.si has no official api, and we must manually
      find out how many results to expect by sending a request 
@@ -189,6 +189,7 @@ std::vector<std::string> nyaasi_extractor::getURLs(int cached_pages, std::string
   for (int i = 2; i <= num_pages; i++) {
     urls.emplace_back(ref_page + "&p=" + std::to_string(i)) ;  
   }
+  firstpage = curler.get_HTML_aschar();
   return urls;
 }
 

@@ -32,7 +32,7 @@ namespace homura
     void update_time();
     bool ready_for_request();
 
-    void copy_url(const std::vector<std::string> &urls);
+    void copy_url_table(const std::vector<std::string> &urls);
     void copy_nm_pair(const std::string &URL, const torrent_map_entry &MAGNETS_IN_URL);
 
     std::string cache_name_protocol();
@@ -70,11 +70,17 @@ namespace homura
     // template functions
     void populate_url_list(int cached_pages,std::string first_page) 
     {
-      auto urls = extractor.getURLs(cached_pages,first_page);
-      copy_url(urls);
+      // (optional)
+      // With webpages that have no API, we often have to parse the page twice. 
+      // set firsturl to the first HTML webpage to have it parsed for magnets
+      const char *firsturl = nullptr;
+      auto urls = extractor.getURLs(cached_pages,first_page,firsturl);
+      copy_url_table(urls);
       update_time();
-      auto nm = extractor.parse_first_page();
-      copy_nm_pair(first_page,nm);
+      if (firsturl) {
+        auto list = extractor.parse_HTML(firsturl);  
+        copy_nm_pair(first_page,list);
+      } 
     }
 
     const char *download_next_URL()
