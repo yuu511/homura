@@ -20,6 +20,11 @@ namespace homura {
   class nyaasi_extractor {
   public:
     nyaasi_extractor();
+
+    nyaasi_extractor(const nyaasi_extractor&) = delete;
+    nyaasi_extractor &operator= (const nyaasi_extractor&) = delete;
+    nyaasi_extractor(nyaasi_extractor&&);
+
     HOMURA_ERRCODE curl_and_create_tree(std::string url);
     HOMURA_ERRCODE extract_pageinfo();
     int gen_num_cached_pages(torrent_map_entry magnets);

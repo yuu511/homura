@@ -19,7 +19,6 @@ url_table_base::url_table_base(std::string website_,
 url_table_base::url_table_base()
 :  last_request(std::chrono::steady_clock::now()){}
 
-
 url_table_base::~url_table_base(){}
 
 void url_table_base::update_time()
@@ -34,6 +33,11 @@ bool url_table_base::ready_for_request()
 
   bool ready = diff.count() >= delay.count() ? true : false;
   return ready;
+}
+
+std::string url_table_base::get_website() 
+{
+  return website;
 }
 
 std::chrono::milliseconds url_table_base::get_delay()

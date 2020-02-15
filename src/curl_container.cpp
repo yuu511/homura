@@ -7,33 +7,28 @@ using namespace homura;
 curl_container::curl_container()
   : buffer (std::make_unique<std::vector<unsigned char>>()),
     data_sz(0),
-    easyhandle (curl_easy_init()) 
+    easyhandle (curl_easy_init()),
+    response(CURLE_OK)
 {
     curl_easy_setopt(easyhandle,CURLOPT_WRITEDATA, this);
     curl_easy_setopt(easyhandle,CURLOPT_WRITEFUNCTION,&curl_container::writecb);
     curl_easy_setopt(easyhandle,CURLOPT_USERAGENT,"libcurl-agent/1.0");
 }
 
-curl_container::curl_container(const curl_container& c) 
+curl_container::curl_container(curl_container &&lhs)
+: buffer(std::move(lhs.buffer)),
+  data_sz(lhs.data_sz),
+  easyhandle(std::move(lhs.easyhandle)),
+  response(lhs.response),
+  time_sent(lhs.time_sent)
 {
-  easyhandle = curl_easy_init();
-  curl_easy_setopt(easyhandle,CURLOPT_WRITEDATA, this);
-  curl_easy_setopt(easyhandle,CURLOPT_WRITEFUNCTION,&curl_container::writecb);
-  curl_easy_setopt(easyhandle,CURLOPT_USERAGENT,"libcurl-agent/1.0");
-  buffer = std::make_unique<std::vector<unsigned char>>();   
-  buffer->resize(c.buffer->size());
-  std::copy(c.buffer->begin(),c.buffer->end(),buffer->begin());
-  data_sz = c.data_sz;
-  response = c.response;
-  time_sent = c.time_sent;
+  lhs.easyhandle = nullptr;
 }
-
 
 curl_container::~curl_container() 
 {
   curl_easy_cleanup(easyhandle);
 }
-
 
 const char *curl_container::get_HTML_aschar() 
 {
@@ -61,7 +56,7 @@ bool check_curlcode(CURLcode code)
       default: 
         s = "CURLM_unkown"; break;
     }
-    errprintf (ERRCODE::FAILED_CURL,"ERROR: curl failed with error %s", s.c_str());
+    errprintf (ERRCODE::FAILED_CURL,"ERROR: curl failed with error %s\n code %x", s.c_str(),code);
     return false;
   }
   return true;
@@ -90,11 +85,11 @@ size_t curl_container::writecb(const unsigned char *ptr,
 
 HOMURA_ERRCODE curl_container::perform_curl(const std::string &url) 
 {
-  buffer.reset(); 
-  buffer = std::make_unique<std::vector<unsigned char>>();
+  buffer.reset(new std::vector<unsigned char>());
   data_sz = 0;
   time_sent = std::chrono::steady_clock::now();
 
+  curl_easy_setopt(easyhandle,CURLOPT_WRITEDATA, this);
   curl_easy_setopt(easyhandle,CURLOPT_URL,url.c_str());
   
   bool pass = check_curlcode(curl_easy_perform(easyhandle));

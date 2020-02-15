@@ -12,7 +12,9 @@ namespace homura
   public:
     tree_container();
     ~tree_container();
-    tree_container(const tree_container& c);
+    tree_container(const tree_container& c) =delete;
+    tree_container &operator= (const tree_container&) = delete;
+    tree_container(tree_container&&);
 
     HOMURA_ERRCODE create_tree(const char *html_page);
     void reset_tree();

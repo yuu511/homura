@@ -44,11 +44,10 @@ HOMURA_ERRCODE homura_instance::query_nyaasi(std::string args)
     it->set_search_tag(args);
   } 
   else {
-    auto new_extractor = std::make_shared<nyaasi_extractor>();
     auto new_table = std::make_shared <url_table<nyaasi_extractor>>
                      (key,
                       std::chrono::milliseconds(5000),
-                      new_extractor);
+                      nyaasi_extractor());
     scheduler.insert_table(new_table);
     new_table->populate_url_list(0,new_url);
     new_table->set_search_tag(args);

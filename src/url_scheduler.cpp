@@ -18,6 +18,8 @@ bool url_scheduler::exists_in_table(urlhash::iterator it)
 
 void url_scheduler::insert_table(std::shared_ptr<url_table_base> new_entry)
 {
+  hashed_url_tables.emplace(new_entry->get_website(),new_entry);
+
   auto itor = sorted_url_tables.begin();
   while (itor != sorted_url_tables.end()) {
     if (new_entry->get_delay().count() > (*itor)->get_delay().count()) {

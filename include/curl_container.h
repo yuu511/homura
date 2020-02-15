@@ -14,7 +14,9 @@ namespace homura
   public:
     curl_container();
     ~curl_container();
-    curl_container(const curl_container& c);
+    curl_container(const curl_container&) = delete;
+    curl_container &operator= (const curl_container&) = delete;
+    curl_container(curl_container&&);
     
     const char *get_HTML_aschar(); 
     std::chrono::steady_clock::time_point get_time_sent();
@@ -23,7 +25,6 @@ namespace homura
     HOMURA_ERRCODE try_curl_N(const std::string &url,int attempts);
   private:
     static size_t writecb( const unsigned char *ptr, size_t size, size_t nmemb, void *s ); 
-    static const char *user_agent;
     std::unique_ptr<std::vector<unsigned char>> buffer;
     size_t data_sz;
     CURL *easyhandle;

@@ -1,5 +1,6 @@
 #include "nyaasi_extractor.h"
 #include <climits>
+#include <utility>
 
 using namespace homura;
 
@@ -13,12 +14,19 @@ pagination_information::pagination_information(int first_,
 }
 
 nyaasi_extractor::nyaasi_extractor() 
-  : curler(curl_container()), 
-    html_parser(tree_container()),
+  : curler(std::move(curl_container())), 
+    html_parser(std::move(tree_container())),
     pageinfo(pagination_information(0,0,0)),
     cached_pages(0)
 {}
 
+
+nyaasi_extractor::nyaasi_extractor(nyaasi_extractor &&lhs)
+: curler(std::move(lhs.curler)),
+  html_parser(std::move(lhs.html_parser)),
+  pageinfo(lhs.pageinfo),
+  cached_pages(lhs.cached_pages)
+ {}
 
 HOMURA_ERRCODE nyaasi_extractor::curl_and_create_tree(std::string url)
 {

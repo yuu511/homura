@@ -20,12 +20,13 @@ tree_container::~tree_container()
   myhtml_destroy(handle);
 }
 
-tree_container::tree_container(const tree_container& c) 
+tree_container::tree_container(tree_container &&lhs)
+: threads(lhs.threads),
+  handle(lhs.handle),
+  tree(lhs.tree)
 {
-  handle = myhtml_create();
-  myhtml_init(handle, MyHTML_OPTIONS_DEFAULT, c.threads, 0);
-  tree = myhtml_tree_create();
-  myhtml_tree_init(tree, handle);
+  lhs.handle = nullptr;
+  lhs.tree = nullptr;
 }
     
 HOMURA_ERRCODE tree_container::create_tree(const char *html_page) 

@@ -42,6 +42,7 @@ namespace homura
     bool empty();
     std::string pop_one_url();
 
+    std::string get_website();
     std::chrono::milliseconds get_delay();
 
     virtual void populate_url_list(int cached_pages, std::string first_page);
@@ -63,32 +64,32 @@ namespace homura
   public:
     url_table(std::string website_,
               std::chrono::milliseconds delay_,
-              std::shared_ptr<parser> extractor_)
+              parser extractor_)
       : url_table_base(website_,delay_),         
-        extractor(extractor_){}
+        extractor(std::move(extractor_)){}
     // template functions
     void populate_url_list(int cached_pages,std::string first_page) 
     {
-      auto urls = extractor->getURLs(cached_pages,first_page);
+      auto urls = extractor.getURLs(cached_pages,first_page);
       copy_url(urls);
       update_time();
-      auto nm = extractor->parse_first_page();
+      auto nm = extractor.parse_first_page();
       copy_nm_pair(first_page,nm);
     }
 
     const char *download_next_URL()
     {
-      auto result = extractor->downloadOne(pop_one_url());
+      auto result = extractor.downloadOne(pop_one_url());
       update_time();
       return result;
     }
 
     torrent_map_entry parse_page(const char *HTML)
     {
-      return extractor->parse_HTML(HTML);
+      return extractor.parse_HTML(HTML);
     }
   private:
-    std::shared_ptr<parser> extractor;
+    parser extractor;
   };
 }
 
