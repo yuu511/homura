@@ -30,7 +30,7 @@ namespace homura {
     int gen_num_cached_pages(torrent_map_entry magnets);
 
     // template functions
-    std::vector<std::string> getURLs(int cached_pages, std::string ref_page,const char *&firsturl);
+    std::vector<std::string> getURLs(std::string searchtag,const char *&firsturl);
     const char *downloadOne(std::string url);
     torrent_map_entry parse_HTML(const char *HTML);
     torrent_map_entry parse_first_page();

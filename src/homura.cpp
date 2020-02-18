@@ -30,18 +30,14 @@ HOMURA_ERRCODE homura_instance::crawl()
   return ERRCODE::SUCCESS;
 }
 
-HOMURA_ERRCODE homura_instance::query_nyaasi(std::string args) 
+HOMURA_ERRCODE homura_instance::query_nyaasi(std::string searchtag) 
 {
-  std::replace(args.begin(), args.end(), ' ', '+');
-  const std::string new_url = "https://nyaa.si/?f=0&c=0_0&q=" + args;
-
-  std::string key= "https://nyaa.si";
+  const std::string key= "nyaa.si";
 
   auto iterator = scheduler.table_position(key);
   if (scheduler.exists_in_table(iterator)) {
     auto it = iterator->second;
-    it->populate_url_list(0,new_url);
-    it->set_search_tag(args);
+    it->populate_url_list(searchtag);
   } 
   else {
     auto new_table = std::make_shared <url_table<nyaasi_extractor>>
@@ -49,8 +45,7 @@ HOMURA_ERRCODE homura_instance::query_nyaasi(std::string args)
                       std::chrono::milliseconds(5000),
                       nyaasi_extractor());
     scheduler.insert_table(new_table);
-    new_table->populate_url_list(0,new_url);
-    new_table->set_search_tag(args);
+    new_table->populate_url_list(searchtag);
   }
   return ERRCODE::SUCCESS;
 }

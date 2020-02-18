@@ -4,6 +4,7 @@
 #include <chrono>
 #include <string>
 #include <vector>
+#include <unordered_map>
 #include <memory>
 #include <utility>
 #include <stdio.h>
@@ -19,7 +20,7 @@
 namespace homura 
 {
   using torrent_map_entry = std::vector<std::pair<std::string,std::string>>;
-  using torrent_map = std::vector<std::pair<std::string,torrent_map_entry>>;
+  using torrent_map = std::unordered_map<std::string,torrent_map_entry>;
   class url_table_base {
   public:
     url_table_base(std::string website_,
@@ -27,15 +28,13 @@ namespace homura
     url_table_base();
     virtual ~url_table_base();
 
-    void set_search_tag(std::string tag);
-
     void update_time();
     bool ready_for_request();
 
+    void push_search_tag(std::string tag, size_t num_urls);
     void copy_url_table(const std::vector<std::string> &urls);
     void copy_nm_pair(const std::string &URL, const torrent_map_entry &MAGNETS_IN_URL);
 
-    std::string cache_name_protocol();
     void cache();
     void load_cache();
 
@@ -45,14 +44,14 @@ namespace homura
     std::string get_website();
     std::chrono::milliseconds get_delay();
 
-    virtual void populate_url_list(int cached_pages, std::string first_page);
+    virtual void populate_url_list(std::string searchtag);
     virtual const char *download_next_URL();
     virtual torrent_map_entry parse_page(const char *HTML);
 
     void print();
   private:
     std::string website;
-    std::string search_tag;
+    std::unordered_map<std::string,size_t> searchtags;
     std::chrono::milliseconds delay;
     std::chrono::steady_clock::time_point last_request;
     std::vector<std::string> website_urls;
@@ -68,18 +67,23 @@ namespace homura
       : url_table_base(website_,delay_),         
         extractor(std::move(extractor_)){}
     // template functions
-    void populate_url_list(int cached_pages,std::string first_page) 
+    void populate_url_list(std::string searchtag) 
     {
       // (optional)
       // With webpages that have no API, we often have to parse the page twice. 
       // set firsturl to the first HTML webpage to have it parsed for magnets
       const char *firsturl = nullptr;
-      auto urls = extractor.getURLs(cached_pages,first_page,firsturl);
+
+      auto urls = extractor.getURLs(searchtag,*&firsturl);
       copy_url_table(urls);
+
+      push_search_tag(searchtag,urls.size());
+
       update_time();
+
       if (firsturl) {
         auto list = extractor.parse_HTML(firsturl);  
-        copy_nm_pair(first_page,list);
+        copy_nm_pair(pop_one_url(),list);
       } 
     }
 

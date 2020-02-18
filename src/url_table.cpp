@@ -31,8 +31,7 @@ bool url_table_base::ready_for_request()
   auto diff = std::chrono::duration_cast<std::chrono::milliseconds>
     (std::chrono::steady_clock::now() - last_request);
 
-  bool ready = diff.count() >= delay.count() ? true : false;
-  return ready;
+  return diff.count() >= delay.count() ? true : false;
 }
 
 std::string url_table_base::get_website() 
@@ -43,11 +42,6 @@ std::string url_table_base::get_website()
 std::chrono::milliseconds url_table_base::get_delay()
 {
   return delay;
-}
-
-void url_table_base::set_search_tag(std::string tag) 
-{
-  search_tag = tag;
 }
 
 bool url_table_base::empty() 
@@ -62,7 +56,7 @@ std::string url_table_base::pop_one_url()
   return back;
 }
 
-void url_table_base::populate_url_list(int cached_pages, std::string page)
+void url_table_base::populate_url_list(std::string searchtag)
 {
   fprintf(stderr,"you should never see this.");
   return;
@@ -81,6 +75,11 @@ torrent_map_entry url_table_base::parse_page(const char *HTML)
   return pl;
 }
 
+void url_table_base::push_search_tag(std::string tag, size_t num_urls)
+{
+  searchtags.emplace(tag,num_urls);
+}
+
 void url_table_base::copy_url_table(const std::vector<std::string> &urls)
 {
   website_urls.insert(website_urls.end(),urls.begin(),urls.end());
@@ -88,7 +87,7 @@ void url_table_base::copy_url_table(const std::vector<std::string> &urls)
 
 void url_table_base::copy_nm_pair(const std::string &URL, const torrent_map_entry &MAGNETS_IN_URL)
 {
-  torrentmap.push_back(std::make_pair(URL,MAGNETS_IN_URL));
+  torrentmap.emplace(URL,MAGNETS_IN_URL);
 }
 
 void url_table_base::print()
@@ -103,11 +102,6 @@ void url_table_base::print()
       }
     }
   }
-}
-
-std::string url_table_base::cache_name_protocol()
-{
-  return search_tag; 
 }
 
 void url_table_base::cache() 

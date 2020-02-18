@@ -166,11 +166,13 @@ void extract_tree_magnets(myhtml_tree_t *tree, torrent_map_entry &name_and_magne
   myhtml_collection_destroy(table);
 }
 
-std::vector<std::string> nyaasi_extractor::getURLs(int cached_pages, std::string ref_page,const char *&firstpage)
+std::vector<std::string> nyaasi_extractor::getURLs(std::string searchtag,const char *&firstpage)
 {
   /* nyaa.si has no official api, and we must manually
      find out how many results to expect by sending a request 
      and parsing the query result information */
+  std::replace(searchtag.begin(), searchtag.end(), ' ', '+');
+  const std::string ref_page = "https://nyaa.si/?f=0&c=0_0&q=" + searchtag;
 
   int status;
   std::vector<std::string>urls;
@@ -186,7 +188,7 @@ std::vector<std::string> nyaasi_extractor::getURLs(int cached_pages, std::string
     return urls;
   }
   int num_pages = ( total + (per_page - 1) ) / per_page;
-  for (int i = 2; i <= num_pages; i++) {
+  for (int i = num_pages; i >= 1; i--) {
     urls.emplace_back(ref_page + "&p=" + std::to_string(i)) ;  
   }
   firstpage = curler.get_HTML_aschar();
@@ -222,10 +224,4 @@ torrent_map_entry nyaasi_extractor::parse_first_page()
     fprintf(stdout,"Number of magnet entries %zd\n", nm_map.size());
   }
   return nm_map;
-}
-
-int nyaasi_extractor::gen_num_cached_pages(torrent_map_entry magnets) 
-{
-  // 75 magnets / page
-  return ((int)magnets.size() + (75 - 1) ) / 75;
 }
