@@ -9,7 +9,7 @@ void init_locks(void)
 {
   gcry_control(GCRYCTL_SET_THREAD_CBS);
   if (homura::options::debug_level)
-    fprintf(stdout, "curl with GNUTLS selected\n");
+    fprintf(stderr, "curl with GNUTLS selected\n");
 }
 
 #else // the default, openssl
@@ -42,7 +42,7 @@ static void init_locks()
   CRYPTO_set_id_callback(&thread_id);
   CRYPTO_set_locking_callback(&lock_callback);
   if (homura::options::debug_level)
-    fprintf(stdout, "curl with OpenSSL selected\n");
+    fprintf(stderr, "curl with OpenSSL selected\n");
 }
 #endif
 

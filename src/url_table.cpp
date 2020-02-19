@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <fstream>
 #include <filesystem>
+#include <regex>
 #include <boost/serialization/utility.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/unordered_map.hpp>
@@ -84,7 +85,7 @@ torrent_map_entry url_table_base::parse_page(const char *HTML)
 void url_table_base::push_search_tag(std::string tag, size_t num_urls)
 {
   if (options::debug_level > 1) {
-    fprintf (stdout, "pushing tag %s, size %zd\n",tag.c_str(),num_urls);
+    fprintf (stderr, "pushing tag %s, size %zd\n",tag.c_str(),num_urls);
   }
   searchtags.push_back(std::make_pair(tag,num_urls));
 }
@@ -115,7 +116,7 @@ void url_table_base::cache()
       cached.emplace(entry.first,entry.second);
       --index;
       if (options::debug_level)
-        fprintf(stdout,"caching %s\n",entry.first.c_str());
+        fprintf(stderr,"caching %s\n",entry.first.c_str());
     }
     std::ofstream ofs(cache_name_protocol(itor.first));
     boost::archive::text_oarchive oa(ofs);
@@ -134,13 +135,14 @@ void url_table_base::load_cache(std::string searchtag)
   website_urls.erase(std::remove_if(website_urls.begin(), website_urls.end(), 
   [this, cached](std::string p)  
   {
-    fprintf(stdout,"looking for %s .. \n",p.c_str());
+    if (options::debug_level)
+      fprintf(stderr,"looking for %s .. \n",p.c_str());
     auto index = cached.find(p);
     if (index != cached.end()) {
       torrent_map_entry test;
       torrentmap.push_back(std::make_pair(p,index->second)); 
       if (options::debug_level) {
-        fprintf(stdout,"loading page %s from the cache!\n",p.c_str());
+        fprintf(stderr,"loading page %s from the cache!\n",p.c_str());
       }
       return true;
     }
@@ -155,7 +157,7 @@ void url_table_base::print()
   for (auto const &itor : torrentmap) {
     for (auto const &itor2 : itor.second) {
       if (!options::regex.size()) {
-        fprintf(stdout, "%s\n",itor2.second.c_str());
+        fprintf(stderr, "%s\n",itor2.second.c_str());
       }
       else {
         std::smatch sm;

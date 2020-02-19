@@ -33,13 +33,13 @@ HOMURA_ERRCODE nyaasi_extractor::curl_and_create_tree(std::string url)
 {
   int status;
   if (homura::options::debug_level) {
-    fprintf (stdout, "Downloading page %s\n",url.c_str());
+    fprintf (stderr, "Downloading page %s\n",url.c_str());
   }
   status = curler.perform_curl(url);
   if (status != ERRCODE::SUCCESS) return status; 
 
   if (options::debug_level) {
-    fprintf(stdout,"Parsing page %s\n",url.c_str());
+    fprintf(stderr,"Parsing page %s\n",url.c_str());
   }
   html_parser.reset_tree();
   status = html_parser.create_tree(curler.get_HTML_aschar());
@@ -136,7 +136,7 @@ void extract_tree_magnets(myhtml_tree_t *tree, torrent_map_entry &name_and_magne
             child = myhtml_node_child(child);
             name = myhtml_node_text(child,NULL);
             if (options::debug_level > 1) {
-              if (name) fprintf(stdout,"name %s \n",name);
+              if (name) fprintf(stderr,"name %s \n",name);
             }
         }
       }
@@ -156,7 +156,7 @@ void extract_tree_magnets(myhtml_tree_t *tree, torrent_map_entry &name_and_magne
            magnet = myhtml_attribute_value(attr,NULL);
            if (options::debug_level > 1) {
              if (magnet) {
-               fprintf(stdout,"magnet : %s \n\n",magnet);
+               fprintf(stderr,"magnet : %s \n\n",magnet);
              }
            }
          }
@@ -164,7 +164,7 @@ void extract_tree_magnets(myhtml_tree_t *tree, torrent_map_entry &name_and_magne
        myhtml_collection_destroy(magnets);
 
        if (!magnet || !name){
-         fprintf(stdout,"No torrent found at index %zu \n",i);    
+         fprintf(stderr,"No torrent found at index %zu \n",i);    
          continue;
        }
        name_and_magnet.push_back(std::make_pair(std::string(name),std::string(magnet)));
@@ -218,7 +218,7 @@ torrent_map_entry nyaasi_extractor::parse_HTML(const char *HTML)
     extract_tree_magnets(html_parser.get_tree(),nm_map);
   }
   if (options::debug_level) {
-    fprintf(stdout,"Number of magnet entries %zd\n", nm_map.size());
+    fprintf(stderr,"Number of magnet entries %zd\n", nm_map.size());
   }
   return nm_map;
 }
@@ -228,7 +228,7 @@ torrent_map_entry nyaasi_extractor::parse_first_page()
   torrent_map_entry nm_map;
   extract_tree_magnets(html_parser.get_tree(),nm_map);
   if (options::debug_level) {
-    fprintf(stdout,"Number of magnet entries %zd\n", nm_map.size());
+    fprintf(stderr,"Number of magnet entries %zd\n", nm_map.size());
   }
   return nm_map;
 }

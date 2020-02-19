@@ -30,13 +30,9 @@ namespace homura
     extern int debug_level;
     extern int threads;
     extern int force_refresh_cache;
+    extern std::string regex;
     extern std::string search_term;
     extern std::string command;
-    void set_search_term(std::string term);
-    void set_command(std::string term);
-    void set_debug_level(int level);
-    void set_thread_level(int numt);
-    void set_force_refresh_cache();
   }
 
   namespace error_handler {

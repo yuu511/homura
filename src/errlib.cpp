@@ -11,34 +11,9 @@
 int homura::options::debug_level = 0;
 int homura::options::threads = 1;
 int homura::options::force_refresh_cache = 0;
+std::string homura::options::regex = "";
 std::string homura::options::search_term = "";
 std::string homura::options::command = "";
-
-void homura::options::set_debug_level(int level) 
-{
-  homura::options::debug_level = 
-    std::max(level,homura::options::debug_level);
-}
-
-void homura::options::set_thread_level(int numt) 
-{
-  homura::options::threads = numt;
-}
-
-void homura::options::set_search_term(std::string term) 
-{
-  homura::options::search_term = term;
-}
-
-void homura::options::set_command(std::string command)
-{
-  homura::options::command = command;
-}
-
-void homura::options::set_force_refresh_cache()
-{
-  homura::options::force_refresh_cache = 1;
-}
 
 /* error */
 int homura::error_handler::exit_code = ERRCODE::SUCCESS;
