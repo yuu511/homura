@@ -44,8 +44,7 @@ HOMURA_ERRCODE nyaasi_extractor::curl_and_create_tree(std::string url)
     fprintf(stderr,"Parsing page %s\n",url.c_str());
   }
   html_parser.reset_tree();
-  status = html_parser.create_tree(curler.get_HTML_aschar());
-  if (status != ERRCODE::SUCCESS) return status; 
+  html_parser.create_tree(curler.get_HTML_aschar());
 
   return ERRCODE::SUCCESS;
 }
@@ -53,13 +52,9 @@ HOMURA_ERRCODE nyaasi_extractor::curl_and_create_tree(std::string url)
 HOMURA_ERRCODE nyaasi_extractor::extract_pageinfo() 
 {
   auto tree = html_parser.get_tree();
-  if (!tree) { 
-    errprintf(ERRCODE::FAILED_MYHTML_TREE_INIT, "No tree detected in"
-      "get_pagination_information\n");
-    return ERRCODE::FAILED_MYHTML_TREE_INIT;
-  }
 
   std::string page_information;
+
   myhtml_collection_t *found = 
     myhtml_get_nodes_by_attribute_value(tree,NULL,NULL,true,"class",5,"pagination-page-info",20,NULL);
   if (found && found->list && found->length) {
@@ -72,10 +67,6 @@ HOMURA_ERRCODE nyaasi_extractor::extract_pageinfo()
     else {
       errprintf(ERRCODE::FAILED_PARSE, "Failed to parse first page \n (Pagination information not found)");
       return ERRCODE::FAILED_PARSE;
-    }
-    if (myhtml_collection_destroy(found)) {
-      errprintf(ERRCODE::FAILED_FREE, "Failed to free MyHTML collection.");
-      return ERRCODE::FAILED_FREE;
     }
   } 
   else {
