@@ -1,6 +1,7 @@
 #include "nyaasi_extractor.h"
 #include <climits>
 #include <utility>
+#include <algorithm>
 
 using namespace homura;
 

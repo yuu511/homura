@@ -1,9 +1,7 @@
-#include <algorithm>
 #include <chrono>
 #include <memory>
 #include <curl/curl.h>
 #include <pthread.h>
-#include <algorithm>
 
 #include "homura.h"
 #include "nyaasi_extractor.h"

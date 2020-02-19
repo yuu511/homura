@@ -3,6 +3,12 @@
 #include <algorithm>
 #include <stdio.h>
 #include <fstream>
+#include <filesystem>
+#include <boost/serialization/utility.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/serialization/unordered_map.hpp>
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
 
 #include "url_table.h"
 #include "errlib.h"
@@ -62,10 +68,10 @@ void url_table_base::populate_url_list(std::string searchtag)
   return;
 }
 
-const char *url_table_base::download_next_URL()
+std::pair<std::string,const char *> url_table_base::download_next_URL()
 {
   fprintf(stderr,"you should never see this.");
-  return "";
+  return {"",0};
 }
 
 torrent_map_entry url_table_base::parse_page(const char *HTML)
@@ -77,7 +83,10 @@ torrent_map_entry url_table_base::parse_page(const char *HTML)
 
 void url_table_base::push_search_tag(std::string tag, size_t num_urls)
 {
-  searchtags.emplace(tag,num_urls);
+  if (options::debug_level > 1) {
+    fprintf (stdout, "pushing tag %s, size %zd\n",tag.c_str(),num_urls);
+  }
+  searchtags.push_back(std::make_pair(tag,num_urls));
 }
 
 void url_table_base::copy_url_table(const std::vector<std::string> &urls)
@@ -87,7 +96,58 @@ void url_table_base::copy_url_table(const std::vector<std::string> &urls)
 
 void url_table_base::copy_nm_pair(const std::string &URL, const torrent_map_entry &MAGNETS_IN_URL)
 {
-  torrentmap.emplace(URL,MAGNETS_IN_URL);
+  torrentmap.push_back(std::make_pair(URL,MAGNETS_IN_URL));
+}
+
+std::string url_table_base::cache_name_protocol(std::string searchtag) 
+{
+  return get_website() + searchtag; 
+}
+
+void url_table_base::cache()
+{
+  size_t index = torrentmap.size() - 1;
+  for (auto const &itor : searchtags) {
+    torrent_cache cached; 
+    auto num_urls = itor.second;
+    // cache all except for the first page
+    while ((num_urls--) > 1) {
+      auto entry = torrentmap[index];
+      cached.emplace(entry.first,entry.second);
+      --index;
+      fprintf(stdout,"caching %s\n",entry.first.c_str());
+    }
+    std::ofstream ofs(cache_name_protocol(itor.first));
+    boost::archive::text_oarchive oa(ofs);
+    oa << cached;
+  }
+}
+
+void url_table_base::load_cache(std::string searchtag) 
+{
+  auto filename = cache_name_protocol(searchtag);
+  if (!std::filesystem::exists(filename)) return;
+  torrent_cache cached;
+  std::ifstream ifs(filename);
+  boost::archive::text_iarchive ia(ifs);
+  ia >> cached;
+  website_urls.erase(std::remove_if(website_urls.begin(), website_urls.end(), 
+  [this, cached](std::string p)  
+  {
+    fprintf(stdout,"looking for %s .. \n",p.c_str());
+    auto index = cached.find(p);
+    if (index != cached.end()) {
+      torrent_map_entry test;
+      torrentmap.push_back(std::make_pair(p,index->second)); 
+      if (options::debug_level) {
+        fprintf(stdout,"loading page %s into the cache!\n",p.c_str());
+      }
+      return true;
+    }
+    else {
+      return false;
+    }
+  }),website_urls.end());
 }
 
 void url_table_base::print()
@@ -102,12 +162,4 @@ void url_table_base::print()
       }
     }
   }
-}
-
-void url_table_base::cache() 
-{
-}
-
-void url_table_base::load_cache()
-{
 }
