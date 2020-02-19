@@ -149,8 +149,6 @@ HOMURA_ERRCODE execute_command(int argc, char **argv)
     status = homuhomu.query_nyaasi(options::search_term);
     if (status != ERRCODE::SUCCESS) return status;
     status = homuhomu.crawl();
-    if (status != ERRCODE::SUCCESS) return status;
-    homuhomu.print_tables();
   }
   else {
     errprintf(ERRCODE::FAILED_INVALID_COMMAND,"Invalid command \"%s\""

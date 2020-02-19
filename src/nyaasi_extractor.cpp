@@ -34,9 +34,6 @@ nyaasi_extractor::nyaasi_extractor(nyaasi_extractor &&lhs)
 HOMURA_ERRCODE nyaasi_extractor::curl_and_create_tree(std::string url)
 {
   int status;
-  if (homura::options::debug_level) {
-    fprintf (stderr, "Downloading page %s\n",url.c_str());
-  }
   status = curler.perform_curl(url);
   if (status != ERRCODE::SUCCESS) return status; 
 
@@ -177,6 +174,9 @@ std::vector<std::string> nyaasi_extractor::getURLs(std::string searchtag,const c
   int num_pages = ( total + (per_page - 1) ) / per_page;
   for (int i = num_pages; i >= 1; --i) {
     urls.emplace_back(ref_page + "&p=" + std::to_string(i)) ;  
+    if (options::debug_level) {
+      fprintf(stderr,"Adding url %s\n",((ref_page + "&p=" + std::to_string(i)).c_str()));
+    }
   }
   firstpage = curler.get_HTML_aschar();
   return urls;

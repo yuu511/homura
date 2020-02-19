@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <fstream>
 #include <filesystem>
-#include <regex>
 #include <boost/serialization/utility.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/unordered_map.hpp>
@@ -137,7 +136,7 @@ void url_table_base::load_cache(std::string searchtag)
       fprintf(stderr,"looking for %s .. \n",p.c_str());
     auto index = cached.find(p);
     if (index != cached.end()) {
-      torrent_map_entry test;
+      printTmapEntry(index->second);
       torrentmap.push_back(std::make_pair(p,index->second)); 
       if (options::debug_level) {
         fprintf(stderr,"loading page %s from the cache!\n",p.c_str());
@@ -153,27 +152,6 @@ void url_table_base::load_cache(std::string searchtag)
 void url_table_base::print()
 {
   for (auto const &itor : torrentmap) {
-    for (auto const &itor2 : itor.second) {
-      if (!options::regex.size()) {
-        if (options::print[1])
-          fprintf(stdout, "%s\n",itor2.first.c_str());
-        if (options::print[0])
-          fprintf(stdout, "%s\n",itor2.second.c_str());
-        if (options::print[1])
-          fprintf(stdout, "\n");
-      }
-      else {
-        std::smatch sm;
-        std::regex pattern(options::regex);
-        if (std::regex_match(itor2.first,sm,pattern)) {
-          if (options::print[1])
-            fprintf(stdout, "%s\n",itor2.first.c_str());
-          if (options::print[0])
-            fprintf(stdout, "%s\n",itor2.second.c_str());
-          if (options::print[1])
-            fprintf(stdout, "\n");
-        }
-      }
-    }
+    printTmapEntry(itor.second);
   }
 }

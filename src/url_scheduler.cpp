@@ -49,16 +49,13 @@ HOMURA_ERRCODE url_scheduler::crawl()
         auto download = table->download_next_URL();
         auto results = table->parse_page(download.second); 
         table->copy_nm_pair(download.first,results);
+        printTmapEntry(results);
       }
     }
   }
 
   for (auto &table : sorted_url_tables) {
     table->cache();
-  }
-
-  if (options::debug_level > 1) {
-    this->print_tables();
   }
 
   return ERRCODE::SUCCESS;

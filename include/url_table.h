@@ -8,6 +8,7 @@
 #include <memory>
 #include <utility>
 #include <stdio.h>
+#include <regex>
 
 #include "curl_container.h"
 #include "tree_container.h"
@@ -23,6 +24,35 @@ namespace homura
   using torrent_map = std::vector<std::pair<std::string,torrent_map_entry>>;
   // we cache as an unordered_map instead of a vector
   using torrent_cache = std::unordered_map<std::string,torrent_map_entry>;
+
+  inline void printTmapEntry(torrent_map_entry tmape)
+  {
+    bool magnet = options::print[0];
+    bool title = options::print[1]; 
+    if (!title || !magnet) return;
+    for (auto const &itor :tmape) {
+      if (!options::regex.size()) {
+        if (title)
+          fprintf(stdout, "%s\n",itor.first.c_str());
+        if (magnet)
+          fprintf(stdout, "%s\n",itor.second.c_str());
+        if (title)
+          fprintf(stdout, "\n");
+      }
+      else {
+        std::smatch sm;
+        std::regex pattern(options::regex);
+        if (std::regex_match(itor.first,sm,pattern)) {
+          if (title)
+            fprintf(stdout, "%s\n",itor.first.c_str());
+          if (magnet)
+            fprintf(stdout, "%s\n",itor.second.c_str());
+          if (title)
+            fprintf(stdout, "\n");
+        }
+      }
+    }
+  }
 
   class url_table_base {
   public:
@@ -85,6 +115,7 @@ namespace homura
       update_time();
       if (firstpage) {
         auto list = extractor.parse_HTML(firstpage);  
+        printTmapEntry(list);
         copy_nm_pair(pop_one_url(),list);
       } 
       if (!options::force_refresh_cache)
