@@ -1,6 +1,3 @@
-#include <time.h>
-#include <thread>
-#include <algorithm>
 #include <stdio.h>
 #include <fstream>
 #include <filesystem>
@@ -111,7 +108,8 @@ void url_table_base::cache()
   for (auto const &itor : searchtags) {
     torrent_cache cached; 
     auto num_urls = itor.second;
-    while ((num_urls--) > 1) {
+    // always skip the first page
+    while (num_urls-- > 1) {
       auto entry = torrentmap[index];
       cached.emplace(entry.first,entry.second);
       --index;

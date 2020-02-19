@@ -1,17 +1,19 @@
-#include "nyaasi_extractor.h"
-#include <climits>
+#include <iterator>
 #include <utility>
 #include <algorithm>
+#include <boost/lexical_cast.hpp>
+#include <regex>
+#include "nyaasi_extractor.h"
 
 using namespace homura;
 
-pagination_information::pagination_information(int first_, 
+pagination_information::pagination_information(int total_, 
                                                int last_,
-                                               int total_) 
+                                               int first_) 
 {
-  first_result = first_;
-  last_result = last_;
   total_result = total_;
+  last_result = last_;
+  first_result = first_;
 }
 
 nyaasi_extractor::nyaasi_extractor() 
@@ -57,7 +59,7 @@ HOMURA_ERRCODE nyaasi_extractor::extract_pageinfo()
     return ERRCODE::FAILED_MYHTML_TREE_INIT;
   }
 
-  const char *page_information;
+  std::string page_information;
   myhtml_collection_t *found = 
     myhtml_get_nodes_by_attribute_value(tree,NULL,NULL,true,"class",5,"pagination-page-info",20,NULL);
   if (found && found->list && found->length) {
@@ -77,37 +79,24 @@ HOMURA_ERRCODE nyaasi_extractor::extract_pageinfo()
     }
   } 
   else {
-    errprintf(ERRCODE::FAILED_PARSE, "Failed to parse first page (Pagination information not found)\n");
+    errprintf(ERRCODE::FAILED_PARSE, "Failed to parse first page \n (Pagination information not found)");
     return ERRCODE::FAILED_PARSE;
   }
+  std::regex pattern("(\\d+)");
+  std::string pginfo(page_information);
 
-  // parse the pagination information
-  std::vector<int> stk;
-  // copy so we can modify the string
-  char *copy = strdup(page_information);
-  char *endptr = copy;
-  while (*endptr) {
-    if (isdigit(*endptr)) {
-       long int parse = strtol(endptr,&endptr,10);
-       if (parse <= INT_MAX) {
-         stk.push_back((int) parse);
-       } 
-       else {
-         errprintf(ERRCODE::FAILED_INTCAST,"Failed to convert long to int\n");
-         return ERRCODE::FAILED_INTCAST;
-       }
-    }
-    else 
-      ++endptr;
-  }
-  free(copy);
-  if (stk.size() != 3) {
+  std::sregex_iterator itor(pginfo.begin(),pginfo.end(),pattern);
+  auto end = std::sregex_iterator();
+
+  if (std::distance(itor,end) != 3) {
     errprintf(ERRCODE::FAILED_PARSE,"Incorrect pagination string parse.\n");
     return ERRCODE::FAILED_PARSE;
   }
 
-  pageinfo = pagination_information(stk[0],stk[1],stk[2]);
-
+  pageinfo = pagination_information(boost::lexical_cast<int>(itor->str()),
+                                    boost::lexical_cast<int>((itor++)->str()),
+                                    boost::lexical_cast<int>((itor++)->str()));
+    
   return ERRCODE::SUCCESS;
 }
 
@@ -195,7 +184,7 @@ std::vector<std::string> nyaasi_extractor::getURLs(std::string searchtag,const c
     return urls;
   }
   int num_pages = ( total + (per_page - 1) ) / per_page;
-  for (int i = num_pages; i >= 1; i--) {
+  for (int i = num_pages; i >= 1; --i) {
     urls.emplace_back(ref_page + "&p=" + std::to_string(i)) ;  
   }
   firstpage = curler.get_HTML_aschar();
