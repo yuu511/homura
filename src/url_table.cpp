@@ -110,7 +110,6 @@ void url_table_base::cache()
   for (auto const &itor : searchtags) {
     torrent_cache cached; 
     auto num_urls = itor.second;
-    // cache all except for the first page
     while ((num_urls--) > 1) {
       auto entry = torrentmap[index];
       cached.emplace(entry.first,entry.second);

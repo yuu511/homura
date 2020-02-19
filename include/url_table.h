@@ -78,7 +78,6 @@ namespace homura
       const char *firstpage = nullptr;
       auto urls = extractor.getURLs(searchtag,*&firstpage);
       copy_url_table(urls);
-      load_cache(searchtag);
 
       push_search_tag(searchtag,urls.size());
       update_time();
@@ -86,6 +85,7 @@ namespace homura
         auto list = extractor.parse_HTML(firstpage);  
         copy_nm_pair(pop_one_url(),list);
       } 
+      load_cache(searchtag);
     }
 
     std::pair<std::string,const char*> download_next_URL()
