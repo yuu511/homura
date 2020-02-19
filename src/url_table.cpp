@@ -155,7 +155,7 @@ void url_table_base::print()
   for (auto const &itor : torrentmap) {
     for (auto const &itor2 : itor.second) {
       if (!options::regex.size()) {
-        fprintf(stderr, "%s\n",itor2.second.c_str());
+        fprintf(stdout, "%s\n",itor2.second.c_str());
       }
       else {
         std::smatch sm;
