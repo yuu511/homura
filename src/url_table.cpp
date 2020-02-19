@@ -114,7 +114,8 @@ void url_table_base::cache()
       auto entry = torrentmap[index];
       cached.emplace(entry.first,entry.second);
       --index;
-      fprintf(stdout,"caching %s\n",entry.first.c_str());
+      if (options::debug_level)
+        fprintf(stdout,"caching %s\n",entry.first.c_str());
     }
     std::ofstream ofs(cache_name_protocol(itor.first));
     boost::archive::text_oarchive oa(ofs);

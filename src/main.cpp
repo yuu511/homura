@@ -35,6 +35,7 @@ void print_usage()
   println(5,"FLAGS:");
   printopt(5,"[-v,--verbose]"," : logging, prints out actions as they are preformed");
   printopt(5,"[-d,--debug]"," : more extensive logging, prints out full html files");
+  printopt(5,"[-r,--refresh_cache]"," : Force homura to not use cache.");
   printopt(5,"[-t,--threads] THREADCOUNT"," : use a pool of THREADCOUNT threads ");
   printopt(5,"","   (THREADCOUNT is a positive integer)");
   printopt(5,"[--help]"," : print out usage message");
