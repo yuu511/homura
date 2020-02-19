@@ -152,12 +152,18 @@ void url_table_base::load_cache(std::string searchtag)
 
 void url_table_base::print()
 {
-    fprintf (stdout," == url_table print() %s size %zd == \n\n",
-                     website.c_str(),torrentmap.size());
-    for (auto const &itor : torrentmap) {
-      fprintf(stdout, "URL: %s\n NAME OF TORRENT / TORRENT LINK: \n\n", itor.first.c_str());
-      for (auto const &itor2 : itor.second) {
-        fprintf(stdout, "%s : %s\n",itor2.first.c_str(),itor2.second.c_str());
+  for (auto const &itor : torrentmap) {
+    for (auto const &itor2 : itor.second) {
+      if (!options::regex.size()) {
+        fprintf(stdout, "%s\n",itor2.second.c_str());
+      }
+      else {
+        std::smatch sm;
+        std::regex pattern(options::regex);
+        if (std::regex_match(itor2.first,sm,pattern)) {
+          fprintf(stdout, "%s\n",itor2.second.c_str());
+        }
       }
     }
+  }
 }
