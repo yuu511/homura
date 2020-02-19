@@ -31,11 +31,12 @@ HOMURA_ERRCODE homura_instance::crawl()
 HOMURA_ERRCODE homura_instance::query_nyaasi(std::string searchtag) 
 {
   const std::string key= "nyaa.si";
+  HOMURA_ERRCODE ret;
 
   auto iterator = scheduler.table_position(key);
   if (scheduler.exists_in_table(iterator)) {
     auto it = iterator->second;
-    it->populate_url_list(searchtag);
+    ret = it->populate_url_list(searchtag);
   } 
   else {
     auto new_table = std::make_shared <url_table<nyaasi_extractor>>
@@ -43,9 +44,9 @@ HOMURA_ERRCODE homura_instance::query_nyaasi(std::string searchtag)
                       std::chrono::milliseconds(5000),
                       nyaasi_extractor());
     scheduler.insert_table(new_table);
-    new_table->populate_url_list(searchtag);
+    ret = new_table->populate_url_list(searchtag);
   }
-  return ERRCODE::SUCCESS;
+  return ret;
 }
 
 void homura_instance::print_tables() 

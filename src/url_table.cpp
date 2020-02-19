@@ -62,10 +62,10 @@ std::string url_table_base::pop_one_url()
   return back;
 }
 
-void url_table_base::populate_url_list(std::string searchtag)
+HOMURA_ERRCODE url_table_base::populate_url_list(std::string searchtag)
 {
   fprintf(stderr,"you should never see this.");
-  return;
+  return ERRCODE::SUCCESS;
 }
 
 std::pair<std::string,const char *> url_table_base::download_next_URL()
@@ -101,7 +101,7 @@ void url_table_base::copy_nm_pair(const std::string &URL, const torrent_map_entr
 
 std::string url_table_base::cache_name_protocol(std::string searchtag) 
 {
-  return get_website() + searchtag; 
+  return ".homuracache_" + get_website() + "_" + searchtag; 
 }
 
 void url_table_base::cache()
@@ -139,7 +139,7 @@ void url_table_base::load_cache(std::string searchtag)
       torrent_map_entry test;
       torrentmap.push_back(std::make_pair(p,index->second)); 
       if (options::debug_level) {
-        fprintf(stdout,"loading page %s into the cache!\n",p.c_str());
+        fprintf(stdout,"loading page %s from the cache!\n",p.c_str());
       }
       return true;
     }
@@ -151,7 +151,6 @@ void url_table_base::load_cache(std::string searchtag)
 
 void url_table_base::print()
 {
-  if (options::debug_level) {
     fprintf (stdout," == url_table print() %s size %zd == \n\n",
                      website.c_str(),torrentmap.size());
     for (auto const &itor : torrentmap) {
@@ -160,5 +159,4 @@ void url_table_base::print()
         fprintf(stdout, "%s : %s\n",itor2.first.c_str(),itor2.second.c_str());
       }
     }
-  }
 }

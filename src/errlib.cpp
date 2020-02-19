@@ -10,6 +10,7 @@
 /* options */
 int homura::options::debug_level = 0;
 int homura::options::threads = 1;
+int homura::options::force_refresh_cache = 0;
 std::string homura::options::search_term = "";
 std::string homura::options::command = "";
 
@@ -32,6 +33,11 @@ void homura::options::set_search_term(std::string term)
 void homura::options::set_command(std::string command)
 {
   homura::options::command = command;
+}
+
+void homura::options::set_force_refresh_cache()
+{
+  homura::options::force_refresh_cache = 1;
 }
 
 /* error */

@@ -32,9 +32,15 @@ nyaasi_extractor::nyaasi_extractor(nyaasi_extractor &&lhs)
 HOMURA_ERRCODE nyaasi_extractor::curl_and_create_tree(std::string url)
 {
   int status;
+  if (homura::options::debug_level) {
+    fprintf (stdout, "Downloading page %s\n",url.c_str());
+  }
   status = curler.perform_curl(url);
   if (status != ERRCODE::SUCCESS) return status; 
 
+  if (options::debug_level) {
+    fprintf(stdout,"Parsing page %s\n",url.c_str());
+  }
   html_parser.reset_tree();
   status = html_parser.create_tree(curler.get_HTML_aschar());
   if (status != ERRCODE::SUCCESS) return status; 

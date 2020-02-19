@@ -95,6 +95,9 @@ HOMURA_ERRCODE curl_container::perform_curl(const std::string &url)
   bool pass = check_curlcode(curl_easy_perform(easyhandle));
 
   if (pass) {
+    if (homura::options::debug_level) {
+      fprintf (stdout, "Downloading page %s\n",url.c_str());
+    }
     if (homura::options::debug_level > 1) {
       fprintf (stdout,"== Size of string ==\n");
       fprintf (stdout,"sizeof string %zd\n\n",

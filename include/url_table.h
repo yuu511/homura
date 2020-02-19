@@ -11,6 +11,7 @@
 
 #include "curl_container.h"
 #include "tree_container.h"
+#include "errlib.h"
 
 
 namespace homura 
@@ -47,7 +48,7 @@ namespace homura
     std::string get_website();
     std::chrono::milliseconds get_delay();
 
-    virtual void populate_url_list(std::string searchtag);
+    virtual HOMURA_ERRCODE populate_url_list(std::string searchtag);
     virtual std::pair<std::string,const char *> download_next_URL();
     virtual torrent_map_entry parse_page(const char *HTML);
 
@@ -70,13 +71,14 @@ namespace homura
       : url_table_base(website_,delay_),         
         extractor(std::move(extractor_)){}
     // template functions
-    void populate_url_list(std::string searchtag) 
+    HOMURA_ERRCODE populate_url_list(std::string searchtag) 
     {
       // (optional)
       // With webpages that have no API, we often have to parse the page twice. 
       // set firstpage to the first HTML webpage to have it parsed for magnets
       const char *firstpage = nullptr;
       auto urls = extractor.getURLs(searchtag,*&firstpage);
+      if (!urls.size()) return ERRCODE::FAILED_PARSE;
       copy_url_table(urls);
 
       push_search_tag(searchtag,urls.size());
@@ -85,7 +87,9 @@ namespace homura
         auto list = extractor.parse_HTML(firstpage);  
         copy_nm_pair(pop_one_url(),list);
       } 
-      load_cache(searchtag);
+      if (!options::force_refresh_cache)
+        load_cache(searchtag);
+      return ERRCODE::SUCCESS;
     }
 
     std::pair<std::string,const char*> download_next_URL()

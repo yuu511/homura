@@ -73,10 +73,11 @@ HOMURA_ERRCODE parse_flags (int argc, char **argv)
        { "verbose" , no_argument       ,  0   , 'v' },
        { "debug"   , no_argument       ,  0   , 'd' },
        { "help"    , no_argument       ,  0   , 'h' },
+       { "refresh_cache" , no_argument ,  0   , 'r' },
        { "threads" , required_argument ,  0   , 't' },
        {  NULL     , 0                 , NULL ,  0  }
      };
-     opt = getopt_long(argc,argv, "vdt:",
+     opt = getopt_long(argc,argv, "rvdt:",
                  long_options, &option_index);
      if (opt == -1)		 
        break;
@@ -99,6 +100,9 @@ HOMURA_ERRCODE parse_flags (int argc, char **argv)
            return ERRCODE::FAILED_ARGPARSE;
          } 
          options::set_thread_level(numt);
+         break;
+       case 'r':
+         options::set_force_refresh_cache();   
          break;
        case '?':
          errprintf(ERRCODE::FAILED_ARGPARSE,"incorrect option %c\n",optopt);
@@ -130,8 +134,6 @@ HOMURA_ERRCODE execute_command(int argc, char **argv)
     status = homuhomu.query_nyaasi(options::search_term);
     if (status != ERRCODE::SUCCESS) return status;
     status = homuhomu.crawl();
-    if (status != ERRCODE::SUCCESS) return status;
-    homuhomu.print_tables();
   }
   else {
     errprintf(ERRCODE::FAILED_INVALID_COMMAND,"Invalid command \"%s\""
