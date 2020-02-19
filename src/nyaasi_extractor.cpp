@@ -1,8 +1,8 @@
 #include <iterator>
 #include <utility>
 #include <algorithm>
-#include <boost/lexical_cast.hpp>
 #include <regex>
+#include <boost/lexical_cast.hpp>
 #include "nyaasi_extractor.h"
 
 using namespace homura;

@@ -155,13 +155,23 @@ void url_table_base::print()
   for (auto const &itor : torrentmap) {
     for (auto const &itor2 : itor.second) {
       if (!options::regex.size()) {
-        fprintf(stdout, "%s\n",itor2.second.c_str());
+        if (options::print[1])
+          fprintf(stdout, "%s\n",itor2.first.c_str());
+        if (options::print[0])
+          fprintf(stdout, "%s\n",itor2.second.c_str());
+        if (options::print[1])
+          fprintf(stdout, "\n");
       }
       else {
         std::smatch sm;
         std::regex pattern(options::regex);
         if (std::regex_match(itor2.first,sm,pattern)) {
-          fprintf(stdout, "%s\n",itor2.second.c_str());
+          if (options::print[1])
+            fprintf(stdout, "%s\n",itor2.first.c_str());
+          if (options::print[0])
+            fprintf(stdout, "%s\n",itor2.second.c_str());
+          if (options::print[1])
+            fprintf(stdout, "\n");
         }
       }
     }

@@ -1,8 +1,8 @@
 #include <string>
 #include <getopt.h>
-#include <libgen.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <regex>
 #include "homura.h"
 #include "errlib.h"
 
@@ -36,9 +36,10 @@ void print_usage()
   printopt(5,"[-v,--verbose]"," : logging, prints out actions as they are preformed");
   printopt(5,"[-d,--debug]"," : more extensive logging, prints out full html files");
   printopt(5,"[-c,--refresh_cache]"," : Force homura to not use cache.");
-  printopt(5,"[-r,--regex] REGEX"," : Filter results by pattern [REGEX");
-  printopt(5,"[-t,--threads] THREADCOUNT"," : use a pool of THREADCOUNT threads ");
-  printopt(5,"","   (THREADCOUNT is a positive integer)");
+  printopt(5,"[-r,--regex] REGEX"," : Filter results by regular expression [REGEX]");
+  printopt(5,"[-p,--print_options] NUMBER"," : [NUMBER] is hex or decimal. Print magnets(bit 0),and/or titles(bit 1)");
+  printopt(5,"","   e.g. 0x3 to print both, 0x2 for torrent names only (default 0x1)");
+  printopt(5,"","   NOTE: titles come out of stderr, magnets stdout");
   printopt(5,"[--help]"," : print out usage message");
   fprintf (stderr,"\n");
   println(5,"OPTIONS:");
@@ -54,7 +55,9 @@ void print_usage()
   fprintf(stderr,"\n");
   println(5,"simple search");
   println(7,"\% homura search \"Ping Pong The Animation\"");
-  println(7,"\% homura --threads 5 search \"Initial D\"");
+  println(7,"\% homura -p 0x2 search \"Initial D\" // will print all names of torrents matching query Initial D");
+  println(7,"\% homura --regex \"\\[HorribleSubs\\].*1080p.*\" search \"Ishuzoku\"");
+  println(9,"example match : [HorribleSubs] Ishuzoku Reviewers - 02 [1080p].mkv");
   fprintf(stderr,"\n");
   println(5,"advanced search");
   println(7,"\% homura search \"Monogatari|Madoka\"");
@@ -67,7 +70,10 @@ void print_usage()
 HOMURA_ERRCODE parse_flags (int argc, char **argv) 
 {
    int opt;
-   int numt;
+   long p_opts;
+   std::smatch sm;
+   std::regex pattern("0x[0123]");
+   std::string cast;
    while (1) {  
      int option_index = 0;
      static struct option long_options[] = 
@@ -75,12 +81,12 @@ HOMURA_ERRCODE parse_flags (int argc, char **argv)
        { "verbose" , no_argument       ,  0   , 'v' },
        { "debug"   , no_argument       ,  0   , 'd' },
        { "help"    , no_argument       ,  0   , 'h' },
-       { "regex" , no_argument ,  0   , 'r' },
+       { "regex" , required_argument ,  0   , 'r' },
        { "refresh_cache" , no_argument ,  0   , 'c' },
-       { "threads" , required_argument ,  0   , 't' },
+       { "print_options" , required_argument ,  0   , 'p' },
        {  NULL     , 0                 , NULL ,  0  }
      };
-     opt = getopt_long(argc,argv, "cvdt:r:",
+     opt = getopt_long(argc,argv, "cvdr:p:",
                  long_options, &option_index);
      if (opt == -1)		 
        break;
@@ -94,21 +100,24 @@ HOMURA_ERRCODE parse_flags (int argc, char **argv)
        case 'h':
 	     print_usage();
          exit(ERRCODE::SUCCESS);
-       case 't':
-         numt = atoi(optarg);
-         if (numt < 1) {
-           errprintf(ERRCODE::FAILED_ARGPARSE,
-	         "error:-t,--thread expects a positive integer\n"
-             "(recieved %s)\n",optarg);
-           return ERRCODE::FAILED_ARGPARSE;
-         } 
-         options::threads = numt;
+       case 'r':
+         options::regex = std::string(optarg);
          break;
        case 'c':
          options::force_refresh_cache = 1;
          break;
-       case 'r':
-         options::regex = std::string(optarg);
+       case 'p':
+         cast = optarg;
+         p_opts = std::stoul(cast,NULL,std::regex_match(cast,sm,pattern) ? 16 : 10);
+         if (p_opts < 0 || p_opts > 3) {
+           errprintf(ERRCODE::FAILED_ARGPARSE, "incorrect number for option -p,--print_options\n"
+                     "(accepts either hex or decimal, values [0-3] only, provided arg %s\n",optarg);
+         }
+         options::print.set(0,p_opts & 0x1);
+         options::print.set(1,(p_opts >> 1) & 0x1);
+         if (options::debug_level) {
+           fprintf (stderr,"print settings set to %s\n",options::print.to_string().c_str());
+         }
          break;
        case '?':
          errprintf(ERRCODE::FAILED_ARGPARSE,"incorrect option %c\n",optopt);

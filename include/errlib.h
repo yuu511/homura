@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <bitset>
 
 // small error and option handling module
 
@@ -28,8 +29,8 @@ namespace homura
   /* options */
   namespace options {
     extern int debug_level;
-    extern int threads;
     extern int force_refresh_cache;
+    extern std::bitset<2> print;
     extern std::string regex;
     extern std::string search_term;
     extern std::string command;
