@@ -65,7 +65,7 @@ namespace homura
     bool ready_for_request();
 
     void push_search_tag(std::string tag, size_t num_urls);
-    void copy_url_table(const std::vector<std::string> &urls);
+    void copy_url_table(std::vector<std::string> &urls);
     void copy_nm_pair(const std::string &URL, const torrent_map_entry &MAGNETS_IN_URL);
 
     std::string cache_name_protocol(std::string searchtag);

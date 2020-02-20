@@ -30,6 +30,7 @@ namespace homura
   namespace options {
     extern int debug_level;
     extern int force_refresh_cache;
+    extern int number_pages;
     extern std::bitset<2> print;
     extern std::string regex;
     extern std::string search_term;

@@ -10,6 +10,7 @@
 /* options */
 int homura::options::debug_level = 0;
 int homura::options::force_refresh_cache = 0;
+int homura::options::number_pages = 0;
 // Bit 0 (LSB) : print magnet, default
 // Bit 1 : print name
 std::bitset<2> homura::options::print(0x1);

@@ -86,8 +86,14 @@ void url_table_base::push_search_tag(std::string tag, size_t num_urls)
   searchtags.push_back(std::make_pair(tag,num_urls));
 }
 
-void url_table_base::copy_url_table(const std::vector<std::string> &urls)
+void url_table_base::copy_url_table(std::vector<std::string> &urls)
 {
+  if (options::number_pages){
+    if (static_cast<size_t>(options::number_pages) < urls.size()) {
+      size_t diff = urls.size() - static_cast<size_t>(options::number_pages);
+      urls.erase(urls.begin(),urls.begin() + diff);
+    }
+  }
   website_urls.insert(website_urls.end(),urls.begin(),urls.end());
 }
 

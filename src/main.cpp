@@ -37,25 +37,24 @@ void print_usage()
   printopt(5,"[-d,--debug]"," : more extensive logging, prints out full html files");
   printopt(5,"[-c,--refresh_cache]"," : Force homura to not use cache.");
   printopt(5,"[-r,--regex] REGEX"," : Filter results by regular expression [REGEX]");
-  printopt(5,"[-p,--print_options] NUMBER"," : [NUMBER] is hex or decimal. Print magnets(bit 0),and/or titles(bit 1)");
-  printopt(5,"","   e.g. 0x3 to print both, 0x2 for torrent names only (default 0x1)");
-  printopt(5,"","   NOTE: titles come out of stderr, magnets stdout");
+  printopt(5,"[-p,--print_options] MASK"," : [MASK] is hex or decimal. Print magnets(bit 0),and/or titles(bit 1)");
+  printopt(5,"","   e.g. 0x3 to print both, 0x2 for torrent titles only (default 0x1)");
+  printopt(5,"[-n,--num_pages] NUMBER"," : load up to [NUMBER] pages ");
+  printopt(5,"","   [NUMBER] is a positive number in decimal only");
   printopt(5,"[--help]"," : print out usage message");
   fprintf (stderr,"\n");
   println(5,"OPTIONS:");
-  printopt(5,"search [TARGET]"," : query results for TARGET and print to stderr");
+  printopt(5,"search [TARGET]"," : query results for TARGET and print to stdout");
   fprintf (stderr,"\n");
   println(5,"EXAMPLES:");
   fprintf (stderr,"\n");
   println(5,"[search]");
-  println(5,"all site-defined advanced search options should work. ( \"\",|,(),- )");
+  println(5,"nyaa.si : all site-defined advanced search options should work. ( \"\",|,(),- )");
   println(5,"for more information about advanced search options : https://nyaa.si/help");
-  println(5,"REMINDER: if you need to use the \" operator, "
-                   "use \\\" when inside a quote.");
   fprintf(stderr,"\n");
   println(5,"simple search");
   println(7,"\% homura search \"Ping Pong The Animation\"");
-  println(7,"\% homura -p 0x2 search \"Initial D\" // will print all names of torrents matching query Initial D");
+  println(7,"\% homura -p 0x2 search \"Initial D\" // will print all titles of torrents matching query Initial D");
   println(7,"\% homura --regex \"\\[HorribleSubs\\].*1080p.*\" search \"Ishuzoku\"");
   println(9,"example match : [HorribleSubs] Ishuzoku Reviewers - 02 [1080p].mkv");
   fprintf(stderr,"\n");
@@ -71,6 +70,7 @@ HOMURA_ERRCODE parse_flags (int argc, char **argv)
 {
    int opt;
    long p_opts;
+   int n_opts;
    std::smatch sm;
    std::regex pattern("0x[0123]");
    std::string cast;
@@ -84,9 +84,10 @@ HOMURA_ERRCODE parse_flags (int argc, char **argv)
        { "regex" , required_argument ,  0   , 'r' },
        { "refresh_cache" , no_argument ,  0   , 'c' },
        { "print_options" , required_argument ,  0   , 'p' },
+       { "num_pages" , required_argument ,  0   , 'n' },
        {  NULL     , 0                 , NULL ,  0  }
      };
-     opt = getopt_long(argc,argv, "cvdr:p:",
+     opt = getopt_long(argc,argv, "cvdr:p:n:",
                  long_options, &option_index);
      if (opt == -1)		 
        break;
@@ -112,12 +113,26 @@ HOMURA_ERRCODE parse_flags (int argc, char **argv)
          if (p_opts < 0 || p_opts > 3) {
            errprintf(ERRCODE::FAILED_ARGPARSE, "incorrect number for option -p,--print_options\n"
                      "(accepts either hex or decimal, values [0-3] only, provided arg %s\n",optarg);
+           return ERRCODE::FAILED_ARGPARSE;
          }
          options::print.set(0,p_opts & 0x1);
          options::print.set(1,(p_opts >> 1) & 0x1);
          if (options::debug_level) {
            fprintf (stderr,"print settings set to %s\n",options::print.to_string().c_str());
          }
+         break;
+       case 'n':
+         cast = optarg;
+         n_opts = std::stoi(cast,NULL,10);
+         if (p_opts <=0) { 
+           errprintf(ERRCODE::FAILED_ARGPARSE, "incorrect number for option -n --num_pages\n"
+                     "(accepts a -positive- decimal number) %s\n",optarg);
+           return ERRCODE::FAILED_ARGPARSE;
+         }
+         if (options::debug_level) {
+           fprintf (stderr,"print settings set to %s\n",options::print.to_string().c_str());
+         }
+         options::number_pages = n_opts;
          break;
        case '?':
          errprintf(ERRCODE::FAILED_ARGPARSE,"incorrect option %c\n",optopt);
