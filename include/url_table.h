@@ -22,7 +22,7 @@ namespace homura
   using torrent_map_entry = std::vector<nm>;
   // URL + the data extracted from it
   using torrent_map = std::vector<std::pair<std::string,torrent_map_entry>>;
-  // we cache as an unordered_map instead of a vector
+  // same as above,but we cache as an unordered_map instead of a vector
   using torrent_cache = std::unordered_map<std::string,torrent_map_entry>;
 
   inline void printTmapEntry(torrent_map_entry tmape)

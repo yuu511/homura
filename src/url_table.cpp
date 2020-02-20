@@ -107,12 +107,15 @@ std::string url_table_base::cache_name_protocol(std::string searchtag)
   return ".homuracache_" + get_website() + "_" + searchtag; 
 }
 
+// Merge caches by default (new cache has precedence, but
+// if old cache exists for a page that isn't in the new cache put it in)
 void url_table_base::cache()
 {
   size_t index = torrentmap.size() - 1;
   for (auto const &itor : searchtags) {
     torrent_cache cached; 
     auto num_urls = itor.second;
+    auto filename = cache_name_protocol(itor.first);
     // always skip the first page
     while (num_urls-- > 1) {
       auto entry = torrentmap[index];
@@ -121,7 +124,21 @@ void url_table_base::cache()
       if (options::debug_level)
         fprintf(stderr,"caching %s\n",entry.first.c_str());
     }
-    std::ofstream ofs(cache_name_protocol(itor.first));
+    if (!options::force_refresh_cache && std::filesystem::exists(filename)) {
+      torrent_cache oldcache;
+      std::ifstream ifs(filename);
+      boost::archive::text_iarchive ia(ifs);
+      ia >> oldcache;
+      for (auto const &itor : oldcache) {
+        auto index = cached.find(itor.first);
+        if (index == cached.end()) {
+          cached.emplace(itor.first,itor.second);
+          if (options::debug_level)
+            fprintf(stderr,"caching %s from old cache \n",itor.first.c_str());
+        }
+      }
+    }
+    std::ofstream ofs(filename);
     boost::archive::text_oarchive oa(ofs);
     oa << cached;
   }
