@@ -16,13 +16,14 @@ url_table_base::url_table_base(std::string website_,
                                std::chrono::milliseconds delay_) 
   : website(website_),
     delay(delay_),
-    last_request(std::chrono::steady_clock::now())
+    last_request(std::chrono::steady_clock::now()),
+    website_urls(new std::vector<std::string>)
 {}
 
-url_table_base::url_table_base()
-:  last_request(std::chrono::steady_clock::now()){}
-
-url_table_base::~url_table_base(){}
+url_table_base::~url_table_base()
+{
+  delete website_urls;
+}
 
 void url_table_base::update_time()
 {
@@ -49,25 +50,31 @@ std::chrono::milliseconds url_table_base::get_delay()
 
 bool url_table_base::empty() 
 {
-  return website_urls.empty() ? true : false;
+  return website_urls->empty() ? true : false;
 }
 
 std::string url_table_base::pop_one_url()
 {
-  std::string back = website_urls.back();
-  website_urls.pop_back();
+  std::string back = website_urls->back();
+  website_urls->pop_back();
   return back;
 }
 
-void url_table_base::copy_url_table(std::vector<std::string> &urls)
+std::vector<std::string> *url_table_base::get_url_table()
+{
+  return website_urls;
+}
+
+void url_table_base::point_url_table(std::vector<std::string> *urls)
 {
   if (options::number_pages){
-    if (static_cast<size_t>(options::number_pages) < urls.size()) {
-      size_t diff = urls.size() - static_cast<size_t>(options::number_pages);
-      urls.erase(urls.begin(),urls.begin() + diff);
-    }
+    // if (static_cast<size_t>(options::number_pages) < urls.size()) {
+    //   size_t diff = urls.size() - static_cast<size_t>(options::number_pages);
+    //   urls.erase(urls.begin(),urls.begin() + diff);
+    // }
   }
-  website_urls.insert(website_urls.end(),urls.begin(),urls.end());
+  website_urls = urls;
+  // website_urls->insert(website_urls.end(),urls.begin(),urls.end());
 }
 
 HOMURA_ERRCODE url_table_base::populate_url_list(std::string searchtag)

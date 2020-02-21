@@ -25,13 +25,16 @@ namespace homura
                    std::chrono::milliseconds delay_);
     url_table_base();
     virtual ~url_table_base();
+    url_table_base(const url_table_base &) = delete;
+    url_table_base &operator= (const url_table_base&) = delete;
 
     std::string pop_one_url();
     bool empty();
     void update_time();
     bool ready_for_request();
 
-    void copy_url_table(std::vector<std::string> &urls);
+    std::vector<std::string> *get_url_table();
+    void point_url_table(std::vector<std::string> *urls);
 
     std::string get_website();
     std::chrono::milliseconds get_delay();
@@ -45,7 +48,7 @@ namespace homura
     std::string website;
     std::chrono::milliseconds delay;
     std::chrono::steady_clock::time_point last_request;
-    std::vector<std::string> website_urls;
+    std::vector<std::string> *website_urls;
   };
 
   template <typename parser, typename result_type>
@@ -113,17 +116,22 @@ namespace homura
 
     HOMURA_ERRCODE populate_url_list(std::string searchtag) 
     {
-      // first url, HTML contents of first url
+      int status;
+
       urlpair firstpair = extractor.download_first_page(searchtag);
       if (!firstpair.second) { return error_handler::exit_code; }
-      auto extract = extractor.parse_HTML(firstpair.second);
-      results.emplace(firstpair.first,extract);
-      print_table(extract);
+      auto result_vector = new std::vector<result_type>;
+      status = extractor.parse_HTML(firstpair.second,result_vector);
+      if (status != ERRCODE::SUCCESS) return status;
+      results.emplace(firstpair.first,result_vector);
+      print_table(result_vector);
       
       // url list should be all urls we need to parse 
       // (excluding the first one, which is parsed above)
-      std::vector<std::string> urls = extractor.getURLs(firstpair.second);
-      copy_url_table(urls);
+      status = extractor.getURLs(firstpair.second,get_url_table());
+      if (status != ERRCODE::SUCCESS) return status;
+
+      // point_url_table(extractor.getURLs(firstpair.second));
       update_time();
 
       return ERRCODE::SUCCESS;
@@ -139,11 +147,12 @@ namespace homura
 
     void parse_next_page(urlpair &pair)
     {
-      auto extract = extractor.parse_HTML(pair.second);
-      results.emplace(pair.first,extract);
-      print_table(extract);
+      int status;
+      auto result_vector = new std::vector<result_type>;
+      status = extractor.parse_HTML(pair.second,result_vector);
+      results.emplace(pair.first,result_vector);
+      print_table(result_vector);
     }
-
   private:
     parser extractor;
     std::unordered_map<std::string,std::vector<result_type>*> results;

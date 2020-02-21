@@ -27,9 +27,9 @@ namespace homura {
     nyaasi_extractor(nyaasi_extractor&&);
 
     // template functions
-    std::vector<nyaasi_results> *parse_HTML(const char *HTML); 
+    HOMURA_ERRCODE parse_HTML(const char *HTML, std::vector<nyaasi_results> *results); 
     urlpair download_first_page(std::string searchtag);
-    std::vector<std::string> getURLs(const char *firstHTML);
+    HOMURA_ERRCODE getURLs(const char *firstHTML,std::vector<std::string> *urlTable);
     const char *downloadOne(std::string url);
 
   private:
