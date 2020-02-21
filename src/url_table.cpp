@@ -116,8 +116,7 @@ void url_table_base::cache()
     torrent_cache cached; 
     auto num_urls = itor.second;
     auto filename = cache_name_protocol(itor.first);
-    // always skip the first page
-    while (num_urls-- > 1) {
+    while (num_urls--) {
       auto entry = torrentmap[index];
       cached.emplace(entry.first,entry.second);
       --index;
@@ -144,7 +143,7 @@ void url_table_base::cache()
   }
 }
 
-void url_table_base::load_cache(std::string searchtag) 
+void url_table_base::load_cache(std::string searchtag,std::string first_page) 
 {
   auto filename = cache_name_protocol(searchtag);
   if (!std::filesystem::exists(filename)) return;
@@ -152,11 +151,16 @@ void url_table_base::load_cache(std::string searchtag)
   std::ifstream ifs(filename);
   boost::archive::text_iarchive ia(ifs);
   ia >> cached;
+  // never use cache for the first page
+  auto fitor = cached.find(first_page);
+  if (fitor !=cached.end()) {
+    if (options::debug_level)
+      fprintf(stderr,"cache: ignoring page %s\n",first_page.c_str());
+    cached.erase(fitor);
+  }
   website_urls.erase(std::remove_if(website_urls.begin(), website_urls.end(), 
   [this, cached](std::string p)  
   {
-    if (options::debug_level)
-      fprintf(stderr,"looking for %s .. \n",p.c_str());
     auto index = cached.find(p);
     if (index != cached.end()) {
       printTmapEntry(index->second);

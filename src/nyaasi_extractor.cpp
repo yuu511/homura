@@ -20,7 +20,7 @@ nyaasi_extractor::nyaasi_extractor()
   : curler(std::move(curl_container())), 
     html_parser(std::move(tree_container())),
     pageinfo(pagination_information(0,0,0)),
-    cached_pages(0)
+    ref_page("")
 {}
 
 
@@ -28,23 +28,8 @@ nyaasi_extractor::nyaasi_extractor(nyaasi_extractor &&lhs)
 : curler(std::move(lhs.curler)),
   html_parser(std::move(lhs.html_parser)),
   pageinfo(lhs.pageinfo),
-  cached_pages(lhs.cached_pages)
+  ref_page(lhs.ref_page)
  {}
-
-HOMURA_ERRCODE nyaasi_extractor::curl_and_create_tree(std::string url)
-{
-  int status;
-  status = curler.perform_curl(url);
-  if (status != ERRCODE::SUCCESS) return status; 
-
-  if (options::debug_level) {
-    fprintf(stderr,"Parsing page %s\n",url.c_str());
-  }
-  html_parser.reset_tree();
-  html_parser.create_tree(curler.get_HTML_aschar());
-
-  return ERRCODE::SUCCESS;
-}
 
 HOMURA_ERRCODE nyaasi_extractor::extract_pageinfo() 
 {
@@ -150,35 +135,46 @@ void extract_tree_magnets(myhtml_tree_t *tree, torrent_map_entry &name_and_magne
   myhtml_collection_destroy(table);
 }
 
-std::vector<std::string> nyaasi_extractor::getURLs(std::string searchtag,const char *&firstpage)
+first_url_pair nyaasi_extractor::download_first_page(std::string searchtag) 
+{
+  ref_page = "https://nyaa.si/?f=0&c=0_0&q=" + searchtag;
+  std::replace(searchtag.begin(), searchtag.end(), ' ', '+');
+
+  int status;
+  status = curler.perform_curl(ref_page);
+  if (status != ERRCODE::SUCCESS) {
+    error_handler::set_error_exitcode(status);
+    return {0,0};
+  }
+  const char *firstHTML = curler.get_HTML_aschar();
+  return std::make_pair(ref_page,firstHTML);
+}
+
+std::vector<std::string> nyaasi_extractor::getURLs(const char *firstHTML)
 {
   /* nyaa.si has no official api, and we must manually
      find out how many results to expect by sending a request 
      and parsing the query result information */
-  std::replace(searchtag.begin(), searchtag.end(), ' ', '+');
-  const std::string ref_page = "https://nyaa.si/?f=0&c=0_0&q=" + searchtag;
-
   int status;
-  std::vector<std::string>urls;
-  status = curl_and_create_tree(ref_page);
-  if (status != ERRCODE::SUCCESS) return urls; 
+  std::vector<std::string> urls;
   status = extract_pageinfo();
-  if (status != ERRCODE::SUCCESS) return urls; 
-
+  if (status != ERRCODE::SUCCESS) {
+    error_handler::set_error_exitcode(status);
+    return urls; 
+  }
   int total = pageinfo.total_result;
   int per_page = pageinfo.last_result;
   if ( total <= 1 || per_page <= 1) {
-    errprintf(ERRCODE::FAILED_NO_RESULTS,"no results found for %s!\n",ref_page.c_str());
+    errprintf(ERRCODE::FAILED_NO_RESULTS,"no results found!\n");
     return urls;
   }
   int num_pages = ( total + (per_page - 1) ) / per_page;
-  for (int i = num_pages; i >= 1; --i) {
+  for (int i = num_pages; i >= 2; --i) {
     urls.emplace_back(ref_page + "&p=" + std::to_string(i)) ;  
     if (options::debug_level) {
       fprintf(stderr,"Adding url %s\n",((ref_page + "&p=" + std::to_string(i)).c_str()));
     }
   }
-  firstpage = curler.get_HTML_aschar();
   return urls;
 }
 
@@ -197,16 +193,6 @@ torrent_map_entry nyaasi_extractor::parse_HTML(const char *HTML)
   if (html_parser.create_tree(HTML) == ERRCODE::SUCCESS) {
     extract_tree_magnets(html_parser.get_tree(),nm_map);
   }
-  if (options::debug_level) {
-    fprintf(stderr,"Number of magnet entries %zd\n", nm_map.size());
-  }
-  return nm_map;
-}
-
-torrent_map_entry nyaasi_extractor::parse_first_page()
-{
-  torrent_map_entry nm_map;
-  extract_tree_magnets(html_parser.get_tree(),nm_map);
   if (options::debug_level) {
     fprintf(stderr,"Number of magnet entries %zd\n", nm_map.size());
   }

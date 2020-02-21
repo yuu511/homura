@@ -83,7 +83,7 @@ size_t curl_container::writecb(const unsigned char *ptr,
   return 0;
 }
 
-HOMURA_ERRCODE curl_container::perform_curl(const std::string &url) 
+HOMURA_ERRCODE curl_container::perform_curl(const std::string url) 
 {
   buffer.reset(new std::vector<unsigned char>());
   data_sz = 0;
@@ -113,7 +113,7 @@ HOMURA_ERRCODE curl_container::perform_curl(const std::string &url)
   return ERRCODE::SUCCESS;
 }
 
-HOMURA_ERRCODE curl_container::try_curl_N(const std::string &url,int attempts) 
+HOMURA_ERRCODE curl_container::try_curl_N(const std::string url,int attempts) 
 {
   while (attempts) {
     if (perform_curl(url) == ERRCODE::SUCCESS) return ERRCODE::SUCCESS;

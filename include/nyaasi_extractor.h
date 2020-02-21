@@ -25,20 +25,17 @@ namespace homura {
     nyaasi_extractor &operator= (const nyaasi_extractor&) = delete;
     nyaasi_extractor(nyaasi_extractor&&);
 
-    HOMURA_ERRCODE curl_and_create_tree(std::string url);
-    HOMURA_ERRCODE extract_pageinfo();
-    int gen_num_cached_pages(torrent_map_entry magnets);
-
     // template functions
-    std::vector<std::string> getURLs(std::string searchtag,const char *&firsturl);
+    first_url_pair download_first_page(std::string searchtag);
+    std::vector<std::string> getURLs(const char *firstHTML);
     const char *downloadOne(std::string url);
     torrent_map_entry parse_HTML(const char *HTML);
-    torrent_map_entry parse_first_page();
   private:
     curl_container curler;
     tree_container html_parser;
     pagination_information pageinfo;
-    int cached_pages;
+    HOMURA_ERRCODE extract_pageinfo();
+    std::string ref_page;
   };
 }
 #endif

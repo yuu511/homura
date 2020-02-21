@@ -72,7 +72,8 @@ HOMURA_ERRCODE parse_flags (int argc, char **argv)
    long p_opts;
    int n_opts;
    std::smatch sm;
-   std::regex pattern("0x[0123]");
+   std::regex ishex("0x\\d+");
+   std::regex validzero("(0x)?0+");
    std::string cast;
    while (1) {  
      int option_index = 0;
@@ -81,13 +82,14 @@ HOMURA_ERRCODE parse_flags (int argc, char **argv)
        { "verbose" , no_argument       ,  0   , 'v' },
        { "debug"   , no_argument       ,  0   , 'd' },
        { "help"    , no_argument       ,  0   , 'h' },
-       { "regex" , required_argument ,  0   , 'r' },
        { "refresh_cache" , no_argument ,  0   , 'c' },
+       { "reverse_results" , no_argument ,  0   , 'b' },
+       { "regex" , required_argument ,  0   , 'r' },
        { "print_options" , required_argument ,  0   , 'p' },
        { "num_pages" , required_argument ,  0   , 'n' },
        {  NULL     , 0                 , NULL ,  0  }
      };
-     opt = getopt_long(argc,argv, "cvdr:p:n:",
+     opt = getopt_long(argc,argv, "cvdbr:p:n:",
                  long_options, &option_index);
      if (opt == -1)		 
        break;
@@ -107,10 +109,17 @@ HOMURA_ERRCODE parse_flags (int argc, char **argv)
        case 'c':
          options::force_refresh_cache = 1;
          break;
+       case 'b':
+         options::reverse_results = 1;
+         break;
        case 'p':
          cast = optarg;
-         p_opts = std::stoul(cast,NULL,std::regex_match(cast,sm,pattern) ? 16 : 10);
-         if (p_opts < 0 || p_opts > 3) {
+         if (std::regex_match(cast,sm,validzero)) {
+           options::print.reset(); 
+           break; 
+         }
+         p_opts = std::stoul(cast,NULL,std::regex_match(cast,sm,ishex) ? 16 : 10);
+         if (p_opts <= 0 || p_opts > 3) {
            errprintf(ERRCODE::FAILED_ARGPARSE, "incorrect number for option -p,--print_options\n"
                      "(accepts either hex or decimal, values [0-3] only, provided arg %s\n",optarg);
            return ERRCODE::FAILED_ARGPARSE;

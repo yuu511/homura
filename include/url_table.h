@@ -25,6 +25,8 @@ namespace homura
   // same as above,but we cache as an unordered_map instead of a vector
   using torrent_cache = std::unordered_map<std::string,torrent_map_entry>;
 
+  using first_url_pair = std::pair<std::string,const char*>;
+
   inline void printTmapEntry(torrent_map_entry tmape)
   {
     bool magnet = options::print[0];
@@ -69,7 +71,7 @@ namespace homura
     void copy_nm_pair(const std::string &URL, const torrent_map_entry &MAGNETS_IN_URL);
 
     std::string cache_name_protocol(std::string searchtag);
-    void load_cache(std::string searchtag);
+    void load_cache(std::string searchtag,std::string first_page);
     void cache();
 
     bool empty();
@@ -78,9 +80,9 @@ namespace homura
     std::string get_website();
     std::chrono::milliseconds get_delay();
 
+    virtual torrent_map_entry parse_page(const char *HTML);
     virtual HOMURA_ERRCODE populate_url_list(std::string searchtag);
     virtual std::pair<std::string,const char *> download_next_URL();
-    virtual torrent_map_entry parse_page(const char *HTML);
 
     void print();
   private:
@@ -100,26 +102,33 @@ namespace homura
               parser extractor_)
       : url_table_base(website_,delay_),         
         extractor(std::move(extractor_)){}
+
+    torrent_map_entry parse_page(const char *HTML)
+    {
+      return extractor.parse_HTML(HTML);
+    }
+
     // template functions
     HOMURA_ERRCODE populate_url_list(std::string searchtag) 
     {
-      // (optional)
-      // With webpages that have no API, we often have to parse the page twice. 
-      // set firstpage to the first HTML webpage to have it parsed for magnets
-      const char *firstpage = nullptr;
-      auto urls = extractor.getURLs(searchtag,*&firstpage);
-      if (!urls.size()) return ERRCODE::FAILED_PARSE;
+      // first url, HTML contents of first url
+      first_url_pair firstpair = extractor.download_first_page(searchtag);
+      if (!firstpair.second) { return error_handler::exit_code; }
+      auto magnets = extractor.parse_HTML(firstpair.second);
+      printTmapEntry(magnets);
+      copy_nm_pair(firstpair.first,magnets);
+      
+      // url list should be all urls we need to parse 
+      // (excluding the first one, which is parsed above)
+      std::vector<std::string> urls = extractor.getURLs(firstpair.second);
+      if (error_handler::exit_code != ERRCODE::SUCCESS) return error_handler::exit_code;
       copy_url_table(urls);
-
-      push_search_tag(searchtag,urls.size());
+      push_search_tag(searchtag,urls.size()+1);
       update_time();
-      if (firstpage) {
-        auto list = extractor.parse_HTML(firstpage);  
-        printTmapEntry(list);
-        copy_nm_pair(pop_one_url(),list);
-      } 
+
+      // remove first page from the url list (should be parsed above)
       if (!options::force_refresh_cache)
-        load_cache(searchtag);
+        load_cache(searchtag,firstpair.first);
       return ERRCODE::SUCCESS;
     }
 
@@ -129,11 +138,6 @@ namespace homura
       const char *result = extractor.downloadOne(url);
       update_time();
       return std::make_pair(url,result);
-    }
-
-    torrent_map_entry parse_page(const char *HTML)
-    {
-      return extractor.parse_HTML(HTML);
     }
   private:
     parser extractor;
