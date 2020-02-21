@@ -48,6 +48,7 @@ HOMURA_ERRCODE nyaasi_extractor::extract_pageinfo()
     } 
     else {
       errprintf(ERRCODE::FAILED_PARSE, "Failed to parse first page \n (Pagination information not found)");
+      myhtml_collection_destroy(found);
       return ERRCODE::FAILED_PARSE;
     }
   } 
@@ -62,6 +63,7 @@ HOMURA_ERRCODE nyaasi_extractor::extract_pageinfo()
   auto end = std::sregex_iterator();
 
   if (std::distance(itor,end) != 3) {
+    myhtml_collection_destroy(found);
     errprintf(ERRCODE::FAILED_PARSE,"Incorrect pagination string parse.\n");
     return ERRCODE::FAILED_PARSE;
   }
@@ -70,6 +72,7 @@ HOMURA_ERRCODE nyaasi_extractor::extract_pageinfo()
                                     boost::lexical_cast<int>((itor++)->str()),
                                     boost::lexical_cast<int>((itor++)->str()));
     
+  myhtml_collection_destroy(found);
   return ERRCODE::SUCCESS;
 }
 
