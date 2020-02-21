@@ -59,6 +59,17 @@ std::string url_table_base::pop_one_url()
   return back;
 }
 
+void url_table_base::copy_url_table(std::vector<std::string> &urls)
+{
+  if (options::number_pages){
+    if (static_cast<size_t>(options::number_pages) < urls.size()) {
+      size_t diff = urls.size() - static_cast<size_t>(options::number_pages);
+      urls.erase(urls.begin(),urls.begin() + diff);
+    }
+  }
+  website_urls.insert(website_urls.end(),urls.begin(),urls.end());
+}
+
 HOMURA_ERRCODE url_table_base::populate_url_list(std::string searchtag)
 {
   fprintf(stderr,"you should never see this.");
@@ -71,114 +82,86 @@ std::pair<std::string,const char *> url_table_base::download_next_URL()
   return {"",0};
 }
 
-torrent_map_entry url_table_base::parse_page(const char *HTML)
+void url_table_base::parse_next_page(urlpair &pair)
 {
-  torrent_map_entry pl;
   fprintf(stderr,"you should never see this.");
-  return pl;
-}
-
-void url_table_base::push_search_tag(std::string tag, size_t num_urls)
-{
-  if (options::debug_level > 1) {
-    fprintf (stderr, "pushing tag %s, size %zd\n",tag.c_str(),num_urls);
-  }
-  searchtags.push_back(std::make_pair(tag,num_urls));
-}
-
-void url_table_base::copy_url_table(std::vector<std::string> &urls)
-{
-  if (options::number_pages){
-    if (static_cast<size_t>(options::number_pages) < urls.size()) {
-      size_t diff = urls.size() - static_cast<size_t>(options::number_pages);
-      urls.erase(urls.begin(),urls.begin() + diff);
-    }
-  }
-  website_urls.insert(website_urls.end(),urls.begin(),urls.end());
-}
-
-void url_table_base::copy_nm_pair(const std::string &URL, const torrent_map_entry &MAGNETS_IN_URL)
-{
-  torrentmap.push_back(std::make_pair(URL,MAGNETS_IN_URL));
-}
-
-std::string url_table_base::cache_name_protocol(std::string searchtag) 
-{
-  return ".homuracache_" + get_website() + "_" + searchtag; 
-}
-
-// Merge caches by default (new cache has precedence, but
-// if old cache exists for a page that isn't in the new cache put it in)
-void url_table_base::cache()
-{
-  size_t index = torrentmap.size() - 1;
-  for (auto const &itor : searchtags) {
-    torrent_cache cached; 
-    auto num_urls = itor.second;
-    auto filename = cache_name_protocol(itor.first);
-    while (num_urls--) {
-      auto entry = torrentmap[index];
-      cached.emplace(entry.first,entry.second);
-      --index;
-      if (options::debug_level)
-        fprintf(stderr,"caching %s\n",entry.first.c_str());
-    }
-    if (!options::force_refresh_cache && std::filesystem::exists(filename)) {
-      torrent_cache oldcache;
-      std::ifstream ifs(filename);
-      boost::archive::text_iarchive ia(ifs);
-      ia >> oldcache;
-      for (auto const &itor : oldcache) {
-        auto index = cached.find(itor.first);
-        if (index == cached.end()) {
-          cached.emplace(itor.first,itor.second);
-          if (options::debug_level)
-            fprintf(stderr,"caching %s from old cache \n",itor.first.c_str());
-        }
-      }
-    }
-    std::ofstream ofs(filename);
-    boost::archive::text_oarchive oa(ofs);
-    oa << cached;
-  }
-}
-
-void url_table_base::load_cache(std::string searchtag,std::string first_page) 
-{
-  auto filename = cache_name_protocol(searchtag);
-  if (!std::filesystem::exists(filename)) return;
-  torrent_cache cached;
-  std::ifstream ifs(filename);
-  boost::archive::text_iarchive ia(ifs);
-  ia >> cached;
-  // never use cache for the first page
-  auto fitor = cached.find(first_page);
-  if (fitor !=cached.end()) {
-    if (options::debug_level)
-      fprintf(stderr,"cache: ignoring page %s\n",first_page.c_str());
-    cached.erase(fitor);
-  }
-  website_urls.erase(std::remove_if(website_urls.begin(), website_urls.end(), 
-  [this, cached](std::string p)  
-  {
-    auto index = cached.find(p);
-    if (index != cached.end()) {
-      printTmapEntry(index->second);
-      torrentmap.push_back(std::make_pair(p,index->second)); 
-      if (options::debug_level) {
-        fprintf(stderr,"loading page %s from the cache!\n",p.c_str());
-      }
-      return true;
-    }
-    else {
-      return false;
-    }
-  }),website_urls.end());
 }
 
 void url_table_base::print()
 {
-  for (auto const &itor : torrentmap) {
-    printTmapEntry(itor.second);
-  }
+  fprintf(stderr,"you should never see this.");
 }
+
+// std::string url_table_base::cache_name_protocol(std::string searchtag) 
+// {
+//   return ".homuracache_" + get_website() + "_" + searchtag; 
+// }
+// 
+// // Merge caches by default (new cache has precedence, but
+// // if old cache exists for a page that isn't in the new cache put it in)
+// void url_table_base::cache()
+// {
+//   size_t index = torrentmap.size() - 1;
+//   for (auto const &itor : searchtags) {
+//     torrent_cache cached; 
+//     auto num_urls = itor.second;
+//     auto filename = cache_name_protocol(itor.first);
+//     while (num_urls--) {
+//       auto entry = torrentmap[index];
+//       cached.emplace(entry.first,entry.second);
+//       --index;
+//       if (options::debug_level)
+//         fprintf(stderr,"caching %s\n",entry.first.c_str());
+//     }
+//     if (!options::force_refresh_cache && std::filesystem::exists(filename)) {
+//       torrent_cache oldcache;
+//       std::ifstream ifs(filename);
+//       boost::archive::text_iarchive ia(ifs);
+//       ia >> oldcache;
+//       for (auto const &itor : oldcache) {
+//         auto index = cached.find(itor.first);
+//         if (index == cached.end()) {
+//           cached.emplace(itor.first,itor.second);
+//           if (options::debug_level)
+//             fprintf(stderr,"caching %s from old cache \n",itor.first.c_str());
+//         }
+//       }
+//     }
+//     std::ofstream ofs(filename);
+//     boost::archive::text_oarchive oa(ofs);
+//     oa << cached;
+//   }
+// }
+// 
+// void url_table_base::load_cache(std::string searchtag,std::string first_page) 
+// {
+//   auto filename = cache_name_protocol(searchtag);
+//   if (!std::filesystem::exists(filename)) return;
+//   torrent_cache cached;
+//   std::ifstream ifs(filename);
+//   boost::archive::text_iarchive ia(ifs);
+//   ia >> cached;
+//   // never use cache for the first page
+//   auto fitor = cached.find(first_page);
+//   if (fitor !=cached.end()) {
+//     if (options::debug_level)
+//       fprintf(stderr,"cache: ignoring page %s\n",first_page.c_str());
+//     cached.erase(fitor);
+//   }
+//   website_urls.erase(std::remove_if(website_urls.begin(), website_urls.end(), 
+//   [this, cached](std::string p)  
+//   {
+//     auto index = cached.find(p);
+//     if (index != cached.end()) {
+//       printTmapEntry(index->second);
+//       torrentmap.push_back(std::make_pair(p,index->second)); 
+//       if (options::debug_level) {
+//         fprintf(stderr,"loading page %s from the cache!\n",p.c_str());
+//       }
+//       return true;
+//     }
+//     else {
+//       return false;
+//     }
+//   }),website_urls.end());
+// }

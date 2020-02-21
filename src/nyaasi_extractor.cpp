@@ -73,8 +73,9 @@ HOMURA_ERRCODE nyaasi_extractor::extract_pageinfo()
   return ERRCODE::SUCCESS;
 }
 
-void extract_tree_magnets(myhtml_tree_t *tree, torrent_map_entry &name_and_magnet) 
+inline std::vector<nyaasi_results>* extract_tree_magnets(myhtml_tree_t *tree) 
 {
+  std::vector<nyaasi_results> *results = new std::vector<nyaasi_results>();
   const char *name = NULL;
   const char *magnet = NULL;
 
@@ -129,13 +130,14 @@ void extract_tree_magnets(myhtml_tree_t *tree, torrent_map_entry &name_and_magne
          fprintf(stderr,"No torrent found at index %zu \n",i);    
          continue;
        }
-       name_and_magnet.push_back(std::make_pair(std::string(name),std::string(magnet)));
+       results->push_back({magnet,name,""});
      }
   }
   myhtml_collection_destroy(table);
+  return results;
 }
 
-first_url_pair nyaasi_extractor::download_first_page(std::string searchtag) 
+urlpair nyaasi_extractor::download_first_page(std::string searchtag) 
 {
   ref_page = "https://nyaa.si/?f=0&c=0_0&q=" + searchtag;
   std::replace(searchtag.begin(), searchtag.end(), ' ', '+');
@@ -155,6 +157,7 @@ std::vector<std::string> nyaasi_extractor::getURLs(const char *firstHTML)
   /* nyaa.si has no official api, and we must manually
      find out how many results to expect by sending a request 
      and parsing the query result information */
+
   int status;
   std::vector<std::string> urls;
   status = extract_pageinfo();
@@ -185,16 +188,9 @@ const char *nyaasi_extractor::downloadOne(std::string url)
   return (status != ERRCODE::SUCCESS ? "" : curler.get_HTML_aschar());
 }
 
-torrent_map_entry nyaasi_extractor::parse_HTML(const char *HTML)
+std::vector<nyaasi_results>* nyaasi_extractor::parse_HTML(const char *HTML)
 {
-  torrent_map_entry nm_map;
-  if (HTML[0] == '\0') return nm_map;   
   html_parser.reset_tree();
-  if (html_parser.create_tree(HTML) == ERRCODE::SUCCESS) {
-    extract_tree_magnets(html_parser.get_tree(),nm_map);
-  }
-  if (options::debug_level) {
-    fprintf(stderr,"Number of magnet entries %zd\n", nm_map.size());
-  }
-  return nm_map;
+  html_parser.create_tree(HTML);
+  return extract_tree_magnets(html_parser.get_tree());
 }

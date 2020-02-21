@@ -1,6 +1,7 @@
 #ifndef __NYAASI_EXTRACTOR_H_
 #define __NYAASI_EXTRACTOR_H_
 
+#include "nyaasi_results.h"
 #include "errlib.h"
 #include "tree_container.h"
 #include "curl_container.h"
@@ -26,10 +27,11 @@ namespace homura {
     nyaasi_extractor(nyaasi_extractor&&);
 
     // template functions
-    first_url_pair download_first_page(std::string searchtag);
+    std::vector<nyaasi_results> *parse_HTML(const char *HTML); 
+    urlpair download_first_page(std::string searchtag);
     std::vector<std::string> getURLs(const char *firstHTML);
     const char *downloadOne(std::string url);
-    torrent_map_entry parse_HTML(const char *HTML);
+
   private:
     curl_container curler;
     tree_container html_parser;

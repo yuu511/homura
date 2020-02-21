@@ -4,8 +4,10 @@
 #include <pthread.h>
 
 #include "homura.h"
-#include "nyaasi_extractor.h"
 #include "select_ssl.h"
+
+#include "nyaasi_extractor.h"
+#include "nyaasi_results.h"
 
 using namespace homura;
 
@@ -39,7 +41,7 @@ HOMURA_ERRCODE homura_instance::query_nyaasi(std::string searchtag)
     ret = it->populate_url_list(searchtag);
   } 
   else {
-    auto new_table = std::make_shared <url_table<nyaasi_extractor>>
+    auto new_table = std::make_shared <url_table<nyaasi_extractor,nyaasi_results>>
                      (key,
                       std::chrono::milliseconds(5000),
                       nyaasi_extractor());
