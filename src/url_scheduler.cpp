@@ -52,6 +52,9 @@ HOMURA_ERRCODE url_scheduler::crawl()
     }
   }
 
+  for (auto &table: sorted_url_tables) {
+    table->cache();
+  }
   return ERRCODE::SUCCESS;
 }
 

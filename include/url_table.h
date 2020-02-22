@@ -10,6 +10,14 @@
 #include <stdio.h>
 #include <regex>
 
+#include <filesystem>
+#include <fstream>
+#include <boost/serialization/utility.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/serialization/unordered_map.hpp>
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
+
 #include "curl_container.h"
 #include "tree_container.h"
 #include "errlib.h"
@@ -38,10 +46,11 @@ namespace homura
     std::string get_website();
     std::chrono::milliseconds get_delay();
 
+    // template functions
     virtual HOMURA_ERRCODE populate_url_list(std::string searchtag);
     virtual std::pair<std::string,const char *> download_next_URL();
     virtual HOMURA_ERRCODE parse_next_page(urlpair &pair);
-
+    virtual void cache();
     virtual void print();
   private:
     std::string website;
@@ -52,6 +61,7 @@ namespace homura
 
   template <typename parser, typename result_type>
   class url_table : public url_table_base {
+  using resultmap = std::unordered_map<std::string,std::vector<result_type>*>;
   public:
     url_table(std::string website_,
               std::chrono::milliseconds delay_,
@@ -125,15 +135,22 @@ namespace homura
         return status;
       }
       results.emplace(firstpair.first,result_vector);
+
       print_table(result_vector);
       
       // url list should be all urls we need to parse 
       // (excluding the first one, which is parsed above)
-      status = extractor.getURLs(firstpair.second,get_url_table());
+      auto tblptr = get_url_table();
+      status = extractor.getURLs(firstpair.second,tblptr);
       if (status != ERRCODE::SUCCESS) return status;
+      std::vector<std::string> searchtag_urls;
+      // copy url table for cache
+      searchtag_urls.insert(searchtag_urls.end(),tblptr->begin(),tblptr->end());
+      searchtag_urls.push_back(firstpair.first);
+      searchtags.emplace(searchtag,searchtag_urls);
 
       update_time();
-
+      
       return ERRCODE::SUCCESS;
     }
 
@@ -155,9 +172,63 @@ namespace homura
       print_table(result_vector);
       return ERRCODE::SUCCESS;
     }
+
+    std::string cache_name_protocol(std::string searchtag)
+    {
+      return ".homuracache_" + get_website() + "_" + searchtag;
+    }
+
+    void load_cache()
+    {
+      if(options::force_refresh_cache) return;
+
+      for (auto &itor : searchtags ) {
+        auto archive_name = cache_name_protocol(itor.first);
+        if (!std::filesystem::exists(archive_name)) return;
+        resultmap cache;
+        std::ifstream ifs(archive_name);
+        boost::archive::text_iarchive ia(ifs);
+        ia >> cache;
+        // if the # of urls in the cache != # of urls in the queue, ignore it
+        auto ccitor = cache.find(itor.first);
+        if (ccitor == cache.end() || itor.second.size() != ccitor.second().size()) continue;
+        auto website_list = get_url_table();
+        website_list->erase(std::remove_if(website_list->begin(),website_list->end(),
+        [this,cache](std::string p)
+        {
+          auto index = cache.find(p);
+          if ( index != cache.end) {
+            results.emplace(p,index->second());    
+          }
+        }),website_list->end());
+      }
+    }
+
+    void cache() 
+    {
+      for (auto &itor : searchtags ) {
+        std::string archive_name = cache_name_protocol(itor.first);
+        resultmap cache;
+        for (auto &vecitor : itor.second) {
+          auto found = results.find(vecitor);
+          if (found != results.end()) {
+             cache.emplace(vecitor,found->second);
+          }
+        }
+        if (options::debug_level) {
+          for (auto &debugitor : cache) {
+            fprintf (stderr,"Added url %s to the cache\n",debugitor.first.c_str());
+          }
+        }
+        std::ofstream ofs (archive_name);  
+        boost::archive::text_oarchive oa (ofs);
+        oa << cache;
+      }
+    }
   private:
     parser extractor;
-    std::unordered_map<std::string,std::vector<result_type>*> results;
+    resultmap results;
+    std::unordered_map<std::string,std::vector<std::string>> searchtags;
   };
 }
 

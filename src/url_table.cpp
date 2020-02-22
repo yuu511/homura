@@ -1,11 +1,4 @@
 #include <stdio.h>
-#include <fstream>
-#include <filesystem>
-#include <boost/serialization/utility.hpp>
-#include <boost/serialization/vector.hpp>
-#include <boost/serialization/unordered_map.hpp>
-#include <boost/archive/text_oarchive.hpp>
-#include <boost/archive/text_iarchive.hpp>
 
 #include "url_table.h"
 #include "errlib.h"
@@ -88,6 +81,10 @@ void url_table_base::print()
   fprintf(stderr,"you should never see this.");
 }
 
+void url_table_base::cache()
+{
+  fprintf(stderr,"you should never see this.");
+}
 // std::string url_table_base::cache_name_protocol(std::string searchtag) 
 // {
 //   return ".homuracache_" + get_website() + "_" + searchtag; 
