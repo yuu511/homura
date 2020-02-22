@@ -144,11 +144,11 @@ urlpair nyaasi_extractor::download_first_page(std::string searchtag)
   ref_page = "https://nyaa.si/?f=0&c=0_0&q=" + searchtag;
   std::replace(searchtag.begin(), searchtag.end(), ' ', '+');
 
-  int status;
+  HOMURA_ERRCODE status;
   status = curler.perform_curl(ref_page);
   if (status != ERRCODE::SUCCESS) {
     error_handler::set_error_exitcode(status);
-    return {0,0};
+    return {"",""};
   }
   const char *firstHTML = curler.get_HTML_aschar();
   return std::make_pair(ref_page,firstHTML);
@@ -160,7 +160,7 @@ HOMURA_ERRCODE nyaasi_extractor::getURLs(const char *firstHTML, std::vector<std:
      find out how many results to expect by sending a request 
      and parsing the query result information */
 
-  int status;
+  HOMURA_ERRCODE status;
   status = extract_pageinfo();
   if (status != ERRCODE::SUCCESS) {
     error_handler::set_error_exitcode(status);
@@ -173,6 +173,9 @@ HOMURA_ERRCODE nyaasi_extractor::getURLs(const char *firstHTML, std::vector<std:
     return ERRCODE::FAILED_NO_RESULTS;
   }
   int num_pages = ( total + (per_page - 1) ) / per_page;
+  if (options::number_pages > 0 && options::number_pages < num_pages) {
+    num_pages = options::number_pages;
+  }
   for (int i = num_pages; i >= 2; --i) {
     urlTable->emplace_back(ref_page + "&p=" + std::to_string(i)) ;  
     if (options::debug_level) {
@@ -184,14 +187,16 @@ HOMURA_ERRCODE nyaasi_extractor::getURLs(const char *firstHTML, std::vector<std:
 
 const char *nyaasi_extractor::downloadOne(std::string url) 
 {
-  int status;
+  HOMURA_ERRCODE status;
   status = curler.perform_curl(url);
+  error_handler::set_error_exitcode(status);
   return (status != ERRCODE::SUCCESS ? "" : curler.get_HTML_aschar());
 }
 
 HOMURA_ERRCODE nyaasi_extractor::parse_HTML(const char *HTML, std::vector<nyaasi_results> *results)
 {
-  int status;
+  HOMURA_ERRCODE status;
+  if (HTML[0] == '\0') return ERRCODE::FAILED_PARSE;
   html_parser.reset_tree();
   status = html_parser.create_tree(HTML);
   if ( status != ERRCODE::SUCCESS ) return status;

@@ -65,18 +65,6 @@ std::vector<std::string> *url_table_base::get_url_table()
   return website_urls;
 }
 
-void url_table_base::point_url_table(std::vector<std::string> *urls)
-{
-  if (options::number_pages){
-    // if (static_cast<size_t>(options::number_pages) < urls.size()) {
-    //   size_t diff = urls.size() - static_cast<size_t>(options::number_pages);
-    //   urls.erase(urls.begin(),urls.begin() + diff);
-    // }
-  }
-  website_urls = urls;
-  // website_urls->insert(website_urls.end(),urls.begin(),urls.end());
-}
-
 HOMURA_ERRCODE url_table_base::populate_url_list(std::string searchtag)
 {
   fprintf(stderr,"you should never see this.");
@@ -89,9 +77,10 @@ std::pair<std::string,const char *> url_table_base::download_next_URL()
   return {"",0};
 }
 
-void url_table_base::parse_next_page(urlpair &pair)
+HOMURA_ERRCODE url_table_base::parse_next_page(urlpair &pair)
 {
   fprintf(stderr,"you should never see this.");
+  return ERRCODE::SUCCESS;
 }
 
 void url_table_base::print()

@@ -168,7 +168,7 @@ HOMURA_ERRCODE execute_command(int argc, char **argv)
       errprintf(ERRCODE::FAILED_ARGPARSE,"Incorrect # of options for search\n"); 
       return ERRCODE::FAILED_ARGPARSE;
     }
-    int status; 
+    HOMURA_ERRCODE status; 
     options::search_term = std::string(argv[search_index]);
     status = homuhomu.query_nyaasi(options::search_term);
     if (status != ERRCODE::SUCCESS) return status;
@@ -183,7 +183,7 @@ HOMURA_ERRCODE execute_command(int argc, char **argv)
 
 int main (int argc, char **argv) 
 {
-  int status;
+  HOMURA_ERRCODE status;
   status = parse_flags(argc,argv);
 
   if (status == ERRCODE::SUCCESS) { 

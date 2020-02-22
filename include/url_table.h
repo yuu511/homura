@@ -34,14 +34,13 @@ namespace homura
     bool ready_for_request();
 
     std::vector<std::string> *get_url_table();
-    void point_url_table(std::vector<std::string> *urls);
 
     std::string get_website();
     std::chrono::milliseconds get_delay();
 
     virtual HOMURA_ERRCODE populate_url_list(std::string searchtag);
     virtual std::pair<std::string,const char *> download_next_URL();
-    virtual void parse_next_page(urlpair &pair);
+    virtual HOMURA_ERRCODE parse_next_page(urlpair &pair);
 
     virtual void print();
   private:
@@ -116,13 +115,15 @@ namespace homura
 
     HOMURA_ERRCODE populate_url_list(std::string searchtag) 
     {
-      int status;
+      HOMURA_ERRCODE status;
 
       urlpair firstpair = extractor.download_first_page(searchtag);
-      if (!firstpair.second) { return error_handler::exit_code; }
       auto result_vector = new std::vector<result_type>;
       status = extractor.parse_HTML(firstpair.second,result_vector);
-      if (status != ERRCODE::SUCCESS) return status;
+      if (status != ERRCODE::SUCCESS) {
+        delete result_vector;
+        return status;
+      }
       results.emplace(firstpair.first,result_vector);
       print_table(result_vector);
       
@@ -131,7 +132,6 @@ namespace homura
       status = extractor.getURLs(firstpair.second,get_url_table());
       if (status != ERRCODE::SUCCESS) return status;
 
-      // point_url_table(extractor.getURLs(firstpair.second));
       update_time();
 
       return ERRCODE::SUCCESS;
@@ -145,13 +145,15 @@ namespace homura
       return std::make_pair(url,result);
     }
 
-    void parse_next_page(urlpair &pair)
+    HOMURA_ERRCODE parse_next_page(urlpair &pair)
     {
-      int status;
+      HOMURA_ERRCODE status;
       auto result_vector = new std::vector<result_type>;
       status = extractor.parse_HTML(pair.second,result_vector);
+      if (status != ERRCODE::SUCCESS) return status;
       results.emplace(pair.first,result_vector);
       print_table(result_vector);
+      return ERRCODE::SUCCESS;
     }
   private:
     parser extractor;
