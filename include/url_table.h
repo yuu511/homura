@@ -123,6 +123,57 @@ namespace homura
       }
     }
 
+    void load_cache()
+    {
+      if(options::force_refresh_cache) return;
+
+      for (auto &itor : searchtags ) {
+        auto archive_name = cache_name_protocol(itor.first);
+        if (!std::filesystem::exists(archive_name)) return;
+        resultmap cache;
+        std::ifstream ifs(archive_name);
+        boost::archive::text_iarchive ia(ifs);
+        // ia >> cache;
+        // // if the # of urls in the cache != # of urls in the queue, ignore it
+        // auto ccitor = cache.find(itor.first);
+        // if (ccitor == cache.end() || itor.second.size() != ccitor->second->size()) continue;
+        // auto website_list = get_url_table();
+        // website_list->erase(std::remove_if(website_list->begin(),website_list->end(),
+        // [this,cache](std::string p)
+        // {
+        //   auto index = cache.find(p);
+        //   if ( index != cache.end()) {
+        //     // results.emplace(p,index->second());    
+        //     if (options::debug_level){
+        //       fprintf(stderr,"loading %s into the cache\n",p.c_str());
+        //     }
+        //   }
+        // }),website_list->end());
+      }
+    }
+
+    void cache() 
+    {
+      for (auto &itor : searchtags ) {
+        std::string archive_name = cache_name_protocol(itor.first);
+        resultmap cache;
+        for (auto &vecitor : itor.second) {
+          auto found = results.find(vecitor);
+          if (found != results.end()) {
+             cache.emplace(vecitor,found->second);
+          }
+        }
+        if (options::debug_level) {
+          for (auto &debugitor : cache) {
+            fprintf (stderr,"Added url %s to the cache\n",debugitor.first.c_str());
+          }
+        }
+        std::ofstream ofs (archive_name);  
+        boost::archive::text_oarchive oa (ofs);
+        oa << cache;
+      }
+    }
+
     HOMURA_ERRCODE populate_url_list(std::string searchtag) 
     {
       HOMURA_ERRCODE status;
@@ -150,6 +201,7 @@ namespace homura
       searchtags.emplace(searchtag,searchtag_urls);
 
       update_time();
+      load_cache();
       
       return ERRCODE::SUCCESS;
     }
@@ -176,54 +228,6 @@ namespace homura
     std::string cache_name_protocol(std::string searchtag)
     {
       return ".homuracache_" + get_website() + "_" + searchtag;
-    }
-
-    void load_cache()
-    {
-      if(options::force_refresh_cache) return;
-
-      for (auto &itor : searchtags ) {
-        auto archive_name = cache_name_protocol(itor.first);
-        if (!std::filesystem::exists(archive_name)) return;
-        resultmap cache;
-        std::ifstream ifs(archive_name);
-        boost::archive::text_iarchive ia(ifs);
-        ia >> cache;
-        // if the # of urls in the cache != # of urls in the queue, ignore it
-        auto ccitor = cache.find(itor.first);
-        if (ccitor == cache.end() || itor.second.size() != ccitor.second().size()) continue;
-        auto website_list = get_url_table();
-        website_list->erase(std::remove_if(website_list->begin(),website_list->end(),
-        [this,cache](std::string p)
-        {
-          auto index = cache.find(p);
-          if ( index != cache.end) {
-            results.emplace(p,index->second());    
-          }
-        }),website_list->end());
-      }
-    }
-
-    void cache() 
-    {
-      for (auto &itor : searchtags ) {
-        std::string archive_name = cache_name_protocol(itor.first);
-        resultmap cache;
-        for (auto &vecitor : itor.second) {
-          auto found = results.find(vecitor);
-          if (found != results.end()) {
-             cache.emplace(vecitor,found->second);
-          }
-        }
-        if (options::debug_level) {
-          for (auto &debugitor : cache) {
-            fprintf (stderr,"Added url %s to the cache\n",debugitor.first.c_str());
-          }
-        }
-        std::ofstream ofs (archive_name);  
-        boost::archive::text_oarchive oa (ofs);
-        oa << cache;
-      }
     }
   private:
     parser extractor;
