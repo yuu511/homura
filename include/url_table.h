@@ -62,6 +62,7 @@ namespace homura
   template <typename parser, typename result_type>
   class url_table : public url_table_base {
   using resultmap = std::unordered_map<std::string,std::vector<result_type>*>;
+  using resultcache = std::unordered_map<std::string,std::vector<result_type>>;
   public:
     url_table(std::string website_,
               std::chrono::milliseconds delay_,
@@ -126,14 +127,14 @@ namespace homura
     void load_cache()
     {
       if(options::force_refresh_cache) return;
-
       for (auto &itor : searchtags ) {
         auto archive_name = cache_name_protocol(itor.first);
         if (!std::filesystem::exists(archive_name)) return;
-        resultmap cache;
         std::ifstream ifs(archive_name);
         boost::archive::text_iarchive ia(ifs);
-        // ia >> cache;
+        ia >> results;
+        fprintf (stderr,"cache size %zd\n",results.size());
+        this->print();
         // // if the # of urls in the cache != # of urls in the queue, ignore it
         // auto ccitor = cache.find(itor.first);
         // if (ccitor == cache.end() || itor.second.size() != ccitor->second->size()) continue;
@@ -186,7 +187,6 @@ namespace homura
         return status;
       }
       results.emplace(firstpair.first,result_vector);
-
       print_table(result_vector);
       
       // url list should be all urls we need to parse 
