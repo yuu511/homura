@@ -38,9 +38,10 @@ namespace homura
     void print(); 
   private:
     std::string website;
-    std::vector<std::string> remainingURLs;   
     std::chrono::milliseconds delay;
     std::chrono::steady_clock::time_point last_request;
+    std::vector<std::string> remainingURLs;   
+    std::vector<generic_torrent_results> results;
   };
 }
 #endif
