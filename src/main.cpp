@@ -133,7 +133,7 @@ HOMURA_ERRCODE parse_flags (int argc, char **argv)
        case 'n':
          cast = optarg;
          n_opts = std::stoi(cast,NULL,10);
-         if (p_opts <=0) { 
+         if (n_opts <=0) { 
            errprintf(ERRCODE::FAILED_ARGPARSE, "incorrect number for option -n --num_pages\n"
                      "(accepts a -positive- decimal number) %s\n",optarg);
            return ERRCODE::FAILED_ARGPARSE;
