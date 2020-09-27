@@ -201,7 +201,8 @@ namespace homura
       searchtags.emplace(searchtag,searchtag_urls);
 
       update_time();
-      load_cache();
+      // do not load cache for now
+      // load_cache();
       
       return ERRCODE::SUCCESS;
     }
