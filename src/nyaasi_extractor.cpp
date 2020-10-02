@@ -141,8 +141,8 @@ inline HOMURA_ERRCODE extract_tree_magnets(myhtml_tree_t *tree,std::vector<nyaas
 
 urlpair nyaasi_extractor::download_first_page(std::string searchtag) 
 {
-  ref_page = "https://nyaa.si/?f=0&c=0_0&q=" + searchtag;
   std::replace(searchtag.begin(), searchtag.end(), ' ', '+');
+  ref_page = "https://nyaa.si/?f=0&c=0_0&q=" + searchtag;
 
   HOMURA_ERRCODE status;
   status = curler.perform_curl(ref_page);
