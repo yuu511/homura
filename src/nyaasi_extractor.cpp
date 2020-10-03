@@ -168,7 +168,7 @@ HOMURA_ERRCODE nyaasi_extractor::getURLs(const char *firstHTML, std::vector<std:
   }
   int total = pageinfo.total_result;
   int per_page = pageinfo.last_result;
-  if ( total <= 1 || per_page <= 1) {
+  if ( total < 1 || per_page < 1) {
     errprintf(ERRCODE::FAILED_NO_RESULTS,"no results found!\n");
     return ERRCODE::FAILED_NO_RESULTS;
   }
