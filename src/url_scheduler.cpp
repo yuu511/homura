@@ -6,19 +6,15 @@ using namespace homura;
 
 url_scheduler::url_scheduler(){}
 
-urlhash::iterator url_scheduler::table_position(std::string key) 
+urlhash::iterator url_scheduler::insert_table(std::shared_ptr<url_table_base> new_entry)
 {
-  return hashed_url_tables.find(key);
-}
+  auto website_name = new_entry->get_website();
+  auto inTable = hashed_url_tables.find(website_name);
+  if (inTable != hashed_url_tables.end()) {
+    return inTable;
+  }
 
-bool url_scheduler::exists_in_table(urlhash::iterator it)
-{
-  return it == hashed_url_tables.end() ? false : true;
-}
-
-void url_scheduler::insert_table(std::shared_ptr<url_table_base> new_entry)
-{
-  hashed_url_tables.emplace(new_entry->get_website(),new_entry);
+  hashed_url_tables[website_name] = new_entry;
 
   auto itor = sorted_url_tables.begin();
   while (itor != sorted_url_tables.end()) {
@@ -27,7 +23,8 @@ void url_scheduler::insert_table(std::shared_ptr<url_table_base> new_entry)
     }
     ++itor;
   }
-  sorted_url_tables.insert(itor,new_entry);
+
+  return hashed_url_tables.find(website_name);
 }
 
 urlvector url_scheduler::return_table()

@@ -15,10 +15,7 @@ namespace homura
   public:
     url_scheduler();
 
-    urlhash::iterator table_position(std::string key);
-    bool exists_in_table(urlhash::iterator it);
-
-    void insert_table(std::shared_ptr<url_table_base> to_insert);
+    urlhash::iterator insert_table(std::shared_ptr<url_table_base> to_insert);
     urlvector return_table();
 
     void print_tables();

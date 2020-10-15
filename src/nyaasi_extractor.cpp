@@ -23,9 +23,6 @@ nyaasi_extractor::nyaasi_extractor()
     ref_page("https://nyaa.si/?f=0&c=0_0&q=")
 {}
 
-/* nyaa.si has no official api, and we must manually
-   find out how many results to expect by sending a request 
-   and parsing the query result information */
 HOMURA_ERRCODE nyaasi_extractor::parseMetadata() 
 {
   auto tree = html_parser.get_tree();
@@ -105,12 +102,9 @@ const char *nyaasi_extractor::curlHTML(std::string URL)
   return curler.get_HTML_aschar();
 }
 
+// pre : must have already called html_parser.create_tree
 inline std::vector<generic_torrent_result> nyaasi_extractor::getTorrents(const char *rawHTML, std::string URL) 
 {
-  HOMURA_ERRCODE status;
-  html_parser.reset_tree();
-  status = html_parser.create_tree(rawHTML);
-  if ( status != ERRCODE::SUCCESS ) return {};
   auto tree = html_parser.get_tree();
 
   const char *name = NULL;
@@ -118,7 +112,7 @@ inline std::vector<generic_torrent_result> nyaasi_extractor::getTorrents(const c
   
   const char *tagname = "tr";
   myhtml_collection_t *table = myhtml_get_nodes_by_name(tree,NULL,tagname,strlen(tagname),NULL);
-  std::vector<generic_torrent_result> res;
+  std::vector<generic_torrent_result> res = {};
   
   if (table && table->length > 1) {
     generic_torrent_result torrent = {"","","","",""};
@@ -180,28 +174,38 @@ inline std::vector<generic_torrent_result> nyaasi_extractor::getTorrents(const c
 
 std::vector<generic_torrent_result> nyaasi_extractor::downloadPage(std::string URL)
 {
+  HOMURA_ERRCODE status;
   const char *rawHTML = curlHTML(URL);
+
+  html_parser.reset_tree();
+  status = html_parser.create_tree(rawHTML);
+  if ( status != ERRCODE::SUCCESS ) return {};
 
   if (!rawHTML) return {};
 
   return getTorrents(rawHTML,URL);
 }
 
-// wrapper function for first page.
+/* nyaa.si has no official api, and we must manually
+   find out how many results to expect by sending a request 
+   and parsing the query result information */
 std::vector<generic_torrent_result> nyaasi_extractor::downloadFirstPage(std::string searchtag)
 {
+  HOMURA_ERRCODE status;
   std::replace(searchtag.begin(), searchtag.end(), ' ', '+');
   std::string URL = ref_page + searchtag;
 
   const char *rawHTML = curlHTML(URL);
 
+  html_parser.reset_tree();
+  status = html_parser.create_tree(rawHTML);
+  if ( status != ERRCODE::SUCCESS ) return {};
+
   if (!rawHTML) return {};
   
-  auto torrents = getTorrents(rawHTML,URL);
-
   parseMetadata();
 
-  return torrents;
+  return getTorrents(rawHTML,URL);
 }
 
 std::vector<std::string> nyaasi_extractor::getURLs()
@@ -209,6 +213,7 @@ std::vector<std::string> nyaasi_extractor::getURLs()
   return URLs;
 }
 
-int nyaasi_extractor::getExpectedResults() { 
+int nyaasi_extractor::getExpectedResults() 
+{ 
   return pageinfo.total_result;
 }
