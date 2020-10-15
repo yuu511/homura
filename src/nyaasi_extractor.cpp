@@ -20,18 +20,13 @@ nyaasi_extractor::nyaasi_extractor()
   : curler(std::move(curl_container())), 
     html_parser(std::move(tree_container())),
     pageinfo(pagination_information(0,0,0)),
-    ref_page("")
+    ref_page("https://nyaa.si/?f=0&c=0_0&q=")
 {}
 
-
-nyaasi_extractor::nyaasi_extractor(nyaasi_extractor &&lhs)
-: curler(std::move(lhs.curler)),
-  html_parser(std::move(lhs.html_parser)),
-  pageinfo(lhs.pageinfo),
-  ref_page(lhs.ref_page)
- {}
-
-HOMURA_ERRCODE nyaasi_extractor::extract_pageinfo() 
+/* nyaa.si has no official api, and we must manually
+   find out how many results to expect by sending a request 
+   and parsing the query result information */
+HOMURA_ERRCODE nyaasi_extractor::parseMetadata() 
 {
   auto tree = html_parser.get_tree();
 
@@ -73,18 +68,60 @@ HOMURA_ERRCODE nyaasi_extractor::extract_pageinfo()
                                     boost::lexical_cast<int>((itor++)->str()));
     
   myhtml_collection_destroy(found);
+  generateURLs();
   return ERRCODE::SUCCESS;
 }
 
-inline HOMURA_ERRCODE extract_tree_magnets(myhtml_tree_t *tree,std::vector<nyaasi_results> *res) 
+HOMURA_ERRCODE nyaasi_extractor::generateURLs()
 {
+  int total = pageinfo.total_result;
+  int per_page = pageinfo.last_result;
+  if ( total < 1 || per_page < 1) {
+    errprintf(ERRCODE::FAILED_NO_RESULTS,"no results found!\n");
+    return ERRCODE::FAILED_NO_RESULTS;
+  }
+  int num_pages = ( total + (per_page - 1) ) / per_page;
+  if (options::number_pages > 0 && options::number_pages < num_pages) {
+    num_pages = options::number_pages;
+  }
+  for (int i = num_pages; i >= 2; --i) {
+    URLs.emplace_back(ref_page + "&p=" + std::to_string(i)) ;  
+    if (options::debug_level) {
+      fprintf(stderr,"Adding url %s\n",((ref_page + "&p=" + std::to_string(i)).c_str()));
+    }
+  }
+  return ERRCODE::SUCCESS;
+}
+
+const char *nyaasi_extractor::curlHTML(std::string URL) 
+{
+  HOMURA_ERRCODE status;
+  status = curler.perform_curl(URL);
+  if (status != ERRCODE::SUCCESS) {
+      fprintf(stderr,"Failed CURL!");
+    error_handler::set_error_exitcode(status);
+    return NULL;
+  }
+  return curler.get_HTML_aschar();
+}
+
+inline std::vector<generic_torrent_result> nyaasi_extractor::getTorrents(const char *rawHTML, std::string URL) 
+{
+  HOMURA_ERRCODE status;
+  html_parser.reset_tree();
+  status = html_parser.create_tree(rawHTML);
+  if ( status != ERRCODE::SUCCESS ) return {};
+  auto tree = html_parser.get_tree();
+
   const char *name = NULL;
   const char *magnet = NULL;
-
+  
   const char *tagname = "tr";
   myhtml_collection_t *table = myhtml_get_nodes_by_name(tree,NULL,tagname,strlen(tagname),NULL);
-
+  std::vector<generic_torrent_result> res;
+  
   if (table && table->length > 1) {
+    generic_torrent_result torrent = {"","","","",""};
     const char *title_attr = "colspan";
     const char *title_val = "2";
     for (size_t i = 1; i < table->length; ++i){
@@ -127,78 +164,51 @@ inline HOMURA_ERRCODE extract_tree_magnets(myhtml_tree_t *tree,std::vector<nyaas
          }
        }
        myhtml_collection_destroy(magnets);
-
+  
        if (!magnet || !name){
          fprintf(stderr,"No torrent found at index %zu \n",i);    
          continue;
        }
-       res->push_back({magnet,name,""});
+       torrent.name = name;
+       torrent.magnet = magnet;
+       torrent.webpage = URL;
+       res.push_back(torrent);
      }
-  }
-  myhtml_collection_destroy(table);
-  return ERRCODE::SUCCESS;
+   }
+   return res;
 }
 
-urlpair nyaasi_extractor::download_first_page(std::string searchtag) 
+std::vector<generic_torrent_result> nyaasi_extractor::downloadPage(std::string URL)
+{
+  const char *rawHTML = curlHTML(URL);
+
+  if (!rawHTML) return {};
+
+  return getTorrents(rawHTML,URL);
+}
+
+// wrapper function for first page.
+std::vector<generic_torrent_result> nyaasi_extractor::downloadFirstPage(std::string searchtag)
 {
   std::replace(searchtag.begin(), searchtag.end(), ' ', '+');
-  ref_page = "https://nyaa.si/?f=0&c=0_0&q=" + searchtag;
+  std::string URL = ref_page + searchtag;
 
-  HOMURA_ERRCODE status;
-  status = curler.perform_curl(ref_page);
-  if (status != ERRCODE::SUCCESS) {
-    error_handler::set_error_exitcode(status);
-    return {"",""};
-  }
-  const char *firstHTML = curler.get_HTML_aschar();
-  return std::make_pair(ref_page,firstHTML);
+  const char *rawHTML = curlHTML(URL);
+
+  if (!rawHTML) return {};
+  
+  auto torrents = getTorrents(rawHTML,URL);
+
+  parseMetadata();
+
+  return torrents;
 }
 
-HOMURA_ERRCODE nyaasi_extractor::getURLs(const char *firstHTML, std::vector<std::string> *urlTable)
+std::vector<std::string> nyaasi_extractor::getURLs()
 {
-  /* nyaa.si has no official api, and we must manually
-     find out how many results to expect by sending a request 
-     and parsing the query result information */
-
-  HOMURA_ERRCODE status;
-  status = extract_pageinfo();
-  if (status != ERRCODE::SUCCESS) {
-    error_handler::set_error_exitcode(status);
-    return status; 
-  }
-  int total = pageinfo.total_result;
-  int per_page = pageinfo.last_result;
-  if ( total < 1 || per_page < 1) {
-    errprintf(ERRCODE::FAILED_NO_RESULTS,"no results found!\n");
-    return ERRCODE::FAILED_NO_RESULTS;
-  }
-  int num_pages = ( total + (per_page - 1) ) / per_page;
-  if (options::number_pages > 0 && options::number_pages < num_pages) {
-    num_pages = options::number_pages;
-  }
-  for (int i = num_pages; i >= 2; --i) {
-    urlTable->emplace_back(ref_page + "&p=" + std::to_string(i)) ;  
-    if (options::debug_level) {
-      fprintf(stderr,"Adding url %s\n",((ref_page + "&p=" + std::to_string(i)).c_str()));
-    }
-  }
-  return ERRCODE::SUCCESS;
+  return URLs;
 }
 
-const char *nyaasi_extractor::downloadOne(std::string url) 
-{
-  HOMURA_ERRCODE status;
-  status = curler.perform_curl(url);
-  error_handler::set_error_exitcode(status);
-  return (status != ERRCODE::SUCCESS ? "" : curler.get_HTML_aschar());
-}
-
-HOMURA_ERRCODE nyaasi_extractor::parse_HTML(const char *HTML, std::vector<nyaasi_results> *results)
-{
-  HOMURA_ERRCODE status;
-  if (HTML[0] == '\0') return ERRCODE::FAILED_PARSE;
-  html_parser.reset_tree();
-  status = html_parser.create_tree(HTML);
-  if ( status != ERRCODE::SUCCESS ) return status;
-  return extract_tree_magnets(html_parser.get_tree(),results);
+int nyaasi_extractor::getExpectedResults() { 
+  return pageinfo.total_result;
 }

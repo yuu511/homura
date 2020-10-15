@@ -1,7 +1,80 @@
-#include <stdio.h>
-
 #include "url_table.h"
-#include "errlib.h"
 
 using namespace homura;
+
+url_table_base::~url_table_base(){}
+
+url_table_base::url_table_base(std::string _website,
+                               std::chrono::milliseconds _delay)
+: website(_website),
+  delay(_delay),
+  last_request(std::chrono::steady_clock::now()),
+  expected_results(0)
+{
+}
+
+void url_table_base::addURLs(std::string query, std::vector<std::string> newURLs)
+{
+  remainingURLs.push_back(std::make_pair(query,newURLs));
+}
+
+void url_table_base::addExpectedResults(int _expected_results)
+{
+  expected_results = _expected_results; 
+}
+
+bool url_table_base::ready_for_request()
+{
+  auto diff = std::chrono::duration_cast<std::chrono::milliseconds>
+  (std::chrono::steady_clock::now() - last_request);
+  return diff.count() >= delay.count() ? true : false;
+}
+
+bool url_table_base::empty()
+{
+  return remainingURLs.empty();
+}
+
+HOMURA_ERRCODE url_table_base::download_next_URL()
+{
+  fprintf (stdout,"you should never see this.");
+  return {};
+}
+
+void url_table_base::addNewResults(resultpair _newResults)
+{
+  last_request = std::chrono::steady_clock::now();
+  auto found = results.find(_newResults.first);
+  if (found != results.end()) {
+    found->second.insert(found->second.begin(),_newResults.second.begin(),_newResults.second.end());    
+  }
+  else {
+    results[_newResults.first] = _newResults.second;
+  }
+}
+
+std::chrono::milliseconds url_table_base::get_delay()
+{
+  return delay;
+}
+
+std::string url_table_base::get_website()
+{
+  return website;
+}
+
+void url_table_base::cache()
+{
+}
+
+
+void url_table_base::decache()
+{
+  if (!expected_results) return;
+}
+
+void url_table_base::print()
+{
+
+}
 

@@ -8,7 +8,7 @@
 #include "url_table.h"
 #include <memory>
 #include <myhtml/myhtml.h>
-#include <unordered_map>
+#include <utility>
 
 namespace homura {
   struct pagination_information {
@@ -17,27 +17,24 @@ namespace homura {
     int last_result;
     int total_result;
   };
-  
+
   class nyaasi_extractor {
   public:
     nyaasi_extractor();
-
-    nyaasi_extractor(const nyaasi_extractor&) = delete;
-    nyaasi_extractor &operator= (const nyaasi_extractor&) = delete;
-    nyaasi_extractor(nyaasi_extractor&&);
-
-    // template functions
-    HOMURA_ERRCODE parse_HTML(const char *HTML, std::vector<nyaasi_results> *results); 
-    urlpair download_first_page(std::string searchtag);
-    HOMURA_ERRCODE getURLs(const char *firstHTML,std::vector<std::string> *urlTable);
-    const char *downloadOne(std::string url);
-
+    std::vector<generic_torrent_result> downloadPage(std::string URL); 
+    std::vector<generic_torrent_result> downloadFirstPage(std::string searchtag);
+    const char *curlHTML(std::string URL);
+    HOMURA_ERRCODE generateURLs();
+    std::vector<std::string> getURLs();
+    inline std::vector<generic_torrent_result> getTorrents(const char *HTML, std::string URL);
+    int getExpectedResults();
   private:
     curl_container curler;
     tree_container html_parser;
     pagination_information pageinfo;
-    HOMURA_ERRCODE extract_pageinfo();
     std::string ref_page;
+    HOMURA_ERRCODE parseMetadata();
+    std::vector<std::string> URLs;
   };
 }
 #endif

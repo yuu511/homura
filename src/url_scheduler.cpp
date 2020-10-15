@@ -46,8 +46,7 @@ HOMURA_ERRCODE url_scheduler::crawl()
       }
       finished = false;
       if (table->ready_for_request()) {
-        auto download = table->download_next_URL();
-        table->parse_next_page(download);
+        table->download_next_URL();
       }
     }
   }

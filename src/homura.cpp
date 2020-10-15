@@ -33,8 +33,18 @@ HOMURA_ERRCODE homura_instance::crawl()
 HOMURA_ERRCODE homura_instance::query_nyaasi(std::string searchtag) 
 {
   const std::string key= "nyaa.si";
-  HOMURA_ERRCODE ret = 0;
+  std::chrono::milliseconds delay(5000);
+  HOMURA_ERRCODE ret = ERRCODE::SUCCESS;
 
+  auto nyaaparser = std::make_shared<nyaasi_extractor>(); 
+  auto newResults = nyaaparser->downloadFirstPage(searchtag); // download metadata and first page
+
+  auto table = std::make_shared<url_table<nyaasi_extractor>>(key,delay,nyaaparser);
+  table->addURLs(searchtag,nyaaparser->getURLs());
+  table->addExpectedResults(nyaaparser->getExpectedResults());
+  table->addNewResults(std::make_pair(searchtag,newResults));
+
+  // nyaaparser.downloadFirstPage(searchtag);
   // auto iterator = scheduler.table_position(key);
   // if (scheduler.exists_in_table(iterator)) {
   //   auto it = iterator->second;

@@ -56,7 +56,7 @@ bool check_curlcode(CURLcode code)
       default: 
         s = "CURLM_unkown"; break;
     }
-    errprintf (ERRCODE::FAILED_CURL,"ERROR: curl failed with error %s\n code %x", s.c_str(),code);
+    errprintf (ERRCODE::FAILED_CURL,"ERROR: curl failed with error %s\ncode %x\n", s.c_str(),code);
     return false;
   }
   return true;
@@ -106,7 +106,7 @@ HOMURA_ERRCODE curl_container::perform_curl(const std::string url)
     }
   }
   else {
-    errprintf(ERRCODE::FAILED_CURL,"Curl failed at url %s",url.c_str());
+    errprintf(ERRCODE::FAILED_CURL,"Curl failed at url %s\n",url.c_str());
     return ERRCODE::FAILED_CURL;
   }
 
