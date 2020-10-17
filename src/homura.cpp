@@ -39,10 +39,10 @@ HOMURA_ERRCODE homura_instance::query_nyaasi(std::string searchtag)
   auto nyaaparser = std::make_shared<nyaasi_extractor>(); 
   auto newResults = nyaaparser->downloadFirstPage(searchtag); // download metadata and first page
 
-  auto table = std::make_shared<url_table<nyaasi_extractor>>(key,delay,nyaaparser);
-  table->addURLs(searchtag,nyaaparser->getURLs());
-  table->addExpectedResults(nyaaparser->getExpectedResults());
-  table->addNewResults(std::make_pair(searchtag,newResults));
+  // auto table = std::make_shared<url_table<nyaasi_extractor>>(key,delay,nyaaparser);
+  // table->addURLs(searchtag,nyaaparser->getURLs());
+  // table->addExpectedResults(nyaaparser->getExpectedResults());
+  // table->addNewResults(std::make_pair(searchtag,newResults));
 
   // nyaaparser.downloadFirstPage(searchtag);
   // auto iterator = scheduler.table_position(key);

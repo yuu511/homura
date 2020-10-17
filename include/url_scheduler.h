@@ -15,7 +15,18 @@ namespace homura
   public:
     url_scheduler();
 
-    urlhash::iterator insert_table(std::shared_ptr<url_table_base> to_insert);
+    template <typename parser>
+    std::shared_ptr<url_table_base> insert_table (std::string key, std::chrono::milliseconds delay)
+    {
+      auto find = hashed_url_tables.find(std::string key);
+      if (find != hashed_url_tables.end()) {
+        return find.second;
+      }
+      
+      auto table = std::make_shared<url_table
+    }
+
+    // urlhash::iterator insert_table(std::shared_ptr<url_table_base> to_insert);
     urlvector return_table();
 
     void print_tables();

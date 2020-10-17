@@ -75,6 +75,5 @@ void url_table_base::decache()
 
 void url_table_base::print()
 {
-
 }
 
