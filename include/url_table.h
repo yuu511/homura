@@ -20,7 +20,6 @@ namespace homura
   };
 
   using urlpair = std::pair <std::string, std::vector<std::string>>; // search query, URLs generated
-  using resultpair = std::pair <std::string,std::vector<generic_torrent_result>>;
 
   struct url_table_base {
     url_table_base(std::string _website,
@@ -29,7 +28,7 @@ namespace homura
                      
     // builder funcs                      
     void addURLs(std::string query, std::vector<std::string> newURLs);
-    void addExpectedResults(int _expected_results);
+    // void addAnticipatedResults(int _expected_results);
     void addNewResults(resultpair _newResults);
     //
 
@@ -54,8 +53,7 @@ namespace homura
   };
 
   template <typename extractor>
-  class url_table : public url_table_base {
-    public:
+  struct url_table : public url_table_base {
     url_table(std::string _website,
               std::chrono::milliseconds _delay,
               std::shared_ptr<extractor> _parser)
@@ -65,15 +63,14 @@ namespace homura
     HOMURA_ERRCODE download_next_URL()
     {
       urlpair newpair = remainingURLs.back();
-      last_request = std::chrono::steady_clock::now();
       std::vector<generic_torrent_result> torrents = parser->downloadPage(newpair.second.back());
 
       if (torrents.empty()) {
         errprintf(ERRCODE::FAILED_PARSE, "No torrents or failed parse.");
         return ERRCODE::FAILED_PARSE;
       }
-      
-      std::chrono::steady_clock::time_point last_request;
+
+      last_request = std::chrono::steady_clock::now();
 
       auto found = results.find(newpair.first);
       if (found != results.end()) {
@@ -89,7 +86,6 @@ namespace homura
       return ERRCODE::SUCCESS;
     }
 
-    private:
     std::shared_ptr<extractor> parser;
   };
 

@@ -15,15 +15,31 @@ namespace homura
   public:
     url_scheduler();
 
-    template <typename parser>
-    std::shared_ptr<url_table_base> insert_table (std::string key, std::chrono::milliseconds delay)
+    template <typename extractor> std::shared_ptr<url_table<extractor>> find_table (std::string key) 
     {
-      auto find = hashed_url_tables.find(std::string key);
+      auto find = hashed_url_tables.find(key);
       if (find != hashed_url_tables.end()) {
-        return find.second;
+        return std::dynamic_pointer_cast<url_table<extractor>>(find->second);
       }
-      
-      auto table = std::make_shared<url_table
+      return nullptr; 
+    }
+
+    template <typename extractor>
+    std::shared_ptr<url_table<extractor>> insert_table (std::string key, std::chrono::milliseconds delay)
+    {
+      auto table = std::make_shared<url_table<extractor>>(key,delay,std::make_shared<extractor>());
+      hashed_url_tables[key] = table;
+
+      auto itor = sorted_url_tables.begin();
+      while (itor != sorted_url_tables.end()) {
+        if (delay.count() > (*itor)->get_delay().count()) {
+          break;
+        }
+        ++itor;
+      }
+      sorted_url_tables.insert(itor,table);
+
+      return std::dynamic_pointer_cast<url_table<extractor>>(table);
     }
 
     // urlhash::iterator insert_table(std::shared_ptr<url_table_base> to_insert);

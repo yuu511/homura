@@ -18,10 +18,10 @@ void url_table_base::addURLs(std::string query, std::vector<std::string> newURLs
   remainingURLs.push_back(std::make_pair(query,newURLs));
 }
 
-void url_table_base::addExpectedResults(int _expected_results)
-{
-  expected_results = _expected_results; 
-}
+// void url_table_base::addAnticipatedResults(int _expected_results)
+// {
+//   expected_results = _expected_results; 
+// }
 
 bool url_table_base::ready_for_request()
 {
@@ -41,15 +41,15 @@ HOMURA_ERRCODE url_table_base::download_next_URL()
   return {};
 }
 
-void url_table_base::addNewResults(resultpair _newResults)
+void url_table_base::addNewResults(std::string query, std::vector<generic_torrent_result> results)
 {
   last_request = std::chrono::steady_clock::now();
-  auto found = results.find(_newResults.first);
+  auto found = results.find(query);
   if (found != results.end()) {
-    found->second.insert(found->second.begin(),_newResults.second.begin(),_newResults.second.end());    
+    found->second.insert(found->second.begin(),results.second.begin(),results.second.end());    
   }
   else {
-    results[_newResults.first] = _newResults.second;
+    results[query] = _results;
   }
 }
 
