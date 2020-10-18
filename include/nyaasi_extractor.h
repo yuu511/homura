@@ -26,7 +26,7 @@ namespace homura {
     const char *curlHTML(std::string URL);
     HOMURA_ERRCODE generateURLs();
     std::vector<std::string> getURLs();
-    inline std::vector<generic_torrent_result> getTorrents(const char *HTML, std::string URL);
+    inline std::vector<generic_torrent_result> getTorrents(std::string URL);
     int getExpectedResults();
   private:
     curl_container curler;

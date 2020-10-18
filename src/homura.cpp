@@ -46,7 +46,7 @@ HOMURA_ERRCODE homura_instance::query_nyaasi(std::string searchtag)
 
   tablePtr->addNewResults(searchtag,newResults);
   tablePtr->addURLs(searchtag,extractor.getURLs());
- // tablePtr->addAnticipatedResults(searchtag,extractor.getExpectedResults());
+  // tablePtr->addAnticipatedResults(searchtag,extractor.getExpectedResults());
 
   return ret;
 }

@@ -103,7 +103,7 @@ const char *nyaasi_extractor::curlHTML(std::string URL)
 }
 
 // pre : must have already called html_parser.create_tree
-inline std::vector<generic_torrent_result> nyaasi_extractor::getTorrents(const char *rawHTML, std::string URL) 
+inline std::vector<generic_torrent_result> nyaasi_extractor::getTorrents(std::string URL) 
 {
   auto tree = html_parser.get_tree();
 
@@ -168,6 +168,7 @@ inline std::vector<generic_torrent_result> nyaasi_extractor::getTorrents(const c
        torrent.webpage = URL;
        res.push_back(torrent);
      }
+     myhtml_collection_destroy(table);
    }
    return res;
 }
@@ -183,7 +184,7 @@ std::vector<generic_torrent_result> nyaasi_extractor::downloadPage(std::string U
 
   if (!rawHTML) return {};
 
-  return getTorrents(rawHTML,URL);
+  return getTorrents(URL);
 }
 
 /* nyaa.si has no official api, and we must manually
@@ -205,7 +206,7 @@ std::vector<generic_torrent_result> nyaasi_extractor::downloadFirstPage(std::str
   
   parseMetadata();
 
-  return getTorrents(rawHTML,ref_page);
+  return getTorrents(ref_page);
 }
 
 std::vector<std::string> nyaasi_extractor::getURLs()
