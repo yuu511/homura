@@ -15,6 +15,18 @@ curl_container::curl_container()
     curl_easy_setopt(easyhandle,CURLOPT_USERAGENT,"libcurl-agent/1.0");
 }
 
+curl_container::curl_container(const curl_container &lhs)
+: buffer(std::make_unique<std::vector<unsigned char>>(*(lhs.buffer))),
+  data_sz(lhs.data_sz),
+  easyhandle(curl_easy_init()),
+  response(CURLE_OK),
+  time_sent(lhs.time_sent)
+{
+  curl_easy_setopt(easyhandle,CURLOPT_WRITEDATA, this);
+  curl_easy_setopt(easyhandle,CURLOPT_WRITEFUNCTION,&curl_container::writecb);
+  curl_easy_setopt(easyhandle,CURLOPT_USERAGENT,"libcurl-agent/1.0");
+}
+
 curl_container::curl_container(curl_container &&lhs)
 : buffer(std::move(lhs.buffer)),
   data_sz(lhs.data_sz),

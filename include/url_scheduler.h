@@ -27,7 +27,7 @@ namespace homura
     template <typename extractor>
     std::shared_ptr<url_table<extractor>> insert_table (std::string key, std::chrono::milliseconds delay)
     {
-      auto table = std::make_shared<url_table<extractor>>(key,delay,std::make_shared<extractor>());
+      auto table = std::make_shared<url_table<extractor>>(key,delay,extractor());
       hashed_url_tables[key] = table;
 
       auto itor = sorted_url_tables.begin();

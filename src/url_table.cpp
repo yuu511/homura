@@ -41,15 +41,15 @@ HOMURA_ERRCODE url_table_base::download_next_URL()
   return {};
 }
 
-void url_table_base::addNewResults(std::string query, std::vector<generic_torrent_result> results)
+void url_table_base::addNewResults(std::string query, std::vector<generic_torrent_result> torrents)
 {
   last_request = std::chrono::steady_clock::now();
   auto found = results.find(query);
   if (found != results.end()) {
-    found->second.insert(found->second.begin(),results.second.begin(),results.second.end());    
+    found->second.insert(found->second.begin(),torrents.begin(),torrents.end());    
   }
   else {
-    results[query] = _results;
+    results[query] = torrents;
   }
 }
 

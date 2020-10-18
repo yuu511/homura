@@ -193,9 +193,9 @@ std::vector<generic_torrent_result> nyaasi_extractor::downloadFirstPage(std::str
 {
   HOMURA_ERRCODE status;
   std::replace(searchtag.begin(), searchtag.end(), ' ', '+');
-  std::string URL = ref_page + searchtag;
+  ref_page = ref_page + searchtag;
 
-  const char *rawHTML = curlHTML(URL);
+  const char *rawHTML = curlHTML(ref_page);
 
   html_parser.reset_tree();
   status = html_parser.create_tree(rawHTML);
@@ -205,7 +205,7 @@ std::vector<generic_torrent_result> nyaasi_extractor::downloadFirstPage(std::str
   
   parseMetadata();
 
-  return getTorrents(rawHTML,URL);
+  return getTorrents(rawHTML,ref_page);
 }
 
 std::vector<std::string> nyaasi_extractor::getURLs()

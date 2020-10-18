@@ -29,7 +29,7 @@ namespace homura
     // builder funcs                      
     void addURLs(std::string query, std::vector<std::string> newURLs);
     // void addAnticipatedResults(int _expected_results);
-    void addNewResults(resultpair _newResults);
+    void addNewResults(std::string query, std::vector<generic_torrent_result> torrents);    
     //
 
     bool ready_for_request();
@@ -56,14 +56,14 @@ namespace homura
   struct url_table : public url_table_base {
     url_table(std::string _website,
               std::chrono::milliseconds _delay,
-              std::shared_ptr<extractor> _parser)
+              extractor _parser)
     : url_table_base(_website,_delay),
       parser(_parser){}
 
     HOMURA_ERRCODE download_next_URL()
     {
-      urlpair newpair = remainingURLs.back();
-      std::vector<generic_torrent_result> torrents = parser->downloadPage(newpair.second.back());
+      auto lastElement = remainingURLs.rbegin();
+      std::vector<generic_torrent_result> torrents = parser.downloadPage(lastElement->second.back());
 
       if (torrents.empty()) {
         errprintf(ERRCODE::FAILED_PARSE, "No torrents or failed parse.");
@@ -72,21 +72,21 @@ namespace homura
 
       last_request = std::chrono::steady_clock::now();
 
-      auto found = results.find(newpair.first);
+      auto found = results.find(lastElement->first);
       if (found != results.end()) {
         found->second.insert(found->second.begin(),torrents.begin(),torrents.end());    
       }
       else {
-        results[newpair.first] = torrents;
+        results[lastElement->first] = torrents;
       }
 
-      newpair.second.pop_back();
-      if (newpair.second.back().empty()) remainingURLs.pop_back();  
+      lastElement->second.pop_back();
+      if (lastElement->second.empty()) remainingURLs.pop_back();  
 
       return ERRCODE::SUCCESS;
     }
 
-    std::shared_ptr<extractor> parser;
+    extractor parser;
   };
 
 }

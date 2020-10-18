@@ -12,7 +12,7 @@ namespace homura
   public:
     tree_container();
     ~tree_container();
-    tree_container(const tree_container& c) =delete;
+    tree_container(const tree_container&);
     tree_container &operator= (const tree_container&) = delete;
     tree_container(tree_container&&);
 

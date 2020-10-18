@@ -42,11 +42,11 @@ HOMURA_ERRCODE homura_instance::query_nyaasi(std::string searchtag)
   }
    
   auto extractor = tablePtr->parser;
-  std::vector<generic_torrent_result> newResults = extractor->downloadFirstPage(searchtag);
+  std::vector<generic_torrent_result> newResults = extractor.downloadFirstPage(searchtag);
 
   tablePtr->addNewResults(searchtag,newResults);
-  // tablePtr->addURLs(searchtag,extractor->getURLs());
-  // tablePtr->addAnticipatedResults(searchtag,extractor->getExpectedResults());
+  tablePtr->addURLs(searchtag,extractor.getURLs());
+ // tablePtr->addAnticipatedResults(searchtag,extractor.getExpectedResults());
 
   return ret;
 }

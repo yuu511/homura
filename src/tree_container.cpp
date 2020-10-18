@@ -1,6 +1,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <vector>
+#include <cstring>
 #include "tree_container.h"
 #include "errlib.h"
 
@@ -18,6 +19,16 @@ tree_container::~tree_container()
 {
   myhtml_tree_destroy(tree);
   myhtml_destroy(handle);
+}
+
+// will have to reparse whatever (copying myhtml_tree not well defined)
+tree_container::tree_container(const tree_container &lhs)
+: threads(lhs.threads),
+  handle(myhtml_create()),
+  tree(myhtml_tree_create())
+{
+  myhtml_init(handle, MyHTML_OPTIONS_DEFAULT, threads, 0);
+  myhtml_tree_init(tree,handle);
 }
 
 tree_container::tree_container(tree_container &&lhs)
