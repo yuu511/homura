@@ -3,7 +3,6 @@ cc = meson.get_compiler('cpp')
 
 # dependencies 
 dep_thread = dependency('threads')
-dep_libtorrent = dependency('libtorrent-rasterbar')
 dep_curl = dependency('libcurl')
 dep_boost = dependency('boost', modules : ['serialization'])
 # note : myhtml is usually not found in package repositories,
@@ -11,7 +10,7 @@ dep_boost = dependency('boost', modules : ['serialization'])
 dep_myhtml = cc.find_library('myhtml',dirs:['/usr/local/lib/'])
 inc_myhtml = include_directories('/usr/local/lib')
 
-all_dep = [ dep_thread, dep_libtorrent, dep_curl, dep_myhtml, dep_boost]
+all_dep = [ dep_thread, dep_curl, dep_myhtml, dep_boost]
 
 # homura assumes libcurl is built with OpenSSL.
 # If you are using libcurl built with GNUTLS, pass the option -D GNUTLS=true.
@@ -31,7 +30,7 @@ generic_flags = ['-g','-Wall']
 
 # Sources
 homura_sources = ['src/main.cpp', 'src/homura.cpp', 'src/errlib.cpp', 'src/curl_container.cpp'
-, 'src/tree_container.cpp', 'src/url_table.cpp', 'src/torrent_parser.cpp', 'src/url_scheduler.cpp', 'src/nyaasi_extractor.cpp']
+, 'src/tree_container.cpp', 'src/url_table.cpp','src/url_scheduler.cpp', 'src/nyaasi_extractor.cpp']
 
 homura_include = include_directories('include')
 all_includes = [homura_include,inc_myhtml]

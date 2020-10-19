@@ -11,8 +11,7 @@
 using namespace homura;
 
 homura_instance::homura_instance() 
-  : torrenter(),
-    scheduler()
+  : scheduler()
 {
   curl_global_init(CURL_GLOBAL_ALL);
   init_locks();
