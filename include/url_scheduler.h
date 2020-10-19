@@ -45,8 +45,8 @@ namespace homura
     urlvector return_table();
 
     void print_tables();
-
     HOMURA_ERRCODE crawl();
+    void delay_end();
   private:
     urlhash hashed_url_tables;
     urlvector sorted_url_tables;

@@ -19,9 +19,11 @@ namespace homura
     homura_instance();
     ~homura_instance();
     
-    HOMURA_ERRCODE crawl();
     HOMURA_ERRCODE query_nyaasi(std::string args);
+
+    HOMURA_ERRCODE crawl();
     void print_tables();
+    void wait_at_end();
   private:
     torrent_parser torrenter;
     url_scheduler scheduler;

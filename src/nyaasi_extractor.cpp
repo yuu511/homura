@@ -20,8 +20,8 @@ nyaasi_extractor::nyaasi_extractor()
   : curler(std::move(curl_container())), 
     html_parser(std::move(tree_container())),
     pageinfo(pagination_information(0,0,0)),
-    URLs({}),
-    ref_page("https://nyaa.si/?f=0&c=0_0&q=")
+    ref_page("https://nyaa.si/?f=0&c=0_0&q="),
+    URLs({})
 {}
 
 HOMURA_ERRCODE nyaasi_extractor::parseMetadata() 

@@ -33,8 +33,8 @@ namespace homura {
     tree_container html_parser;
     pagination_information pageinfo;
     std::string ref_page;
-    HOMURA_ERRCODE parseMetadata();
     std::vector<std::string> URLs;
+    HOMURA_ERRCODE parseMetadata();
   };
 }
 #endif

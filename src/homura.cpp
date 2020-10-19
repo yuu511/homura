@@ -55,3 +55,8 @@ void homura_instance::print_tables()
 {
   scheduler.print_tables();
 }
+
+void homura_instance::wait_at_end()
+{
+  scheduler.delay_end();
+}

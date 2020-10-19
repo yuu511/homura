@@ -91,7 +91,7 @@ void url_table_base::print()
     }
 
     if (options::print.test(1)) {
-      fprintf (stdout, "=====================\n\n\n");
+      fprintf (stdout, "\n\n\n=====================\n\n\n");
     }
   }
 }

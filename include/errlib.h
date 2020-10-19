@@ -29,9 +29,9 @@ namespace homura
   /* options */
   namespace options {
     extern int debug_level;
-    extern int force_refresh_cache;
     extern int number_pages;
-    extern int reverse_results;
+    extern bool force_refresh_cache;
+    extern bool wait_end;
     extern std::bitset<2> print;
     extern std::string regex;
     extern std::string search_term;

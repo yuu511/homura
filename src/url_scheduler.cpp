@@ -33,6 +33,19 @@ HOMURA_ERRCODE url_scheduler::crawl()
   return ERRCODE::SUCCESS;
 }
 
+void url_scheduler::delay_end()
+{
+  bool ready_to_end = false;
+  while (!ready_to_end) {
+    ready_to_end = true;
+    for (auto &table: sorted_url_tables) {
+      if (!table->ready_for_request()) {
+        ready_to_end = false;
+      }
+    }
+  }
+}
+
 void url_scheduler::print_tables() {
   for (auto const &itor : sorted_url_tables) {
     itor->print();

@@ -40,6 +40,7 @@ void print_usage()
   printopt(5,"[-t,--torrents_only] "," : Print magnets only");
   printopt(5,"","   e.g. 0x3 to print both, 0x2 for torrent titles only (default 0x1)");
   printopt(5,"[-p,--num_pages] NUMBER"," : load up to [NUMBER] pages ");
+  printopt(5,"[-w,--wait_end]"," : respect request delay at end of torrent downloading");
   printopt(5,"","   [NUMBER] is a positive number in decimal only");
   printopt(5,"[--help]"," : print out usage message");
   fprintf (stderr,"\n");
@@ -78,17 +79,17 @@ HOMURA_ERRCODE parse_flags (int argc, char **argv)
      int option_index = 0;
      static struct option long_options[] = 
      {
-       { "verbose" , no_argument       ,  0      , 'v' },
-       { "debug"   , no_argument       ,  0      , 'd' },
-       { "help"    , no_argument       ,  0      , 'h' },
-       { "regex" , required_argument ,  0        , 'r' },
-       { "refresh_cache" , no_argument ,  0      , 'c' },
-       { "reverse_results" , no_argument , 0     , 'b' },
-       { "torrents_only" , no_argument ,  0      , 't' },
-       { "num_pages" , required_argument ,  0    , 'p' },
-       {  NULL     , 0                 , NULL    ,  0  }
+       { "verbose" , no_argument       ,  0    , 'v' },
+       { "debug"   , no_argument       ,  0    , 'd' },
+       { "help"    , no_argument       ,  0    , 'h' },
+       { "regex" , required_argument ,  0      , 'r' },
+       { "refresh_cache" , no_argument ,  0    , 'c' },
+       { "torrents_only" , no_argument ,  0    , 't' },
+       { "num_pages" , required_argument ,  0  , 'p' },
+       { "delay_end" , no_argument ,  0        , 'w' },
+       {  NULL     , 0                 , NULL  ,  0  }
      };
-     opt = getopt_long(argc,argv, "cvdbtr:p:n:",
+     opt = getopt_long(argc,argv, "vdhr:ctp:w",
                  long_options, &option_index);
      if (opt == -1)		 
        break;
@@ -106,10 +107,7 @@ HOMURA_ERRCODE parse_flags (int argc, char **argv)
          options::regex = std::string(optarg);
          break;
        case 'c':
-         options::force_refresh_cache = 1;
-         break;
-       case 'b':
-         options::reverse_results = 1;
+         options::force_refresh_cache = true;
          break;
        case 't':
          options::print.set(0,1);
@@ -127,6 +125,9 @@ HOMURA_ERRCODE parse_flags (int argc, char **argv)
            fprintf (stderr,"print settings set to %s\n",options::print.to_string().c_str());
          }
          options::number_pages = n_opts;
+         break;
+       case 'w':
+         options::wait_end = true;
          break;
        case '?':
          errprintf(ERRCODE::FAILED_ARGPARSE,"incorrect option %c\n",optopt);
@@ -159,6 +160,9 @@ HOMURA_ERRCODE execute_command(int argc, char **argv)
     if (status != ERRCODE::SUCCESS) return status;
     status = homuhomu.crawl();
     homuhomu.print_tables();
+    if (options::wait_end) {
+      homuhomu.wait_at_end();
+    }
   }
   else {
     errprintf(ERRCODE::FAILED_INVALID_COMMAND,"Invalid command \"%s\""
