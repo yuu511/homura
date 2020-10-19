@@ -1,7 +1,6 @@
 #ifndef __NYAASI_EXTRACTOR_H_
 #define __NYAASI_EXTRACTOR_H_
 
-#include "nyaasi_results.h"
 #include "errlib.h"
 #include "tree_container.h"
 #include "curl_container.h"

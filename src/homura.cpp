@@ -7,7 +7,6 @@
 #include "select_ssl.h"
 
 #include "nyaasi_extractor.h"
-#include "nyaasi_results.h"
 
 using namespace homura;
 
