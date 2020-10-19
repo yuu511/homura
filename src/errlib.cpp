@@ -12,8 +12,8 @@ int homura::options::debug_level = 0;
 int homura::options::force_refresh_cache = 0;
 int homura::options::number_pages = 0;
 int homura::options::reverse_results = 0;
-// Bit 0 (LSB) : print magnet, default
-// Bit 1 : print name
+// Bit 0 (LSB) : print magnet, default = 1
+// Bit 1 : print name, default = 1
 std::bitset<2> homura::options::print(0x3);
 std::string homura::options::regex = "";
 std::string homura::options::search_term = "";

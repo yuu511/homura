@@ -20,6 +20,7 @@ nyaasi_extractor::nyaasi_extractor()
   : curler(std::move(curl_container())), 
     html_parser(std::move(tree_container())),
     pageinfo(pagination_information(0,0,0)),
+    URLs({}),
     ref_page("https://nyaa.si/?f=0&c=0_0&q=")
 {}
 
@@ -168,8 +169,8 @@ inline std::vector<generic_torrent_result> nyaasi_extractor::getTorrents(std::st
        torrent.webpage = URL;
        res.push_back(torrent);
      }
-     myhtml_collection_destroy(table);
    }
+   myhtml_collection_destroy(table);
    return res;
 }
 

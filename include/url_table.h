@@ -49,7 +49,6 @@ namespace homura
     std::chrono::steady_clock::time_point last_request;
     std::vector<urlpair> remainingURLs;   
     std::unordered_map <std::string, std::vector<generic_torrent_result>> results;
-    int expected_results;
   };
 
   template <typename extractor>
@@ -74,7 +73,7 @@ namespace homura
 
       auto found = results.find(lastElement->first);
       if (found != results.end()) {
-        found->second.insert(found->second.begin(),torrents.begin(),torrents.end());    
+        found->second.insert(found->second.end(),torrents.begin(),torrents.end());    
       }
       else {
         results[lastElement->first] = torrents;

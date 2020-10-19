@@ -42,7 +42,6 @@ namespace homura
       return std::dynamic_pointer_cast<url_table<extractor>>(table);
     }
 
-    // urlhash::iterator insert_table(std::shared_ptr<url_table_base> to_insert);
     urlvector return_table();
 
     void print_tables();

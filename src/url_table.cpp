@@ -8,14 +8,15 @@ url_table_base::url_table_base(std::string _website,
                                std::chrono::milliseconds _delay)
 : website(_website),
   delay(_delay),
-  last_request(std::chrono::steady_clock::now()),
-  expected_results(0)
+  last_request(std::chrono::steady_clock::now())
 {
 }
 
 void url_table_base::addURLs(std::string query, std::vector<std::string> newURLs)
 {
-  remainingURLs.push_back(std::make_pair(query,newURLs));
+  if (!newURLs.empty()) {
+    remainingURLs.push_back(std::make_pair(query,newURLs));
+  }
 }
 
 // void url_table_base::addAnticipatedResults(int _expected_results)
@@ -46,7 +47,7 @@ void url_table_base::addNewResults(std::string query, std::vector<generic_torren
   last_request = std::chrono::steady_clock::now();
   auto found = results.find(query);
   if (found != results.end()) {
-    found->second.insert(found->second.begin(),torrents.begin(),torrents.end());    
+    found->second.insert(found->second.end(),torrents.begin(),torrents.end());    
   }
   else {
     results[query] = torrents;
@@ -70,10 +71,28 @@ void url_table_base::cache()
 
 void url_table_base::decache()
 {
-  if (!expected_results) return;
 }
 
 void url_table_base::print()
 {
+  for (auto queries : results) {
+
+    if (options::print.test(1)) {
+      fprintf (stdout, "=== Searchterm %s ===\n\n\n", queries.first.c_str());
+    }
+
+    for (auto entry : queries.second) {
+      if (options::print.test(1)) {
+        fprintf(stdout,"\n%s\n\n",entry.name.c_str());
+      }
+      if (options::print.test(0)) {
+        fprintf(stdout,"%s\n",entry.magnet.c_str());
+      }
+    }
+
+    if (options::print.test(1)) {
+      fprintf (stdout, "=====================\n\n\n");
+    }
+  }
 }
 

@@ -37,9 +37,9 @@ void print_usage()
   printopt(5,"[-d,--debug]"," : more extensive logging, prints out full html files");
   printopt(5,"[-c,--refresh_cache]"," : Force homura to not use cache.");
   printopt(5,"[-r,--regex] REGEX"," : Filter results by regular expression [REGEX]");
-  printopt(5,"[-p,--print_options] MASK"," : [MASK] is hex or decimal. Print magnets(bit 0),and/or titles(bit 1)");
+  printopt(5,"[-t,--torrents_only] "," : Print magnets only");
   printopt(5,"","   e.g. 0x3 to print both, 0x2 for torrent titles only (default 0x1)");
-  printopt(5,"[-n,--num_pages] NUMBER"," : load up to [NUMBER] pages ");
+  printopt(5,"[-p,--num_pages] NUMBER"," : load up to [NUMBER] pages ");
   printopt(5,"","   [NUMBER] is a positive number in decimal only");
   printopt(5,"[--help]"," : print out usage message");
   fprintf (stderr,"\n");
@@ -54,7 +54,7 @@ void print_usage()
   fprintf(stderr,"\n");
   println(5,"simple search");
   println(7,"\% homura search \"Ping Pong The Animation\"");
-  println(7,"\% homura -p 0x2 search \"Initial D\" // will print all titles of torrents matching query Initial D");
+  println(7,"\% homura -t search \"Initial D\" // will print all torrents from query \"Initial D\"");
   println(7,"\% homura --regex \"\\[HorribleSubs\\].*1080p.*\" search \"Ishuzoku\"");
   println(9,"example match : [HorribleSubs] Ishuzoku Reviewers - 02 [1080p].mkv");
   fprintf(stderr,"\n");
@@ -69,7 +69,6 @@ void print_usage()
 HOMURA_ERRCODE parse_flags (int argc, char **argv) 
 {
    int opt;
-   long p_opts;
    int n_opts;
    std::smatch sm;
    std::regex ishex("0x\\d+");
@@ -79,17 +78,17 @@ HOMURA_ERRCODE parse_flags (int argc, char **argv)
      int option_index = 0;
      static struct option long_options[] = 
      {
-       { "verbose" , no_argument       ,  0   , 'v' },
-       { "debug"   , no_argument       ,  0   , 'd' },
-       { "help"    , no_argument       ,  0   , 'h' },
-       { "refresh_cache" , no_argument ,  0   , 'c' },
-       { "reverse_results" , no_argument ,  0   , 'b' },
-       { "regex" , required_argument ,  0   , 'r' },
-       { "print_options" , required_argument ,  0   , 'p' },
-       { "num_pages" , required_argument ,  0   , 'n' },
-       {  NULL     , 0                 , NULL ,  0  }
+       { "verbose" , no_argument       ,  0      , 'v' },
+       { "debug"   , no_argument       ,  0      , 'd' },
+       { "help"    , no_argument       ,  0      , 'h' },
+       { "regex" , required_argument ,  0        , 'r' },
+       { "refresh_cache" , no_argument ,  0      , 'c' },
+       { "reverse_results" , no_argument , 0     , 'b' },
+       { "torrents_only" , no_argument ,  0      , 't' },
+       { "num_pages" , required_argument ,  0    , 'p' },
+       {  NULL     , 0                 , NULL    ,  0  }
      };
-     opt = getopt_long(argc,argv, "cvdbr:p:n:",
+     opt = getopt_long(argc,argv, "cvdbtr:p:n:",
                  long_options, &option_index);
      if (opt == -1)		 
        break;
@@ -112,29 +111,15 @@ HOMURA_ERRCODE parse_flags (int argc, char **argv)
        case 'b':
          options::reverse_results = 1;
          break;
-       case 'p':
-         cast = optarg;
-         if (std::regex_match(cast,sm,validzero)) {
-           options::print.reset(); 
-           break; 
-         }
-         p_opts = std::stoul(cast,NULL,std::regex_match(cast,sm,ishex) ? 16 : 10);
-         if (p_opts <= 0 || p_opts > 3) {
-           errprintf(ERRCODE::FAILED_ARGPARSE, "incorrect number for option -p,--print_options\n"
-                     "(accepts either hex or decimal, values [0-3] only, provided arg %s\n",optarg);
-           return ERRCODE::FAILED_ARGPARSE;
-         }
-         options::print.set(0,p_opts & 0x1);
-         options::print.set(1,(p_opts >> 1) & 0x1);
-         if (options::debug_level) {
-           fprintf (stderr,"print settings set to %s\n",options::print.to_string().c_str());
-         }
+       case 't':
+         options::print.set(0,1);
+         options::print.set(1,0);
          break;
-       case 'n':
+       case 'p':
          cast = optarg;
          n_opts = std::stoi(cast,NULL,10);
          if (n_opts <=0) { 
-           errprintf(ERRCODE::FAILED_ARGPARSE, "incorrect number for option -n --num_pages\n"
+           errprintf(ERRCODE::FAILED_ARGPARSE, "incorrect number for option -p --num_pages\n"
                      "(accepts a -positive- decimal number) %s\n",optarg);
            return ERRCODE::FAILED_ARGPARSE;
          }
@@ -173,6 +158,7 @@ HOMURA_ERRCODE execute_command(int argc, char **argv)
     status = homuhomu.query_nyaasi(options::search_term);
     if (status != ERRCODE::SUCCESS) return status;
     status = homuhomu.crawl();
+    homuhomu.print_tables();
   }
   else {
     errprintf(ERRCODE::FAILED_INVALID_COMMAND,"Invalid command \"%s\""
