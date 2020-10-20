@@ -64,13 +64,61 @@ std::string url_table_base::get_website()
   return website;
 }
 
-void url_table_base::cache()
+// TODO: pwuid_r once this thing is multithreaded
+std::string url_table_base::get_cache_basedir()
 {
+  const char *homedir = getenv("HOME");
+
+  if (!homedir) {
+    homedir = getpwuid(getuid())->pw_dir;
+  }
+
+  std::filesystem::path basedir = std::filesystem::path(homedir) / "/.homuracache";
+  if (!std::filesystem::is_directory(basedir) && !std::filesystem::exists(basedir)) {
+    bool made = std::filesystem::create_directory(basedir);
+    if (!made) return "";
+  }
+
+  if (options::debug_level) {
+    fprintf(stderr,"basedir %s\n",basedir.string().c_str());
+  }
+
+  return basedir.string();
 }
 
-
-void url_table_base::decache()
+std::string url_table_base::get_cache_fullpath(std::string basedir,std::string query)
 {
+  std::filesystem::path fullpath = std::filesystem::path(basedir) / ("/" + website + "_" + query);
+  return fullpath.string();
+}
+
+HOMURA_ERRCODE url_table_base::cache()
+{
+  std::string cachedir = get_cache_basedir();
+  if (cachedir == "") return ERRCODE::FAILED_CACHE_CREATION; 
+  for (auto itor : results) {
+    std::ofstream cache(get_cache_fullpath(cachedir,itor.first));
+    boost::archive::text_oarchive oa(cache);
+    oa << itor.second;
+  }
+  return ERRCODE::SUCCESS;
+}
+
+HOMURA_ERRCODE url_table_base::decache(std::string query, int expected_results, int results_per_page)
+{
+  HOMURA_ERRCODE Status = ERRCODE::SUCCESS;
+
+  if (options::force_refresh_cache) return Status;
+
+  std::string cachedir = get_cache_basedir();
+  // assume we always download the first page.
+  // for (auto itor : remainingURLs) {
+  //   if (itor.first == query) {
+  //     
+  //   }
+  // }
+
+  return Status;
 }
 
 void url_table_base::print()

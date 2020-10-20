@@ -8,6 +8,17 @@
 #include <unordered_map>
 #include <memory>
 #include "errlib.h"
+#include <filesystem>
+#include <fstream>
+#include <unistd.h>
+#include <sys/types.h>
+#include <pwd.h>
+
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/serialization/serialization.hpp>
+#include <boost/serialization/vector.hpp>
+
 
 namespace homura 
 {
@@ -17,6 +28,17 @@ namespace homura
     std::string size;
     std::string date;
     std::string webpage;
+
+    friend class boost::serialization::access;
+    template<class Archive>
+    void serialize(Archive & ar, const unsigned int version) 
+    {
+      ar & name;
+      ar & magnet;
+      ar & size;
+      ar & date;
+      ar & webpage;
+    }
   };
 
   using urlpair = std::pair <std::string, std::vector<std::string>>; // search query, URLs generated
@@ -39,8 +61,6 @@ namespace homura
     std::chrono::milliseconds get_delay(); 
     std::string get_website();
 
-    void cache();
-    void decache();
     void print(); 
 
     //vars
@@ -49,6 +69,13 @@ namespace homura
     std::chrono::steady_clock::time_point last_request;
     std::vector<urlpair> remainingURLs;   
     std::unordered_map <std::string, std::vector<generic_torrent_result>> results;
+
+    //serialization
+    friend class boost::serialization::access;
+    HOMURA_ERRCODE cache();
+    HOMURA_ERRCODE decache(std::string query, int expected_results, int results_per_page);
+    std::string get_cache_basedir();
+    std::string get_cache_fullpath(std::string basedir,std::string query);
   };
 
   template <typename extractor>
