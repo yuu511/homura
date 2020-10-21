@@ -42,7 +42,6 @@ tree_container::tree_container(tree_container &&lhs)
     
 HOMURA_ERRCODE tree_container::create_tree(const char *html_page) 
 {
-  //destroy old tree and create new one
   if (myhtml_parse(tree, MyENCODING_UTF_8, html_page,strlen(html_page)) != MyHTML_STATUS_OK){
     return ERRCODE::FAILED_PARSE;
   }

@@ -27,6 +27,7 @@ namespace homura {
     std::vector<std::string> getURLs();
     inline std::vector<generic_torrent_result> getTorrents(std::string URL);
     int getExpectedResults();
+    int getResultsPerPage();
   private:
     curl_container curler;
     tree_container html_parser;

@@ -39,12 +39,12 @@ HOMURA_ERRCODE homura_instance::query_nyaasi(std::string searchtag)
     tablePtr = scheduler.template insert_table<nyaasi_extractor>(key,delay);
   }
    
-  auto extractor = tablePtr->parser;
+  nyaasi_extractor extractor = tablePtr->parser;
   std::vector<generic_torrent_result> newResults = extractor.downloadFirstPage(searchtag);
 
   tablePtr->addNewResults(searchtag,newResults);
-  tablePtr->addURLs(searchtag,extractor.getURLs());
-  // tablePtr->addAnticipatedResults(searchtag,extractor.getExpectedResults());
+  tablePtr->addURLs_and_decache(std::make_pair(searchtag,extractor.getURLs()),
+                                (size_t)extractor.getExpectedResults(),(size_t)extractor.getResultsPerPage());
 
   return ret;
 }

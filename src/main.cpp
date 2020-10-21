@@ -40,8 +40,8 @@ void print_usage()
   printopt(5,"[-t,--torrents_only] "," : Print magnets only");
   printopt(5,"","   e.g. 0x3 to print both, 0x2 for torrent titles only (default 0x1)");
   printopt(5,"[-p,--num_pages] NUMBER"," : load up to [NUMBER] pages ");
-  printopt(5,"[-w,--wait_end]"," : respect request delay at end of torrent downloading");
   printopt(5,"","   [NUMBER] is a positive number in decimal only");
+  printopt(5,"[-w,--wait_end]"," : respect request delay at end of torrent downloading");
   printopt(5,"[--help]"," : print out usage message");
   fprintf (stderr,"\n");
   println(5,"OPTIONS:");

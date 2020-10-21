@@ -49,8 +49,7 @@ namespace homura
     virtual ~url_table_base();
                      
     // builder funcs                      
-    void addURLs(std::string query, std::vector<std::string> newURLs);
-    // void addAnticipatedResults(int _expected_results);
+    void addURLs_and_decache(urlpair newURLs, size_t expected_results, size_t results_per_page);
     void addNewResults(std::string query, std::vector<generic_torrent_result> torrents);    
     //
 
@@ -69,13 +68,14 @@ namespace homura
     std::chrono::steady_clock::time_point last_request;
     std::vector<urlpair> remainingURLs;   
     std::unordered_map <std::string, std::vector<generic_torrent_result>> results;
+    std::unordered_map <std::string, std::vector<generic_torrent_result>> cached_results;
 
     //serialization
     friend class boost::serialization::access;
     HOMURA_ERRCODE cache();
-    HOMURA_ERRCODE decache(std::string query, int expected_results, int results_per_page);
-    std::string get_cache_basedir();
-    std::string get_cache_fullpath(std::string basedir,std::string query);
+    std::filesystem::path get_basedir();
+    std::filesystem::path get_cache_dir();
+    std::filesystem::path generate_cache_fullpath(std::filesystem::path basedir,std::string query);
   };
 
   template <typename extractor>

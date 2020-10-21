@@ -12,16 +12,11 @@ url_table_base::url_table_base(std::string _website,
 {
 }
 
-void url_table_base::addURLs(std::string query, std::vector<std::string> newURLs)
-{
-  if (!newURLs.empty()) {
-    remainingURLs.push_back(std::make_pair(query,newURLs));
-  }
-}
-
-// void url_table_base::addAnticipatedResults(int _expected_results)
+// void url_table_base::addURLs(std::string query, std::vector<std::string> newURLs)
 // {
-//   expected_results = _expected_results; 
+//   if (!newURLs.empty()) {
+//     remainingURLs.push_back(std::make_pair(query,newURLs));
+//   }
 // }
 
 bool url_table_base::ready_for_request()
@@ -64,8 +59,7 @@ std::string url_table_base::get_website()
   return website;
 }
 
-// TODO: pwuid_r once this thing is multithreaded
-std::string url_table_base::get_cache_basedir()
+std::filesystem::path url_table_base::get_basedir()
 {
   const char *homedir = getenv("HOME");
 
@@ -73,52 +67,95 @@ std::string url_table_base::get_cache_basedir()
     homedir = getpwuid(getuid())->pw_dir;
   }
 
-  std::filesystem::path basedir = std::filesystem::path(homedir) / "/.homuracache";
-  if (!std::filesystem::is_directory(basedir) && !std::filesystem::exists(basedir)) {
-    bool made = std::filesystem::create_directory(basedir);
-    if (!made) return "";
+  if (options::debug_level > 1) {
+    fprintf(stderr,"homedir %s\n",homedir);
   }
 
-  if (options::debug_level) {
+  std::filesystem::path basedir = std::filesystem::path(homedir);
+  basedir /= ".homura";
+  if (options::debug_level > 1) {
     fprintf(stderr,"basedir %s\n",basedir.string().c_str());
   }
+  if (!std::filesystem::is_directory(basedir) && !std::filesystem::exists(basedir)) {
+    bool made = std::filesystem::create_directory(basedir);
+    if (!made) return std::filesystem::path();
+  }
 
-  return basedir.string();
+  return basedir;
 }
 
-std::string url_table_base::get_cache_fullpath(std::string basedir,std::string query)
+// TODO: pwuid_r once this thing is multithreaded
+std::filesystem::path url_table_base::get_cache_dir()
 {
-  std::filesystem::path fullpath = std::filesystem::path(basedir) / ("/" + website + "_" + query);
-  return fullpath.string();
+  std::filesystem::path cachedir = get_basedir();
+  if (cachedir.empty()) return std::filesystem::path();
+
+  cachedir /= "homuracache";
+  if (options::debug_level > 1) {
+    fprintf(stderr,"cachedir %s\n",cachedir.string().c_str());
+  }
+
+  if (!std::filesystem::is_directory(cachedir) && !std::filesystem::exists(cachedir)) {
+    bool made = std::filesystem::create_directory(cachedir);
+    if (!made) return std::filesystem::path();
+  }
+
+  return cachedir;
+}
+
+std::filesystem::path url_table_base::generate_cache_fullpath(std::filesystem::path cachedir,std::string query)
+{
+  return cachedir /= (website + "_" + query);
 }
 
 HOMURA_ERRCODE url_table_base::cache()
 {
-  std::string cachedir = get_cache_basedir();
-  if (cachedir == "") return ERRCODE::FAILED_CACHE_CREATION; 
+  std::filesystem::path cachedir = get_cache_dir();
+  if (cachedir.empty()) return ERRCODE::FAILED_CACHE_CREATION; 
   for (auto itor : results) {
-    std::ofstream cache(get_cache_fullpath(cachedir,itor.first));
+    std::ofstream cache(generate_cache_fullpath(cachedir,itor.first));
     boost::archive::text_oarchive oa(cache);
     oa << itor.second;
   }
   return ERRCODE::SUCCESS;
 }
 
-HOMURA_ERRCODE url_table_base::decache(std::string query, int expected_results, int results_per_page)
+void url_table_base::addURLs_and_decache(urlpair newURLs, size_t expected_results, size_t results_per_page)
 {
-  HOMURA_ERRCODE Status = ERRCODE::SUCCESS;
+  if (options::force_refresh_cache) {
+    fprintf(stderr,"Note: ignoring cache\n");
+    if (!newURLs.second.empty()) {
+      remainingURLs.push_back(newURLs);
+    }
+    return;
+  }
 
-  if (options::force_refresh_cache) return Status;
+  std::filesystem::path cachepath = generate_cache_fullpath(get_cache_dir(),newURLs.first);
+  if ( std::filesystem::exists (cachepath) && 
+       std::filesystem::is_regular_file (cachepath) ) {
 
-  std::string cachedir = get_cache_basedir();
-  // assume we always download the first page.
-  // for (auto itor : remainingURLs) {
-  //   if (itor.first == query) {
-  //     
-  //   }
-  // }
+    std::vector<generic_torrent_result> cachedresults;
+    std::ifstream cachefile(cachepath);
+    boost::archive::text_iarchive ia(cachefile);
+    ia >> cachedresults;
 
-  return Status;
+    if (cachedresults.size() == expected_results) {
+      fprintf(stderr,"Amount of expected results same as last time, "
+                     "using cached results for \"%s\"\n",newURLs.first.c_str());
+      results[newURLs.first] = cachedresults;
+      newURLs.second.clear();
+    }
+  }
+  else {
+    if (options::debug_level) {
+      fprintf(stderr,"cachefile %s not found\n",cachepath.c_str());
+    }
+  }
+
+  if (!newURLs.second.empty()) {
+    remainingURLs.push_back(newURLs);
+  }
+
 }
 
 void url_table_base::print()
