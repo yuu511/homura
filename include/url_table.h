@@ -68,12 +68,10 @@ namespace homura
     std::chrono::steady_clock::time_point last_request;
     std::vector<urlpair> remainingURLs;   
     std::unordered_map <std::string, std::vector<generic_torrent_result>> results;
-    std::unordered_map <std::string, std::vector<generic_torrent_result>> cached_results;
 
     //serialization
     friend class boost::serialization::access;
     HOMURA_ERRCODE cache();
-    std::filesystem::path get_basedir();
     std::filesystem::path get_cache_dir();
     std::filesystem::path generate_cache_fullpath(std::filesystem::path basedir,std::string query);
   };

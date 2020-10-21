@@ -59,7 +59,7 @@ std::string url_table_base::get_website()
   return website;
 }
 
-std::filesystem::path url_table_base::get_basedir()
+std::filesystem::path get_basedir()
 {
   const char *homedir = getenv("HOME");
 
@@ -122,15 +122,15 @@ HOMURA_ERRCODE url_table_base::cache()
 
 void url_table_base::addURLs_and_decache(urlpair newURLs, size_t expected_results, size_t results_per_page)
 {
-  if (options::force_refresh_cache) {
-    fprintf(stderr,"Note: ignoring cache\n");
+  std::filesystem::path cachedir = get_cache_dir();
+  if (cachedir.empty() || options::force_refresh_cache) {
     if (!newURLs.second.empty()) {
       remainingURLs.push_back(newURLs);
     }
     return;
   }
 
-  std::filesystem::path cachepath = generate_cache_fullpath(get_cache_dir(),newURLs.first);
+  std::filesystem::path cachepath = generate_cache_fullpath(cachedir,newURLs.first);
   if ( std::filesystem::exists (cachepath) && 
        std::filesystem::is_regular_file (cachepath) ) {
 
@@ -144,6 +144,19 @@ void url_table_base::addURLs_and_decache(urlpair newURLs, size_t expected_result
                      "using cached results for \"%s\"\n",newURLs.first.c_str());
       results[newURLs.first] = cachedresults;
       newURLs.second.clear();
+    }
+    else if (cachedresults.size() < expected_results){
+      if (expected_results > results_per_page) {
+        std::vector<generic_torrent_result> newresults;
+        newresults.reserve(expected_results);
+        size_t results_to_decache = expected_results - results_per_page; // always skip the first page
+        size_t URLs_to_delete = (results_to_decache / results_per_page) + 1; 
+        while (URLs_to_delete && (!newURLs.second.empty())) {
+          newURLs.second.pop_back();       
+        }
+        newresults.insert(newresults.end() - cachedresults.size(),cachedresults.begin(),cachedresults.end());
+        results[newURLs.first] = newresults;
+      }
     }
   }
   else {

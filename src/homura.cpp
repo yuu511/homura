@@ -30,9 +30,9 @@ HOMURA_ERRCODE homura_instance::crawl()
 
 HOMURA_ERRCODE homura_instance::query_nyaasi(std::string searchtag) 
 {
+  HOMURA_ERRCODE ret = ERRCODE::SUCCESS;
   static const std::string key= "nyaa.si";
   std::chrono::milliseconds delay(5000);
-  HOMURA_ERRCODE ret = ERRCODE::SUCCESS;
 
   auto tablePtr = scheduler.template find_table<nyaasi_extractor>(key);
   if (!tablePtr) {

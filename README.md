@@ -11,7 +11,6 @@ Dependencies:
 
 * libcurl 
 * myHTML (https://github.com/lexborisov/myhtml)
-* libtorrent
 * pthreads
 * boost (serialization)
 
