@@ -21,7 +21,7 @@ nyaasi_extractor::nyaasi_extractor()
     html_parser(std::move(tree_container())),
     pageinfo(pagination_information(0,0,0)),
     ref_page("https://nyaa.si/?f=0&c=0_0&q="),
-    URLs({})
+    URLs(std::queue<std::string>())
 {}
 
 HOMURA_ERRCODE nyaasi_extractor::parseMetadata() 
@@ -82,8 +82,8 @@ HOMURA_ERRCODE nyaasi_extractor::generateURLs()
   if (options::number_pages > 0 && options::number_pages < num_pages) {
     num_pages = options::number_pages;
   }
-  for (int i = num_pages; i >= 2; --i) {
-    URLs.emplace_back(ref_page + "&p=" + std::to_string(i)) ;  
+  for (int i = 2; i <= num_pages; ++i) {
+    URLs.emplace(ref_page + "&p=" + std::to_string(i)) ;  
     if (options::debug_level) {
       fprintf(stderr,"Adding url %s\n",((ref_page + "&p=" + std::to_string(i)).c_str()));
     }
@@ -185,7 +185,6 @@ std::vector<generic_torrent_result> nyaasi_extractor::downloadPage(std::string U
   status = html_parser.create_tree(rawHTML);
   if ( status != ERRCODE::SUCCESS ) return {};
 
-
   return getTorrents(URL);
 }
 
@@ -211,7 +210,7 @@ std::vector<generic_torrent_result> nyaasi_extractor::downloadFirstPage(std::str
   return getTorrents(ref_page);
 }
 
-std::vector<std::string> nyaasi_extractor::getURLs()
+std::queue<std::string> nyaasi_extractor::getURLs()
 {
   return URLs;
 }

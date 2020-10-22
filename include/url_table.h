@@ -3,6 +3,7 @@
 
 #include <chrono>
 #include <vector>
+#include <queue>
 #include <string>
 #include <utility>
 #include <unordered_map>
@@ -43,7 +44,7 @@ namespace homura
     }
   };
 
-  using urlpair = std::pair <std::string, std::vector<std::string>>; // search query, URLs generated
+  using urlpair = std::pair <std::string, std::queue<std::string>>; // search query, URLs generated
 
   struct url_table_base {
     url_table_base(std::string _website,
@@ -51,7 +52,7 @@ namespace homura
     virtual ~url_table_base();
                      
     // builder funcs                      
-    void addURLs_and_decache(std::string query, std::vector<std::string> URLs,
+    void addURLs_and_decache(std::string query, std::queue<std::string> URLs,
                              size_t expected_results, size_t results_per_page);
     void addNewResults(std::string query, std::vector<generic_torrent_result> torrents);    
     //
@@ -94,7 +95,7 @@ namespace homura
     HOMURA_ERRCODE download_next_URL()
     {
       auto lastElement = remainingURLs.rbegin();
-      std::vector<generic_torrent_result> torrents = parser.downloadPage(lastElement->second.back());
+      std::vector<generic_torrent_result> torrents = parser.downloadPage(lastElement->second.front());
 
       if (torrents.empty()) {
         errprintf(ERRCODE::FAILED_PARSE, "No torrents or failed parse.");
@@ -111,7 +112,7 @@ namespace homura
         results[lastElement->first] = torrents;
       }
 
-      lastElement->second.pop_back();
+      lastElement->second.pop();
       if (lastElement->second.empty()) remainingURLs.pop_back();  
 
       return ERRCODE::SUCCESS;
