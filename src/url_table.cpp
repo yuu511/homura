@@ -115,7 +115,7 @@ HOMURA_ERRCODE url_table_base::cache()
 }
 
 void url_table_base::addURLs_and_decache(std::string query,
-                                         std::queue<std::string> newURLs, 
+                                         std::deque<std::string> newURLs, 
                                          size_t expected_results, size_t results_per_page)
 {
   std::filesystem::path cachedir = get_cache_dir();
@@ -141,7 +141,7 @@ void url_table_base::addURLs_and_decache(std::string query,
       fprintf(stderr,"Amount of expected results same as last time, "
                      "using cached results for \"%s\"\n",query.c_str());
       results[query] = cachedresults;
-      newURLs = std::queue<std::string>(); // clear
+      newURLs = std::deque<std::string>(); // clear
     }
     else if (cachedresults.size() < expected_results){
       if (expected_results > results_per_page) {
@@ -157,9 +157,9 @@ void url_table_base::addURLs_and_decache(std::string query,
             
            while (URLs_to_delete-- && (!newURLs.empty())) {
              if (options::debug_level) {
-               fprintf(stderr,"using cached results for page %s\n", newURLs.front().c_str());
+               fprintf(stderr,"using cached results for page %s\n", newURLs.back().c_str());
              }
-             newURLs.pop();       
+             newURLs.pop_back();       
            }
 
             cached_results[query] = cachedresults;

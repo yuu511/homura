@@ -3,7 +3,7 @@
 
 #include <chrono>
 #include <vector>
-#include <queue>
+#include <deque>
 #include <string>
 #include <utility>
 #include <unordered_map>
@@ -44,7 +44,7 @@ namespace homura
     }
   };
 
-  using urlpair = std::pair <std::string, std::queue<std::string>>; // search query, URLs generated
+  using urlpair = std::pair <std::string, std::deque<std::string>>; // search query, URLs generated
 
   struct url_table_base {
     url_table_base(std::string _website,
@@ -52,7 +52,7 @@ namespace homura
     virtual ~url_table_base();
                      
     // builder funcs                      
-    void addURLs_and_decache(std::string query, std::queue<std::string> URLs,
+    void addURLs_and_decache(std::string query, std::deque<std::string> URLs,
                              size_t expected_results, size_t results_per_page);
     void addNewResults(std::string query, std::vector<generic_torrent_result> torrents);    
     //
@@ -112,7 +112,7 @@ namespace homura
         results[lastElement->first] = torrents;
       }
 
-      lastElement->second.pop();
+      lastElement->second.pop_front();
       if (lastElement->second.empty()) remainingURLs.pop_back();  
 
       return ERRCODE::SUCCESS;

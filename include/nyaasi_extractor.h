@@ -8,7 +8,7 @@
 #include <memory>
 #include <myhtml/myhtml.h>
 #include <utility>
-#include <queue>
+#include <deque>
 
 namespace homura {
   struct pagination_information {
@@ -25,7 +25,7 @@ namespace homura {
     std::vector<generic_torrent_result> downloadFirstPage(std::string searchtag);
     const char *curlHTML(std::string URL);
     HOMURA_ERRCODE generateURLs();
-    std::queue<std::string> getURLs();
+    std::deque<std::string> getURLs();
     inline std::vector<generic_torrent_result> getTorrents(std::string URL);
     int getExpectedResults();
     int getResultsPerPage();
@@ -34,7 +34,7 @@ namespace homura {
     tree_container html_parser;
     pagination_information pageinfo;
     std::string ref_page;
-    std::queue<std::string> URLs;
+    std::deque<std::string> URLs;
     HOMURA_ERRCODE parseMetadata();
   };
 }
