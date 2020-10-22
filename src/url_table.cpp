@@ -119,7 +119,7 @@ void url_table_base::addURLs_and_decache(std::string query,
                                          size_t expected_results, size_t results_per_page)
 {
   std::filesystem::path cachedir = get_cache_dir();
-  if (cachedir.empty() || options::force_refresh_cache || results_per_page == 0) {
+  if (cachedir.empty() || options::force_refresh_cache || results_per_page == 0 || options::number_pages) {
     if (!newURLs.empty()) {
       remainingURLs.push_back(std::make_pair(query,newURLs));
     }
@@ -158,7 +158,6 @@ void url_table_base::addURLs_and_decache(std::string query,
             }
             newURLs.pop_back();       
           }
-          // cachedresults.erase(cachedresults.begin(), (cachedresults.end() - (URLs_to_delete*results_per_page)));
           cachedresults.erase(cachedresults.begin(),cachedresults.begin() + results_per_page); 
           cached_results[query] = cachedresults;
         }
