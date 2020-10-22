@@ -145,15 +145,23 @@ void url_table_base::addURLs_and_decache(std::string query,
     }
     else if (cachedresults.size() < expected_results){
       if (expected_results > results_per_page) {
-        size_t results_to_decache = expected_results - results_per_page; // always skip the first page
+        size_t results_to_decache = expected_results - results_per_page; // always download the first page
         size_t URLs_to_delete = results_to_decache / results_per_page; 
-        if (options::debug_level) {
-          fprintf(stderr,"results to cache %zu urls to delete %zu\n", results_to_decache, URLs_to_delete);
-        }
-        while (URLs_to_delete-- && (!newURLs.empty())) {
-          newURLs.pop_back();       
-        }
-        cached_results[query] = cachedresults;
+          if (URLs_to_delete) {
+
+           cachedresults.erase(cachedresults.begin(), (cachedresults.end() - (URLs_to_delete*results_per_page)));
+           if (options::debug_level) {
+             fprintf(stderr,"results to cache %zu urls to delete %zu\n"
+                      "sizeof decached results %zu results_per_age %zu\n", 
+               results_to_decache, URLs_to_delete, cachedresults.size(),results_per_page);
+           }
+
+            while (URLs_to_delete-- && (!newURLs.empty())) {
+              newURLs.pop_back();       
+            }
+
+            cached_results[query] = cachedresults;
+          }
       }
     }
   }
