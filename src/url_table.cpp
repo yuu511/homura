@@ -119,14 +119,13 @@ void url_table_base::addURLs_and_decache(std::string query,
                                          size_t expected_results, size_t results_per_page)
 {
   std::filesystem::path cachedir = get_cache_dir();
-  if (cachedir.empty() || options::force_refresh_cache) {
+  if (cachedir.empty() || options::force_refresh_cache || results_per_page == 0) {
     if (!newURLs.empty()) {
       remainingURLs.push_back(std::make_pair(query,newURLs));
     }
     return;
   }
 
-  /// std::string query = newURLs.first; 
   std::filesystem::path cachepath = generate_cache_fullpath(cachedir,query);
 
   if ( std::filesystem::exists (cachepath) && 
@@ -143,27 +142,26 @@ void url_table_base::addURLs_and_decache(std::string query,
       results[query] = cachedresults;
       newURLs = std::deque<std::string>(); // clear
     }
-    else if (cachedresults.size() < expected_results){
-      if (expected_results > results_per_page) {
+    else if (cachedresults.size() < expected_results) {
+      if (cachedresults.size() > results_per_page) {
         size_t results_to_decache = expected_results - results_per_page; // always download the first page
-        size_t URLs_to_delete = results_to_decache / results_per_page; 
-          if (URLs_to_delete) {
-           cachedresults.erase(cachedresults.begin(), (cachedresults.end() - (URLs_to_delete*results_per_page)));
-           if (options::debug_level > 1) {
-             fprintf(stderr,"results to cache %zu urls to delete %zu\n"
-                      "sizeof decached results %zu results_per_age %zu\n", 
-               results_to_decache, URLs_to_delete, cachedresults.size(),results_per_page);
-           }
-            
-           while (URLs_to_delete-- && (!newURLs.empty())) {
-             if (options::debug_level) {
-               fprintf(stderr,"using cached results for page %s\n", newURLs.back().c_str());
-             }
-             newURLs.pop_back();       
-           }
-
-            cached_results[query] = cachedresults;
+        size_t URLs_to_delete = (results_to_decache + (results_per_page -1)) / results_per_page; 
+        if (URLs_to_delete) {
+          if (options::debug_level > 1) {
+            fprintf(stderr,"results to cache %zu urls to delete %zu\n"
+                     "sizeof decached results %zu results_per_age %zu\n", 
+              results_to_decache, URLs_to_delete, cachedresults.size(),results_per_page);
           }
+          while (URLs_to_delete-- && (!newURLs.empty())) {
+            if (options::debug_level) {
+              fprintf(stderr,"using cached results for page %s\n", newURLs.back().c_str());
+            }
+            newURLs.pop_back();       
+          }
+          // cachedresults.erase(cachedresults.begin(), (cachedresults.end() - (URLs_to_delete*results_per_page)));
+          cachedresults.erase(cachedresults.begin(),cachedresults.begin() + results_per_page); 
+          cached_results[query] = cachedresults;
+        }
       }
     }
   }
@@ -197,7 +195,7 @@ void url_table_base::decache()
 
 void url_table_base::do_caching_operations()
 {
-  if (!cache_done) {
+  if (!cache_done || (options::number_pages != 0)) {
     decache();
     cache();
     cache_done = true;
