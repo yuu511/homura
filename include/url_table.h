@@ -7,7 +7,6 @@
 #include <utility>
 #include <unordered_map>
 #include <memory>
-#include "errlib.h"
 #include <filesystem>
 #include <fstream>
 #include <unistd.h>
@@ -18,6 +17,9 @@
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/serialization/serialization.hpp>
 #include <boost/serialization/vector.hpp>
+
+
+#include "errlib.h"
 
 
 namespace homura 
@@ -49,12 +51,14 @@ namespace homura
     virtual ~url_table_base();
                      
     // builder funcs                      
-    void addURLs_and_decache(urlpair newURLs, size_t expected_results, size_t results_per_page);
+    void addURLs_and_decache(std::string query, std::vector<std::string> URLs,
+                             size_t expected_results, size_t results_per_page);
     void addNewResults(std::string query, std::vector<generic_torrent_result> torrents);    
     //
 
     bool ready_for_request();
     bool empty();
+    void do_caching_operations();
     virtual HOMURA_ERRCODE download_next_URL();  
 
     std::chrono::milliseconds get_delay(); 
@@ -68,9 +72,12 @@ namespace homura
     std::chrono::steady_clock::time_point last_request;
     std::vector<urlpair> remainingURLs;   
     std::unordered_map <std::string, std::vector<generic_torrent_result>> results;
+    std::unordered_map <std::string, std::vector<generic_torrent_result>> cached_results;
+    bool cache_done;
 
     //serialization
     friend class boost::serialization::access;
+    void decache();
     HOMURA_ERRCODE cache();
     std::filesystem::path get_cache_dir();
     std::filesystem::path generate_cache_fullpath(std::filesystem::path basedir,std::string query);

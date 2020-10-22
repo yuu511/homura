@@ -18,6 +18,7 @@ HOMURA_ERRCODE url_scheduler::crawl()
     finished = true;
     for (auto &table: sorted_url_tables) {
       if (table->empty()) {
+        table->do_caching_operations();
         continue;
       }
       finished = false;
@@ -27,9 +28,9 @@ HOMURA_ERRCODE url_scheduler::crawl()
     }
   }
 
-  for (auto &table: sorted_url_tables) {
-    table->cache();
-  }
+  // for (auto &table: sorted_url_tables) {
+  //   table->cache();
+  // }
   return ERRCODE::SUCCESS;
 }
 

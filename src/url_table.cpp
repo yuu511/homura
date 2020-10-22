@@ -8,16 +8,10 @@ url_table_base::url_table_base(std::string _website,
                                std::chrono::milliseconds _delay)
 : website(_website),
   delay(_delay),
-  last_request(std::chrono::steady_clock::now())
+  last_request(std::chrono::steady_clock::now()),
+  cache_done(false)
 {
 }
-
-// void url_table_base::addURLs(std::string query, std::vector<std::string> newURLs)
-// {
-//   if (!newURLs.empty()) {
-//     remainingURLs.push_back(std::make_pair(query,newURLs));
-//   }
-// }
 
 bool url_table_base::ready_for_request()
 {
@@ -112,7 +106,7 @@ HOMURA_ERRCODE url_table_base::cache()
 {
   std::filesystem::path cachedir = get_cache_dir();
   if (cachedir.empty()) return ERRCODE::FAILED_CACHE_CREATION; 
-  for (auto itor : results) {
+  for (auto &itor : results) {
     std::ofstream cache(generate_cache_fullpath(cachedir,itor.first));
     boost::archive::text_oarchive oa(cache);
     oa << itor.second;
@@ -120,17 +114,21 @@ HOMURA_ERRCODE url_table_base::cache()
   return ERRCODE::SUCCESS;
 }
 
-void url_table_base::addURLs_and_decache(urlpair newURLs, size_t expected_results, size_t results_per_page)
+void url_table_base::addURLs_and_decache(std::string query,
+                                         std::vector<std::string> newURLs, 
+                                         size_t expected_results, size_t results_per_page)
 {
   std::filesystem::path cachedir = get_cache_dir();
   if (cachedir.empty() || options::force_refresh_cache) {
-    if (!newURLs.second.empty()) {
-      remainingURLs.push_back(newURLs);
+    if (!newURLs.empty()) {
+      remainingURLs.push_back(std::make_pair(query,newURLs));
     }
     return;
   }
 
-  std::filesystem::path cachepath = generate_cache_fullpath(cachedir,newURLs.first);
+  /// std::string query = newURLs.first; 
+  std::filesystem::path cachepath = generate_cache_fullpath(cachedir,query);
+
   if ( std::filesystem::exists (cachepath) && 
        std::filesystem::is_regular_file (cachepath) ) {
 
@@ -141,21 +139,21 @@ void url_table_base::addURLs_and_decache(urlpair newURLs, size_t expected_result
 
     if (cachedresults.size() == expected_results) {
       fprintf(stderr,"Amount of expected results same as last time, "
-                     "using cached results for \"%s\"\n",newURLs.first.c_str());
-      results[newURLs.first] = cachedresults;
-      newURLs.second.clear();
+                     "using cached results for \"%s\"\n",query.c_str());
+      results[query] = cachedresults;
+      newURLs.clear();
     }
     else if (cachedresults.size() < expected_results){
       if (expected_results > results_per_page) {
-        std::vector<generic_torrent_result> newresults;
-        newresults.reserve(expected_results);
         size_t results_to_decache = expected_results - results_per_page; // always skip the first page
-        size_t URLs_to_delete = (results_to_decache / results_per_page) + 1; 
-        while (URLs_to_delete && (!newURLs.second.empty())) {
-          newURLs.second.pop_back();       
+        size_t URLs_to_delete = results_to_decache / results_per_page; 
+        if (options::debug_level) {
+          fprintf(stderr,"results to cache %zu urls to delete %zu\n", results_to_decache, URLs_to_delete);
         }
-        newresults.insert(newresults.end() - cachedresults.size(),cachedresults.begin(),cachedresults.end());
-        results[newURLs.first] = newresults;
+        while (URLs_to_delete-- && (!newURLs.empty())) {
+          newURLs.pop_back();       
+        }
+        cached_results[query] = cachedresults;
       }
     }
   }
@@ -165,21 +163,46 @@ void url_table_base::addURLs_and_decache(urlpair newURLs, size_t expected_result
     }
   }
 
-  if (!newURLs.second.empty()) {
-    remainingURLs.push_back(newURLs);
+  if (!newURLs.empty()) {
+    remainingURLs.push_back(std::make_pair(query,newURLs));
   }
 
 }
 
+void url_table_base::decache()
+{
+  if (options::debug_level) {
+    fprintf(stderr,"decaching \n");
+  }
+  for (auto &itor : results) {
+    auto find = cached_results.find(itor.first);
+    if (find != cached_results.end()) {
+      if (options::debug_level) {
+        fprintf(stderr,"sizeof noncached %zu cached %zu \n",results.size(),cached_results.size());
+      }
+      itor.second.insert(itor.second.end(),find->second.begin(),find->second.end());
+    }
+  }
+}
+
+void url_table_base::do_caching_operations()
+{
+  if (!cache_done) {
+    decache();
+    cache();
+    cache_done = true;
+  }
+}
+
 void url_table_base::print()
 {
-  for (auto queries : results) {
+  for (auto &queries : results) {
 
     if (options::print.test(1)) {
       fprintf (stdout, "=== Searchterm %s ===\n\n\n", queries.first.c_str());
     }
 
-    for (auto entry : queries.second) {
+    for (auto &entry : queries.second) {
       if (options::print.test(1)) {
         fprintf(stdout,"\n%s\n\n",entry.name.c_str());
       }
