@@ -159,7 +159,7 @@ void url_table_base::addURLs_and_decache(std::string query,
             }
             newURLs.pop_back();       
           }
-          cachedresults.erase(cachedresults.begin(),cachedresults.begin() + results_per_page); 
+          cachedresults.erase(cachedresults.begin(),cachedresults.end() -results_to_decache); 
           cached_results[query] = cachedresults;
         }
       }
