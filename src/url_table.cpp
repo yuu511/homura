@@ -143,8 +143,9 @@ void url_table_base::addURLs_and_decache(std::string query,
       newURLs = std::deque<std::string>(); // clear
     }
     else if (cachedresults.size() < expected_results) {
-      if (cachedresults.size() > results_per_page) {
+      if (expected_results > results_per_page) {
         size_t results_to_decache = expected_results - results_per_page; // always download the first page
+        if (results_to_decache > cachedresults.size()) results_to_decache = cachedresults.size();
         size_t URLs_to_delete = (results_to_decache + (results_per_page -1)) / results_per_page; 
         if (URLs_to_delete) {
           if (options::debug_level > 1) {
