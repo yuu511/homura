@@ -8,16 +8,20 @@
 // small error / option handling module
 
 /* options */
-int homura::options::debug_level = 0;
-int homura::options::number_pages = 0;
-bool homura::options::force_refresh_cache = false;
-bool homura::options::wait_end = false;
-// Bit 0 (LSB) : print magnet, default = 1
-// Bit 1 : print name, default = 1
-std::bitset<2> homura::options::print(0x3);
-std::string homura::options::regex = "";
-std::string homura::options::search_term = "";
-std::string homura::options::command = "";
+namespace homura {
+  namespace options {
+    int debug_level = 0;
+    int number_pages = 0;
+    bool force_refresh_cache = false;
+    bool wait_end = false;
+    // Bit 0 (LSB) : print magnet, default = 1
+    // Bit 1 : print name, default = 1
+    std::bitset<2> print(0x3);
+    std::string regex = "";
+    std::string search_term = "";
+    std::string command = "";
+  }
+}
 
 /* error */
 int homura::error_handler::exit_code = ERRCODE::SUCCESS;
