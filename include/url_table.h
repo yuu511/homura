@@ -52,8 +52,8 @@ namespace homura
     virtual ~url_table_base();
                      
     // builder funcs                      
-    void addURLs_and_decache(std::string query, std::deque<std::string> URLs,
-                             size_t expected_results, size_t results_per_page);
+    void processURLs_Cache(std::string query, std::deque<std::string> URLs,
+                           size_t expected_results, size_t results_per_page);
     void addNewResults(std::string query, std::vector<generic_torrent_result> torrents);    
     //
 

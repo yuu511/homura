@@ -114,9 +114,9 @@ HOMURA_ERRCODE url_table_base::cache()
   return ERRCODE::SUCCESS;
 }
 
-void url_table_base::addURLs_and_decache(std::string query,
-                                         std::deque<std::string> newURLs, 
-                                         size_t expected_results, size_t results_per_page)
+void url_table_base::processURLs_Cache(std::string query,
+                                       std::deque<std::string> newURLs, 
+                                       size_t expected_results, size_t results_per_page)
 {
   std::filesystem::path cachedir = get_cache_dir();
   if (cachedir.empty() || options::force_refresh_cache || results_per_page == 0 || options::number_pages) {
@@ -136,12 +136,17 @@ void url_table_base::addURLs_and_decache(std::string query,
     boost::archive::text_iarchive ia(cachefile);
     ia >> cachedresults;
 
+    if (options::debug_level) {
+      fprintf(stderr,"size of cache %zu expected results %zu \n", cachedresults.size(), expected_results);
+    }
+
     if (cachedresults.size() == expected_results) {
       fprintf(stderr,"Amount of expected results same as last time, "
                      "using cached results for \"%s\"\n",query.c_str());
       results[query] = cachedresults;
       newURLs = std::deque<std::string>(); // clear
     }
+    
     else if (cachedresults.size() < expected_results) {
       if (expected_results > results_per_page) {
 
@@ -188,7 +193,7 @@ void url_table_base::decache()
     auto find = cached_results.find(itor.first);
     if (find != cached_results.end()) {
       if (options::debug_level) {
-        fprintf(stderr,"sizeof noncached %zu cached %zu \n",itor.second.size(),find->second.size());
+        fprintf(stderr,"Number downloaded results %zu\nNumber cached results used %zu\n",itor.second.size(),find->second.size());
       }
       itor.second.insert(itor.second.end(),find->second.begin(),find->second.end());
     }
