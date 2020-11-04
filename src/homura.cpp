@@ -33,22 +33,22 @@ HOMURA_ERRCODE homura_instance::query_nyaasi(std::string searchtag)
   HOMURA_ERRCODE ret = ERRCODE::SUCCESS;
   static const std::string key= "nyaa.si";
   std::chrono::milliseconds delay(5000);
+  int num_retries = 5;
 
-  auto tablePtr = scheduler.template find_table<nyaasi_extractor>(key);
-  if (!tablePtr) {
-    tablePtr = scheduler.template insert_table<nyaasi_extractor>(key,delay);
-  }
+  auto tablePtr = scheduler.template getTable<nyaasi_extractor>(key,delay,num_retries);
    
   nyaasi_extractor extractor = tablePtr->parser;
-  std::vector<generic_torrent_result> newResults;
-  ret = extractor.downloadFirstPage(searchtag,newResults);
+
+  std::vector<generic_torrent_result> firstPageResults;
+  ret = extractor.downloadFirstPage(searchtag,firstPageResults);
+
   if (ret != ERRCODE::SUCCESS) return ret; 
 
   tablePtr->addURLs(searchtag, extractor.getURLs());
-  tablePtr->addNewResults(searchtag,newResults);
-  tablePtr->findAndProcessCache( searchtag, 
-                                 (size_t) extractor.getExpectedResults(),
-                                 (size_t) extractor.getResultsPerPage());
+  tablePtr->addNewResults(searchtag,firstPageResults);
+  tablePtr->findAndProcessCache(searchtag, 
+                                (size_t) extractor.getExpectedResults(),
+                                (size_t) extractor.getResultsPerPage());
 
   return ret;
 }

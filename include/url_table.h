@@ -97,6 +97,13 @@ namespace homura
     : url_table_base(_website,_delay),
       parser(_parser){}
 
+    url_table(std::string _website,
+              std::chrono::milliseconds _delay,
+              int _numRetries,
+              extractor _parser)
+    : url_table_base(_website,_delay,_numRetries),
+      parser(_parser){}
+
     HOMURA_ERRCODE download_next_URL()
     {
       HOMURA_ERRCODE Status = ERRCODE::SUCCESS;
@@ -127,7 +134,6 @@ namespace homura
                                                                   num_retries);
         --num_retries;
       }
-
       return ERRCODE::SUCCESS;
     }
 
