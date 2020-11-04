@@ -9,8 +9,22 @@ url_table_base::url_table_base(std::string _website,
 : website(_website),
   delay(_delay),
   last_request(std::chrono::steady_clock::now()),
+  num_retries(0),
   cache_done(false)
 {
+}
+
+
+url_table_base::url_table_base(std::string _website,
+                               std::chrono::milliseconds _delay,
+                               int _num_retries)
+: website(_website),
+  delay(_delay),
+  last_request(std::chrono::steady_clock::now()),
+  num_retries(_num_retries),
+  cache_done(false)
+{
+  if (num_retries < 0 ) num_retries = 0;
 }
 
 bool url_table_base::ready_for_request()

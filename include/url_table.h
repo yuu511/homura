@@ -50,6 +50,9 @@ namespace homura
   struct url_table_base {
     url_table_base(std::string _website,
                    std::chrono::milliseconds _delay);
+    url_table_base(std::string _website,
+                   std::chrono::milliseconds _delay,
+                   int _num_retries);
     virtual ~url_table_base();
                      
     // builder funcs                      
@@ -75,6 +78,7 @@ namespace homura
     std::vector<urlpair> remainingURLs;   
     std::unordered_map <std::string, std::vector<generic_torrent_result>> results;
     std::unordered_map <std::string, std::vector<generic_torrent_result>> cached_results;
+    int num_retries;
     bool cache_done;
 
     //serialization
@@ -95,26 +99,34 @@ namespace homura
 
     HOMURA_ERRCODE download_next_URL()
     {
+      HOMURA_ERRCODE Status = ERRCODE::SUCCESS;
       auto lastElement = remainingURLs.rbegin();
-      std::vector<generic_torrent_result> torrents = parser.downloadPage(lastElement->second.front());
-
-      if (torrents.empty()) {
-        errprintf(ERRCODE::FAILED_PARSE, "No torrents or failed parse.");
-        return ERRCODE::FAILED_PARSE;
-      }
 
       last_request = std::chrono::steady_clock::now();
 
       auto found = results.find(lastElement->first);
       if (found != results.end()) {
-        found->second.insert(found->second.end(),torrents.begin(),torrents.end());    
+       Status = parser.downloadPage(lastElement->second.front() , found->second);
       }
       else {
-        results[lastElement->first] = torrents;
+        found = results.emplace(std::make_pair(lastElement->first,std::vector<generic_torrent_result>())).first;
+        Status = parser.downloadPage(lastElement->second.front() , found->second);
       }
 
-      lastElement->second.pop_front();
-      if (lastElement->second.empty()) remainingURLs.pop_back();  
+      if (Status == ERRCODE::SUCCESS) {
+        lastElement->second.pop_front();
+        if (lastElement->second.empty()) remainingURLs.pop_back();  
+      }
+      else {
+        if (!num_retries) {
+          lastElement->second.pop_front();
+          if (lastElement->second.empty()) remainingURLs.pop_back();  
+          return Status;
+        }
+        fprintf (stderr, "Failed at %s, num_retries left = %d\n", lastElement->second.front().c_str(),
+                                                                  num_retries);
+        --num_retries;
+      }
 
       return ERRCODE::SUCCESS;
     }

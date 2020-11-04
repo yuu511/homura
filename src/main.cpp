@@ -154,11 +154,15 @@ HOMURA_ERRCODE execute_command(int argc, char **argv)
       errprintf(ERRCODE::FAILED_ARGPARSE,"Incorrect # of options for search\n"); 
       return ERRCODE::FAILED_ARGPARSE;
     }
-    HOMURA_ERRCODE status; 
+    HOMURA_ERRCODE Status; 
     options::search_term = std::string(argv[search_index]);
-    status = homuhomu.query_nyaasi(options::search_term);
-    if (status != ERRCODE::SUCCESS) return status;
-    status = homuhomu.crawl();
+
+    Status = homuhomu.query_nyaasi(options::search_term);
+    if (Status != ERRCODE::SUCCESS) return Status;
+
+    Status = homuhomu.crawl();
+    if (Status != ERRCODE::SUCCESS) return Status;
+
     homuhomu.print_tables();
     if (options::wait_end) {
       homuhomu.wait_at_end();
@@ -167,22 +171,23 @@ HOMURA_ERRCODE execute_command(int argc, char **argv)
   else {
     errprintf(ERRCODE::FAILED_INVALID_COMMAND,"Invalid command \"%s\""
     ", use homura --help for all possible options\n",options::command.c_str());
+    return ERRCODE::FAILED_INVALID_COMMAND;
   }
   return ERRCODE::SUCCESS;
 }
 
 int main (int argc, char **argv) 
 {
-  HOMURA_ERRCODE status;
-  status = parse_flags(argc,argv);
+  HOMURA_ERRCODE Status;
+  Status = parse_flags(argc,argv);
 
-  if (status == ERRCODE::SUCCESS) { 
-    status = execute_command(argc,argv);
+  if (Status == ERRCODE::SUCCESS) { 
+    Status = execute_command(argc,argv);
   }
 
   if (options::debug_level) {
-    parse_error_exitcode(status);
+    parse_error_exitcode(Status);
   }
 
-  return status;
+  return Status;
 }

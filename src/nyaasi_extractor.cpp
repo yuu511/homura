@@ -104,7 +104,8 @@ const char *nyaasi_extractor::curlHTML(std::string URL)
 }
 
 // pre : must have already called html_parser.create_tree
-inline std::vector<generic_torrent_result> nyaasi_extractor::getTorrents(std::string URL) 
+inline HOMURA_ERRCODE nyaasi_extractor::getTorrents(std::string URL, 
+                                                    std::vector<generic_torrent_result> &result) 
 {
   auto tree = html_parser.get_tree();
 
@@ -113,10 +114,8 @@ inline std::vector<generic_torrent_result> nyaasi_extractor::getTorrents(std::st
   
   const char *tagname = "tr";
   myhtml_collection_t *table = myhtml_get_nodes_by_name(tree,NULL,tagname,strlen(tagname),NULL);
-  std::vector<generic_torrent_result> res = {};
   
   if (table && table->length > 1) {
-    generic_torrent_result torrent = {"","","","",""};
     const char *title_attr = "colspan";
     const char *title_val = "2";
     for (size_t i = 1; i < table->length; ++i){
@@ -164,50 +163,51 @@ inline std::vector<generic_torrent_result> nyaasi_extractor::getTorrents(std::st
          fprintf(stderr,"No torrent found at index %zu \n",i);    
          continue;
        }
-       torrent.name = name;
-       torrent.magnet = magnet;
-       torrent.webpage = URL;
-       res.push_back(torrent);
+       result.push_back({name,magnet,"","",URL});
      }
    }
    myhtml_collection_destroy(table);
-   return res;
+   return ERRCODE::SUCCESS;
 }
 
-std::vector<generic_torrent_result> nyaasi_extractor::downloadPage(std::string URL)
+HOMURA_ERRCODE nyaasi_extractor::downloadPage(std::string URL, 
+                                              std::vector <generic_torrent_result> &results)
 {
   HOMURA_ERRCODE status;
   const char *rawHTML = curlHTML(URL);
 
-  if (!rawHTML) return {};
+  if (!rawHTML) return ERRCODE::FAILED_CURL;
 
   html_parser.reset_tree();
   status = html_parser.create_tree(rawHTML);
-  if ( status != ERRCODE::SUCCESS ) return {};
+  if ( status != ERRCODE::SUCCESS ) return ERRCODE::FAILED_PARSE;
 
-  return getTorrents(URL);
+  return getTorrents(URL,results);
 }
 
 /* nyaa.si has no official api, and we must manually
    find out how many results to expect by sending a request 
    and parsing the query result information */
-std::vector<generic_torrent_result> nyaasi_extractor::downloadFirstPage(std::string searchtag)
+HOMURA_ERRCODE nyaasi_extractor::downloadFirstPage(std::string searchtag,
+                                                   std::vector <generic_torrent_result> &results)
 {
-  HOMURA_ERRCODE status;
+  HOMURA_ERRCODE Status;
   std::replace(searchtag.begin(), searchtag.end(), ' ', '+');
   ref_page = ref_page + searchtag;
 
   const char *rawHTML = curlHTML(ref_page);
 
-  if (!rawHTML) return {};
+  if (!rawHTML) return ERRCODE::FAILED_CURL;
 
   html_parser.reset_tree();
-  status = html_parser.create_tree(rawHTML);
-  if ( status != ERRCODE::SUCCESS ) return {};
+  Status = html_parser.create_tree(rawHTML);
+  if ( Status != ERRCODE::SUCCESS ) return Status;
   
-  parseMetadata();
+  Status = parseMetadata();
 
-  return getTorrents(ref_page);
+  if (Status != ERRCODE::SUCCESS) return Status;
+
+  return getTorrents(ref_page,results);
 }
 
 std::deque<std::string> nyaasi_extractor::getURLs()

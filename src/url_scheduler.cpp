@@ -13,6 +13,7 @@ urlvector url_scheduler::return_table()
 
 HOMURA_ERRCODE url_scheduler::crawl() 
 {
+  HOMURA_ERRCODE Status = ERRCODE::SUCCESS;
   bool finished = false;
   while (!finished) {
     finished = true;
@@ -23,12 +24,15 @@ HOMURA_ERRCODE url_scheduler::crawl()
       }
       finished = false;
       if (table->ready_for_request()) {
-        table->download_next_URL();
+        HOMURA_ERRCODE download = table->download_next_URL();
+        if (download != ERRCODE::SUCCESS) {
+          Status = download;
+        }
       }
     }
   }
 
-  return ERRCODE::SUCCESS;
+  return Status;
 }
 
 void url_scheduler::delay_end()
