@@ -13,6 +13,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <pwd.h>
+#include <algorithm>
 
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>
@@ -52,8 +53,8 @@ namespace homura
     virtual ~url_table_base();
                      
     // builder funcs                      
-    void processURLs_Cache(std::string query, std::deque<std::string> URLs,
-                           size_t expected_results, size_t results_per_page);
+    void addURLs(std::string query, std::deque<std::string> URLs);
+    void findAndProcessCache(std::string query, size_t expected_results, size_t results_per_page);
     void addNewResults(std::string query, std::vector<generic_torrent_result> torrents);    
     //
 

@@ -42,9 +42,11 @@ HOMURA_ERRCODE homura_instance::query_nyaasi(std::string searchtag)
   nyaasi_extractor extractor = tablePtr->parser;
   std::vector<generic_torrent_result> newResults = extractor.downloadFirstPage(searchtag);
 
+  tablePtr->addURLs(searchtag, extractor.getURLs());
   tablePtr->addNewResults(searchtag,newResults);
-  tablePtr->processURLs_Cache( searchtag, extractor.getURLs(),
-                               (size_t)extractor.getExpectedResults(),(size_t)extractor.getResultsPerPage());
+  tablePtr->findAndProcessCache( searchtag, 
+                                 (size_t) extractor.getExpectedResults(),
+                                 (size_t) extractor.getResultsPerPage());
 
   return ret;
 }
