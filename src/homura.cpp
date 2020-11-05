@@ -35,7 +35,8 @@ HOMURA_ERRCODE homura_instance::query_nyaasi(std::string searchtag)
   std::chrono::milliseconds delay(5000);
   int num_retries = 5;
 
-  auto tablePtr = scheduler.template getTable<nyaasi_extractor>(key,delay,num_retries);
+  std::shared_ptr<url_table<nyaasi_extractor>> 
+  tablePtr = scheduler.template getTable<nyaasi_extractor>(key,delay,num_retries);
    
   nyaasi_extractor extractor = tablePtr->parser;
 
@@ -44,8 +45,8 @@ HOMURA_ERRCODE homura_instance::query_nyaasi(std::string searchtag)
 
   if (ret != ERRCODE::SUCCESS) return ret; 
 
-  tablePtr->addURLs(searchtag, extractor.getURLs());
   tablePtr->addNewResults(searchtag,firstPageResults);
+  tablePtr->addURLs(searchtag, extractor.getURLs());
   tablePtr->findAndProcessCache(searchtag, 
                                 (size_t) extractor.getExpectedResults(),
                                 (size_t) extractor.getResultsPerPage());
