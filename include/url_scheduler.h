@@ -15,17 +15,18 @@ namespace homura
   public:
     url_scheduler();
 
-    template <typename extractor> std::shared_ptr<url_table<extractor>> getTable(std::string key,
-                                                                                 std::chrono::milliseconds delay,
-                                                                                 int _num_retries)
+    template <typename extractor> 
+    std::shared_ptr<url_table<extractor>> getTable(std::string key,
+                                                   std::chrono::milliseconds delay,
+                                                   int _num_retries)
     {
       auto find = hashed_url_tables.find(key);
       if (find != hashed_url_tables.end()) {
         return std::dynamic_pointer_cast<url_table<extractor>>(find->second);
       }
 
-      auto table = std::make_shared<url_table<extractor>>(key,delay,_num_retries,extractor());
-      hashed_url_tables[key] = table;
+      auto table = hashed_url_tables.emplace(std::make_pair( key,
+       std::make_shared<url_table<extractor>>(key,delay,_num_retries,extractor()))).first->second;
 
       auto itor = sorted_url_tables.begin();
       while (itor != sorted_url_tables.end()) {
