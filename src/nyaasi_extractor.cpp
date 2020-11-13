@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <regex>
 #include <boost/lexical_cast.hpp>
+#include <string.h>
 #include "nyaasi_extractor.h"
 
 using namespace homura;
@@ -103,6 +104,38 @@ const char *nyaasi_extractor::curlHTML(std::string URL)
   return curler.get_HTML_aschar();
 }
 
+inline std::uint64_t convertToNumber(const char *str) 
+{
+  if (!str) return 0;
+  double base = 0; 
+  char *cpy = strdup(str);
+  char *token = std::strtok(cpy," ");
+  if (token) {
+    base = boost::lexical_cast<double>(token);
+    fprintf(stderr, "base %lf\n",base);
+    token = std::strtok(NULL," "); 
+    if (token) {
+      fprintf(stderr, "unit %s\n",token);
+      if (strcmp(token,"KiB") == 0 ) {
+        base = base * (2^10);
+      }
+      else if (strcmp(token,"MiB") == 0 ) {
+        base = base * (2^20);
+      }
+      else if (strcmp(token,"GiB") == 0 ) {
+        base = base * (2^30);
+      }
+      else if (strcmp(token,"TiB") == 0 ) {
+        base = base * (2^40);
+      }
+    }
+  }
+
+  free(cpy);
+  fprintf(stderr, "size in bytes %lf\n",base);
+  return (std::uint64_t) base;
+}
+
 // pre : must have already called html_parser.create_tree
 inline HOMURA_ERRCODE nyaasi_extractor::getTorrents(std::string URL, 
                                                     std::vector<generic_torrent_result> &result) 
@@ -111,6 +144,7 @@ inline HOMURA_ERRCODE nyaasi_extractor::getTorrents(std::string URL,
 
   const char *name = NULL;
   const char *magnet = NULL;
+  std::uint64_t size = 0;
   
   const char *tagname = "tr";
   myhtml_collection_t *table = myhtml_get_nodes_by_name(tree,NULL,tagname,strlen(tagname),NULL);
@@ -175,18 +209,14 @@ inline HOMURA_ERRCODE nyaasi_extractor::getTorrents(std::string URL,
            if (name) fprintf(stderr,"magnetstr %s \n",magnetstr);
          }
        }
-// myhtml_collection_t*
-// myhtml_get_nodes_by_name_in_scope(myhtml_tree_t* tree, myhtml_collection_t *collection,
-//                                   myhtml_tree_node_t *node, const char* html, size_t length,
-//                                   mystatus_t *status);
-
-
+       size = convertToNumber(magnetstr);
+       myhtml_collection_destroy(td_table);
   
-       if (!magnet || !name){
+       if (!magnet || !name) {
          fprintf(stderr,"No torrent found at index %zu \n",i);    
          continue;
        }
-       result.push_back({name,magnet,0,"",URL});
+       result.push_back({name,magnet,size,"",URL});
      }
    }
    myhtml_collection_destroy(table);
