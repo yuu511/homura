@@ -14,22 +14,27 @@
 #include <sys/types.h>
 #include <pwd.h>
 #include <algorithm>
+#include <cstdint>
 
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/serialization/serialization.hpp>
 #include <boost/serialization/vector.hpp>
-
+#include <boost/serialization/version.hpp>
 
 #include "errlib.h"
 
+#define GENERIC_TORRENT_RESULT_VERSION 1
+
+namespace homura { struct generic_torrent_result; }
+BOOST_CLASS_VERSION(homura::generic_torrent_result,GENERIC_TORRENT_RESULT_VERSION);
 
 namespace homura 
 {
   struct generic_torrent_result {
     std::string name;
     std::string magnet;
-    std::string size;
+    std::uint64_t size; // bytes
     std::string date;
     std::string webpage;
 
@@ -139,6 +144,5 @@ namespace homura
 
     extractor parser;
   };
-
 }
 #endif

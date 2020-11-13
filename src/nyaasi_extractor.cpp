@@ -163,7 +163,7 @@ inline HOMURA_ERRCODE nyaasi_extractor::getTorrents(std::string URL,
          fprintf(stderr,"No torrent found at index %zu \n",i);    
          continue;
        }
-       result.push_back({name,magnet,"","",URL});
+       result.push_back({name,magnet,0,"",URL});
      }
    }
    myhtml_collection_destroy(table);
