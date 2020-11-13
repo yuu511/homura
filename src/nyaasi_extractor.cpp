@@ -158,6 +158,29 @@ inline HOMURA_ERRCODE nyaasi_extractor::getTorrents(std::string URL,
          }
        }
        myhtml_collection_destroy(magnets);
+
+       const char *sz_k = "td";
+       const char *magnetstr;
+       myhtml_collection_t *td_table = 
+         myhtml_get_nodes_by_name_in_scope(tree, NULL,
+                                           table->list[i], sz_k, strlen(sz_k),
+                                           NULL);
+
+       if (td_table && td_table->length > 3 && td_table->list) {
+         myhtml_tree_node_t *child = myhtml_node_child(td_table->list[3]);
+         if (child) {
+           magnetstr = myhtml_node_text(child,NULL);   
+         }
+         if (options::debug_level > 1) {
+           if (name) fprintf(stderr,"magnetstr %s \n",magnetstr);
+         }
+       }
+// myhtml_collection_t*
+// myhtml_get_nodes_by_name_in_scope(myhtml_tree_t* tree, myhtml_collection_t *collection,
+//                                   myhtml_tree_node_t *node, const char* html, size_t length,
+//                                   mystatus_t *status);
+
+
   
        if (!magnet || !name){
          fprintf(stderr,"No torrent found at index %zu \n",i);    
