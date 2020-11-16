@@ -14,6 +14,7 @@ namespace homura {
     int number_pages = 0;
     bool force_refresh_cache = false;
     bool wait_end = false;
+    bool sort_by_size = false;
     // Bit 0 (LSB) : print magnet, default = 1
     // Bit 1 : print name, default = 1
     std::bitset<2> print(0x3);

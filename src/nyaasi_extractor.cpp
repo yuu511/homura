@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <regex>
 #include <boost/lexical_cast.hpp>
+#include <cmath>
 #include <string.h>
 #include "nyaasi_extractor.h"
 
@@ -108,32 +109,55 @@ inline std::uint64_t convertToNumber(const char *str)
 {
   if (!str) return 0;
   double base = 0; 
+  std::uint64_t ret = 0;
+  std::uint64_t factor = 1;
+
   char *cpy = strdup(str);
   char *token = std::strtok(cpy," ");
   if (token) {
     base = boost::lexical_cast<double>(token);
-    fprintf(stderr, "base %lf\n",base);
+
     token = std::strtok(NULL," "); 
+
+    while ( std::floor(base) != base ) {
+      base *= 10;
+      factor *= 10;
+
+      if (options::debug_level > 1) {
+        fprintf(stderr, "base %lf\n",base);
+      }
+    }
+
     if (token) {
-      fprintf(stderr, "unit %s\n",token);
       if (strcmp(token,"KiB") == 0 ) {
-        base = base * (2^10);
+        ret = (std::uint64_t) base * std::pow(2,10);
       }
       else if (strcmp(token,"MiB") == 0 ) {
-        base = base * (2^20);
+        ret = (std::uint64_t) base * std::pow(2,20);
       }
       else if (strcmp(token,"GiB") == 0 ) {
-        base = base * (2^30);
+        ret = (std::uint64_t) base * std::pow(2,30);
       }
       else if (strcmp(token,"TiB") == 0 ) {
-        base = base * (2^40);
+        ret = (std::uint64_t) base * std::pow(2,40);
       }
+      else {
+        ret = (std::uint64_t) base;
+      }
+      free(cpy);
+      ret /= factor;
+    }
+    else {
+      free(cpy);
+      return (std::uint64_t) base;
     }
   }
 
-  free(cpy);
-  fprintf(stderr, "size in bytes %lf\n",base);
-  return (std::uint64_t) base;
+  if (options::debug_level > 1) {
+    fprintf(stderr, "size in bytes 0x%lx\n",ret);
+  }
+
+  return ret;
 }
 
 // pre : must have already called html_parser.create_tree
@@ -144,6 +168,7 @@ inline HOMURA_ERRCODE nyaasi_extractor::getTorrents(std::string URL,
 
   const char *name = NULL;
   const char *magnet = NULL;
+  const char *sizestr = NULL;
   std::uint64_t size = 0;
   
   const char *tagname = "tr";
@@ -194,7 +219,6 @@ inline HOMURA_ERRCODE nyaasi_extractor::getTorrents(std::string URL,
        myhtml_collection_destroy(magnets);
 
        const char *sz_k = "td";
-       const char *magnetstr;
        myhtml_collection_t *td_table = 
          myhtml_get_nodes_by_name_in_scope(tree, NULL,
                                            table->list[i], sz_k, strlen(sz_k),
@@ -203,20 +227,27 @@ inline HOMURA_ERRCODE nyaasi_extractor::getTorrents(std::string URL,
        if (td_table && td_table->length > 3 && td_table->list) {
          myhtml_tree_node_t *child = myhtml_node_child(td_table->list[3]);
          if (child) {
-           magnetstr = myhtml_node_text(child,NULL);   
+           sizestr = myhtml_node_text(child,NULL);   
          }
          if (options::debug_level > 1) {
-           if (name) fprintf(stderr,"magnetstr %s \n",magnetstr);
+           if (name) fprintf(stderr,"sizestr %s \n",sizestr);
          }
        }
-       size = convertToNumber(magnetstr);
+
+       if (sizestr) {
+         size = convertToNumber(sizestr);
+       }
+       else {
+         sizestr = "";
+       }
+
        myhtml_collection_destroy(td_table);
   
        if (!magnet || !name) {
          fprintf(stderr,"No torrent found at index %zu \n",i);    
          continue;
        }
-       result.push_back({name,magnet,size,"",URL});
+       result.push_back({name,magnet,sizestr,size,"",URL});
      }
    }
    myhtml_collection_destroy(table);

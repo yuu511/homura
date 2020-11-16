@@ -229,14 +229,21 @@ void url_table_base::do_caching_operations()
 void url_table_base::print()
 {
   for (auto &queries : results) {
-
     if (options::print.test(1)) {
       fprintf (stdout, "=== Searchterm %s ===\n\n\n", queries.first.c_str());
+    }
+
+    if (options::sort_by_size) {
+      std::sort(queries.second.begin(),queries.second.end(),
+        [](const generic_torrent_result &a, const generic_torrent_result &b) -> bool {
+          return a.sizebytes > b.sizebytes; 
+        });
     }
 
     for (auto &entry : queries.second) {
       if (options::print.test(1)) {
         fprintf(stdout,"\n%s\n\n",entry.name.c_str());
+        fprintf(stdout,"%s\n\n",entry.sizestring.c_str());
       }
       if (options::print.test(0)) {
         fprintf(stdout,"%s\n",entry.magnet.c_str());

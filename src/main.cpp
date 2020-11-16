@@ -42,6 +42,7 @@ void print_usage()
   printopt(5,"[-p,--num_pages] NUMBER"," : load up to [NUMBER] pages ");
   printopt(5,"","   [NUMBER] is a positive number in decimal only");
   printopt(5,"[-w,--wait_end]"," : respect request delay at end of torrent downloading");
+  printopt(5,"[-s,--size]"," : sort and print results by size.");
   printopt(5,"[--help]"," : print out usage message");
   fprintf (stderr,"\n");
   println(5,"OPTIONS:");
@@ -87,9 +88,10 @@ HOMURA_ERRCODE parse_flags (int argc, char **argv)
        { "torrents_only" , no_argument ,  0    , 't' },
        { "num_pages" , required_argument ,  0  , 'p' },
        { "delay_end" , no_argument ,  0        , 'w' },
+       { "size"      , no_argument ,  0        , 's' },
        {  NULL     , 0                 , NULL  ,  0  }
      };
-     opt = getopt_long(argc,argv, "vdhr:ctp:w",
+     opt = getopt_long(argc,argv, "vdhr:ctp:ws",
                  long_options, &option_index);
      if (opt == -1)		 
        break;
@@ -128,6 +130,9 @@ HOMURA_ERRCODE parse_flags (int argc, char **argv)
          break;
        case 'w':
          options::wait_end = true;
+         break;
+       case 's':
+         options::sort_by_size = true;
          break;
        case '?':
          errprintf(ERRCODE::FAILED_ARGPARSE,"incorrect option %c\n",optopt);

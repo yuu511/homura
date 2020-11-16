@@ -24,7 +24,7 @@
 
 #include "errlib.h"
 
-#define GENERIC_TORRENT_RESULT_VERSION 1
+#define GENERIC_TORRENT_RESULT_VERSION 2
 
 namespace homura { struct generic_torrent_result; }
 BOOST_CLASS_VERSION(homura::generic_torrent_result,GENERIC_TORRENT_RESULT_VERSION);
@@ -34,7 +34,8 @@ namespace homura
   struct generic_torrent_result {
     std::string name;
     std::string magnet;
-    std::uint64_t size; // bytes
+    std::string sizestring;
+    std::uint64_t sizebytes;
     std::string date;
     std::string webpage;
 
@@ -44,7 +45,10 @@ namespace homura
     {
       ar & name;
       ar & magnet;
-      ar & size;
+      ar & sizestring;
+      if (version > 1) {
+        ar & sizebytes; 
+      }
       ar & date;
       ar & webpage;
     }

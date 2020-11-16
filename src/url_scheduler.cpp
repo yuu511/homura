@@ -31,7 +31,6 @@ HOMURA_ERRCODE url_scheduler::crawl()
       }
     }
   }
-
   return Status;
 }
 
