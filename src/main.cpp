@@ -42,6 +42,7 @@ void print_usage()
   printopt(5,"[-p,--num_pages] NUMBER"," : load up to [NUMBER] pages ");
   printopt(5,"","   [NUMBER] is a positive number in decimal only");
   printopt(5,"[-w,--wait_end]"," : respect request delay at end of torrent downloading");
+  printopt(5,"[-s,--size]"," : sort and print results by size.");
   printopt(5,"[--help]"," : print out usage message");
   fprintf (stderr,"\n");
   println(5,"OPTIONS:");
@@ -87,9 +88,10 @@ HOMURA_ERRCODE parse_flags (int argc, char **argv)
        { "torrents_only" , no_argument ,  0    , 't' },
        { "num_pages" , required_argument ,  0  , 'p' },
        { "delay_end" , no_argument ,  0        , 'w' },
+       { "size"      , no_argument ,  0        , 's' },
        {  NULL     , 0                 , NULL  ,  0  }
      };
-     opt = getopt_long(argc,argv, "vdhr:ctp:w",
+     opt = getopt_long(argc,argv, "vdhr:ctp:ws",
                  long_options, &option_index);
      if (opt == -1)		 
        break;
@@ -129,6 +131,9 @@ HOMURA_ERRCODE parse_flags (int argc, char **argv)
        case 'w':
          options::wait_end = true;
          break;
+       case 's':
+         options::sort_by_size = true;
+         break;
        case '?':
          errprintf(ERRCODE::FAILED_ARGPARSE,"incorrect option %c\n",optopt);
          errprintf(ERRCODE::FAILED_ARGPARSE,"for usage: homura --help\n");
@@ -154,11 +159,15 @@ HOMURA_ERRCODE execute_command(int argc, char **argv)
       errprintf(ERRCODE::FAILED_ARGPARSE,"Incorrect # of options for search\n"); 
       return ERRCODE::FAILED_ARGPARSE;
     }
-    HOMURA_ERRCODE status; 
+    HOMURA_ERRCODE Status; 
     options::search_term = std::string(argv[search_index]);
-    status = homuhomu.query_nyaasi(options::search_term);
-    if (status != ERRCODE::SUCCESS) return status;
-    status = homuhomu.crawl();
+
+    Status = homuhomu.query_nyaasi(options::search_term);
+    if (Status != ERRCODE::SUCCESS) return Status;
+
+    Status = homuhomu.crawl();
+    if (Status != ERRCODE::SUCCESS) return Status;
+
     homuhomu.print_tables();
     if (options::wait_end) {
       homuhomu.wait_at_end();
@@ -167,22 +176,23 @@ HOMURA_ERRCODE execute_command(int argc, char **argv)
   else {
     errprintf(ERRCODE::FAILED_INVALID_COMMAND,"Invalid command \"%s\""
     ", use homura --help for all possible options\n",options::command.c_str());
+    return ERRCODE::FAILED_INVALID_COMMAND;
   }
   return ERRCODE::SUCCESS;
 }
 
 int main (int argc, char **argv) 
 {
-  HOMURA_ERRCODE status;
-  status = parse_flags(argc,argv);
+  HOMURA_ERRCODE Status;
+  Status = parse_flags(argc,argv);
 
-  if (status == ERRCODE::SUCCESS) { 
-    status = execute_command(argc,argv);
+  if (Status == ERRCODE::SUCCESS) { 
+    Status = execute_command(argc,argv);
   }
 
   if (options::debug_level) {
-    parse_error_exitcode(status);
+    parse_error_exitcode(Status);
   }
 
-  return status;
+  return Status;
 }

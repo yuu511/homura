@@ -33,6 +33,7 @@ namespace homura
     extern int number_pages;
     extern bool force_refresh_cache;
     extern bool wait_end;
+    extern bool sort_by_size;
     extern std::bitset<2> print;
     extern std::string regex;
     extern std::string search_term;

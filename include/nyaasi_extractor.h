@@ -21,12 +21,12 @@ namespace homura {
   class nyaasi_extractor {
   public:
     nyaasi_extractor();
-    std::vector<generic_torrent_result> downloadPage(std::string URL); 
-    std::vector<generic_torrent_result> downloadFirstPage(std::string searchtag);
+    HOMURA_ERRCODE downloadPage(std::string URL, std::vector<generic_torrent_result> &results); 
+    HOMURA_ERRCODE downloadFirstPage(std::string searchtag,std::vector<generic_torrent_result> &results);
     const char *curlHTML(std::string URL);
     HOMURA_ERRCODE generateURLs();
     std::deque<std::string> getURLs();
-    inline std::vector<generic_torrent_result> getTorrents(std::string URL);
+    inline HOMURA_ERRCODE getTorrents(std::string URL, std::vector<generic_torrent_result> &result);
     int getExpectedResults();
     int getResultsPerPage();
   private:

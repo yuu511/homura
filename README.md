@@ -11,6 +11,7 @@ Dependencies:
 
 * libcurl 
 * myHTML (https://github.com/lexborisov/myhtml)
+* sqlite3
 * pthreads
 * boost (serialization)
 

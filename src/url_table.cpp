@@ -9,8 +9,22 @@ url_table_base::url_table_base(std::string _website,
 : website(_website),
   delay(_delay),
   last_request(std::chrono::steady_clock::now()),
+  num_retries(0),
   cache_done(false)
 {
+}
+
+
+url_table_base::url_table_base(std::string _website,
+                               std::chrono::milliseconds _delay,
+                               int _num_retries)
+: website(_website),
+  delay(_delay),
+  last_request(std::chrono::steady_clock::now()),
+  num_retries(_num_retries),
+  cache_done(false)
+{
+  if (num_retries < 0 ) num_retries = 0;
 }
 
 bool url_table_base::ready_for_request()
@@ -114,18 +128,27 @@ HOMURA_ERRCODE url_table_base::cache()
   return ERRCODE::SUCCESS;
 }
 
-void url_table_base::processURLs_Cache(std::string query,
-                                       std::deque<std::string> newURLs, 
-                                       size_t expected_results, size_t results_per_page)
+void url_table_base::addURLs(std::string query, std::deque<std::string> URLs) 
 {
-  std::filesystem::path cachedir = get_cache_dir();
-  if (cachedir.empty() || options::force_refresh_cache || results_per_page == 0 || options::number_pages) {
-    if (!newURLs.empty()) {
-      remainingURLs.push_back(std::make_pair(query,newURLs));
-    }
+  if (!URLs.empty())
+    remainingURLs.push_back(std::make_pair(query,URLs)); 
+}
+
+void url_table_base::findAndProcessCache(std::string query, size_t expected_results, size_t results_per_page)
+{
+  if (options::force_refresh_cache || results_per_page == 0 || !expected_results || !results_per_page) {
     return;
   }
 
+  auto it = std::find_if(remainingURLs.rbegin(),
+                         remainingURLs.rend(),
+                         [&found = query]
+                         (const urlpair& current) -> bool { return current.first == found; });
+
+  if (it == remainingURLs.rend()) return; // no urls matching query
+
+  std::filesystem::path cachedir = get_cache_dir();
+  if (cachedir.empty()) return;
   std::filesystem::path cachepath = generate_cache_fullpath(cachedir,query);
 
   if ( std::filesystem::exists (cachepath) && 
@@ -144,7 +167,7 @@ void url_table_base::processURLs_Cache(std::string query,
       fprintf(stderr,"Amount of expected results same as last time, "
                      "using cached results for \"%s\"\n",query.c_str());
       results[query] = cachedresults;
-      newURLs = std::deque<std::string>(); // clear
+      remainingURLs.erase((it+1).base());  
     }
     
     else if (cachedresults.size() < expected_results) {
@@ -154,13 +177,13 @@ void url_table_base::processURLs_Cache(std::string query,
         size_t remaining_cache = cachedresults.size();
         
         if (tail_page <= remaining_cache) {
-          if (tail_page && !newURLs.empty()) {
-              newURLs.pop_back();
+          if (tail_page && !it->second.empty()) {
+              it->second.pop_back();
               remaining_cache -= tail_page;
           }
 
-          while (remaining_cache > results_per_page && !newURLs.empty()) {
-            newURLs.pop_back();
+          while (remaining_cache > results_per_page && !it->second.empty()) {
+            it->second.pop_back();
             remaining_cache -= results_per_page;
           }
 
@@ -177,11 +200,6 @@ void url_table_base::processURLs_Cache(std::string query,
       fprintf(stderr,"cachefile %s not found\n",cachepath.c_str());
     }
   }
-
-  if (!newURLs.empty()) {
-    remainingURLs.push_back(std::make_pair(query,newURLs));
-  }
-
 }
 
 void url_table_base::decache()
@@ -212,14 +230,21 @@ void url_table_base::do_caching_operations()
 void url_table_base::print()
 {
   for (auto &queries : results) {
-
     if (options::print.test(1)) {
       fprintf (stdout, "=== Searchterm %s ===\n\n\n", queries.first.c_str());
+    }
+
+    if (options::sort_by_size) {
+      std::sort(queries.second.begin(),queries.second.end(),
+        [](const generic_torrent_result &a, const generic_torrent_result &b) -> bool {
+          return a.sizebytes > b.sizebytes; 
+        });
     }
 
     for (auto &entry : queries.second) {
       if (options::print.test(1)) {
         fprintf(stdout,"\n%s\n\n",entry.name.c_str());
+        fprintf(stdout,"%s\n\n",entry.sizestring.c_str());
       }
       if (options::print.test(0)) {
         fprintf(stdout,"%s\n",entry.magnet.c_str());

@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <regex>
 #include <boost/lexical_cast.hpp>
+#include <cmath>
+#include <string.h>
 #include "nyaasi_extractor.h"
 
 using namespace homura;
@@ -103,20 +105,76 @@ const char *nyaasi_extractor::curlHTML(std::string URL)
   return curler.get_HTML_aschar();
 }
 
+inline std::uint64_t convertToNumber(const char *str) 
+{
+  if (!str) return 0;
+  double base = 0; 
+  std::uint64_t ret = 0;
+  std::uint64_t factor = 1;
+
+  char *cpy = strdup(str);
+  char *token = std::strtok(cpy," ");
+  if (token) {
+    base = boost::lexical_cast<double>(token);
+
+    token = std::strtok(NULL," "); 
+
+    while ( std::floor(base) != base ) {
+      base *= 10;
+      factor *= 10;
+
+      if (options::debug_level > 1) {
+        fprintf(stderr, "base %lf\n",base);
+      }
+    }
+
+    if (token) {
+      if (strcmp(token,"KiB") == 0 ) {
+        ret = (std::uint64_t) base * std::pow(2,10);
+      }
+      else if (strcmp(token,"MiB") == 0 ) {
+        ret = (std::uint64_t) base * std::pow(2,20);
+      }
+      else if (strcmp(token,"GiB") == 0 ) {
+        ret = (std::uint64_t) base * std::pow(2,30);
+      }
+      else if (strcmp(token,"TiB") == 0 ) {
+        ret = (std::uint64_t) base * std::pow(2,40);
+      }
+      else {
+        ret = (std::uint64_t) base;
+      }
+      free(cpy);
+      ret /= factor;
+    }
+    else {
+      free(cpy);
+      return (std::uint64_t) base;
+    }
+  }
+
+  if (options::debug_level > 1) {
+    fprintf(stderr, "size in bytes 0x%lx\n",ret);
+  }
+
+  return ret;
+}
+
 // pre : must have already called html_parser.create_tree
-inline std::vector<generic_torrent_result> nyaasi_extractor::getTorrents(std::string URL) 
+inline HOMURA_ERRCODE nyaasi_extractor::getTorrents(std::string URL, 
+                                                    std::vector<generic_torrent_result> &result) 
 {
   auto tree = html_parser.get_tree();
 
   const char *name = NULL;
   const char *magnet = NULL;
+  const char *sizestr = NULL;
+  std::uint64_t size = 0;
   
   const char *tagname = "tr";
   myhtml_collection_t *table = myhtml_get_nodes_by_name(tree,NULL,tagname,strlen(tagname),NULL);
-  std::vector<generic_torrent_result> res = {};
   
   if (table && table->length > 1) {
-    generic_torrent_result torrent = {"","","","",""};
     const char *title_attr = "colspan";
     const char *title_val = "2";
     for (size_t i = 1; i < table->length; ++i){
@@ -159,55 +217,81 @@ inline std::vector<generic_torrent_result> nyaasi_extractor::getTorrents(std::st
          }
        }
        myhtml_collection_destroy(magnets);
+
+       const char *sz_k = "td";
+       myhtml_collection_t *td_table = 
+         myhtml_get_nodes_by_name_in_scope(tree, NULL,
+                                           table->list[i], sz_k, strlen(sz_k),
+                                           NULL);
+
+       if (td_table && td_table->length > 3 && td_table->list) {
+         myhtml_tree_node_t *child = myhtml_node_child(td_table->list[3]);
+         if (child) {
+           sizestr = myhtml_node_text(child,NULL);   
+         }
+         if (options::debug_level > 1) {
+           if (name) fprintf(stderr,"sizestr %s \n",sizestr);
+         }
+       }
+
+       if (sizestr) {
+         size = convertToNumber(sizestr);
+       }
+       else {
+         sizestr = "";
+       }
+
+       myhtml_collection_destroy(td_table);
   
-       if (!magnet || !name){
+       if (!magnet || !name) {
          fprintf(stderr,"No torrent found at index %zu \n",i);    
          continue;
        }
-       torrent.name = name;
-       torrent.magnet = magnet;
-       torrent.webpage = URL;
-       res.push_back(torrent);
+       result.push_back({name,magnet,sizestr,size,"",URL});
      }
    }
    myhtml_collection_destroy(table);
-   return res;
+   return ERRCODE::SUCCESS;
 }
 
-std::vector<generic_torrent_result> nyaasi_extractor::downloadPage(std::string URL)
+HOMURA_ERRCODE nyaasi_extractor::downloadPage(std::string URL, 
+                                              std::vector <generic_torrent_result> &results)
 {
   HOMURA_ERRCODE status;
   const char *rawHTML = curlHTML(URL);
 
-  if (!rawHTML) return {};
+  if (!rawHTML) return ERRCODE::FAILED_CURL;
 
   html_parser.reset_tree();
   status = html_parser.create_tree(rawHTML);
-  if ( status != ERRCODE::SUCCESS ) return {};
+  if ( status != ERRCODE::SUCCESS ) return ERRCODE::FAILED_PARSE;
 
-  return getTorrents(URL);
+  return getTorrents(URL,results);
 }
 
 /* nyaa.si has no official api, and we must manually
    find out how many results to expect by sending a request 
    and parsing the query result information */
-std::vector<generic_torrent_result> nyaasi_extractor::downloadFirstPage(std::string searchtag)
+HOMURA_ERRCODE nyaasi_extractor::downloadFirstPage(std::string searchtag,
+                                                   std::vector <generic_torrent_result> &results)
 {
-  HOMURA_ERRCODE status;
+  HOMURA_ERRCODE Status;
   std::replace(searchtag.begin(), searchtag.end(), ' ', '+');
   ref_page = ref_page + searchtag;
 
   const char *rawHTML = curlHTML(ref_page);
 
-  if (!rawHTML) return {};
+  if (!rawHTML) return ERRCODE::FAILED_CURL;
 
   html_parser.reset_tree();
-  status = html_parser.create_tree(rawHTML);
-  if ( status != ERRCODE::SUCCESS ) return {};
+  Status = html_parser.create_tree(rawHTML);
+  if ( Status != ERRCODE::SUCCESS ) return Status;
   
-  parseMetadata();
+  Status = parseMetadata();
 
-  return getTorrents(ref_page);
+  if (Status != ERRCODE::SUCCESS) return Status;
+
+  return getTorrents(ref_page,results);
 }
 
 std::deque<std::string> nyaasi_extractor::getURLs()
