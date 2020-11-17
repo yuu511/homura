@@ -130,7 +130,8 @@ HOMURA_ERRCODE url_table_base::cache()
 
 void url_table_base::addURLs(std::string query, std::deque<std::string> URLs) 
 {
-  remainingURLs.push_back(std::make_pair(query,URLs)); 
+  if (!URLs.empty())
+    remainingURLs.push_back(std::make_pair(query,URLs)); 
 }
 
 void url_table_base::findAndProcessCache(std::string query, size_t expected_results, size_t results_per_page)
