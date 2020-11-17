@@ -166,72 +166,115 @@ inline HOMURA_ERRCODE nyaasi_extractor::getTorrents(std::string URL,
 {
   auto tree = html_parser.get_tree();
 
-  const char *name = NULL;
+  const char *ttype = NULL;
+  const char *title = NULL;
   const char *magnet = NULL;
   const char *sizestr = NULL;
+  const char *datestr = NULL;
   std::uint64_t size = 0;
   
   const char *tagname = "tr";
   myhtml_collection_t *table = myhtml_get_nodes_by_name(tree,NULL,tagname,strlen(tagname),NULL);
   
   if (table && table->length > 1) {
+    const char *td = "td";
+    const char *ftype = "title";
     const char *title_attr = "colspan";
     const char *title_val = "2";
+    const char *mag_k = "href";
+    const char *mag_v = "magnet";
+
     for (size_t i = 1; i < table->length; ++i){
-      myhtml_collection_t *title_table1 =
-      myhtml_get_nodes_by_attribute_value(tree, NULL,
-                                          table->list[i], true,
-                                          title_attr, strlen(title_attr),
-                                          title_val, strlen(title_val),
-                                          NULL);
-      if (title_table1 && title_table1->length && title_table1->list) {
-        myhtml_tree_node_t *child = myhtml_node_last_child(title_table1->list[0]);
-        child = myhtml_node_prev(child);
-        if (child) {
-            child = myhtml_node_child(child);
-            name = myhtml_node_text(child,NULL);
-            if (options::debug_level > 1) {
-              if (name) fprintf(stderr,"name %s \n",name);
-            }
+       std::string combinedname;
+       myhtml_collection_t *td_table = 
+         myhtml_get_nodes_by_name_in_scope(tree, NULL,
+                                           table->list[i], td, strlen(td),
+                                           NULL);
+
+       if (td_table && td_table->length > 4 && td_table->list) {
+       // NAME
+         // FILETYPE (subbed,raw,etc)
+        myhtml_collection_t *torrent_type = 
+          myhtml_get_nodes_by_attribute_key(tree, NULL,
+                                            td_table->list[0], ftype, strlen(ftype),
+                                            NULL);
+
+        if (torrent_type && torrent_type->length && torrent_type->list) {
+           myhtml_tree_attr_t *attr = myhtml_node_attribute_first(torrent_type->list[0]);
+           if (attr) {
+             attr = myhtml_attribute_next(attr);
+             if (attr)
+               ttype = myhtml_attribute_value(attr, NULL);
+           }
+           combinedname.append("(");
+           combinedname.append(ttype);
+           combinedname.append(") ");
         }
-      }
-      myhtml_collection_destroy(title_table1);
-      const char *mag_k = "href";
-      const char *mag_v = "magnet";
-      myhtml_collection_t *magnets = 
-      myhtml_get_nodes_by_attribute_value_contain(tree, NULL, 
-                                                  table->list[i], true,
-                                                  mag_k, strlen(mag_k),
-                                                  mag_v, strlen(mag_v), 
-                                                  NULL);
-      
-       if(magnets && magnets->list && magnets->length) {
-         for (size_t i = 0; i < magnets->length; i++){
-           myhtml_tree_attr_t *attr = myhtml_node_attribute_first(magnets->list[i]);
-           magnet = myhtml_attribute_value(attr,NULL);
-           if (options::debug_level > 1) {
-             if (magnet) {
-               fprintf(stderr,"magnet : %s \n\n",magnet);
+        myhtml_collection_destroy(torrent_type);
+
+        // TITLE
+        myhtml_collection_t *title_table = 
+        myhtml_get_nodes_by_attribute_value(tree, NULL,
+                                            td_table->list[1], true,
+                                            title_attr, strlen(title_attr),
+                                            title_val, strlen(title_val),
+                                            NULL);
+        if (title_table && title_table->length && title_table->list) {
+          myhtml_tree_node_t *child = myhtml_node_last_child(title_table->list[0]);
+          child = myhtml_node_prev(child);
+          if (child) {
+              child = myhtml_node_child(child);
+              title = myhtml_node_text(child,NULL);
+              if (title) {
+                combinedname.append(title);
+              }
+              if (options::debug_level > 1) {
+                if (title) fprintf(stderr,"title %s \n",title);
+              }
+          }
+        }
+        myhtml_collection_destroy(title_table);
+
+        // TORRENT (MAGNET)
+        myhtml_collection_t *magnets = 
+        myhtml_get_nodes_by_attribute_value_contain(tree, NULL, 
+                                                    td_table->list[2], true,
+                                                    mag_k, strlen(mag_k),
+                                                    mag_v, strlen(mag_v), 
+                                                    NULL);
+        
+         if(magnets && magnets->list && magnets->length) {
+           for (size_t i = 0; i < magnets->length; i++){
+             myhtml_tree_attr_t *attr = myhtml_node_attribute_first(magnets->list[i]);
+             magnet = myhtml_attribute_value(attr,NULL);
+             if (options::debug_level > 1) {
+               if (magnet) {
+                 fprintf(stderr,"magnet : %s \n\n",magnet);
+               }
              }
            }
          }
-       }
-       myhtml_collection_destroy(magnets);
+         myhtml_collection_destroy(magnets);
 
-       const char *sz_k = "td";
-       myhtml_collection_t *td_table = 
-         myhtml_get_nodes_by_name_in_scope(tree, NULL,
-                                           table->list[i], sz_k, strlen(sz_k),
-                                           NULL);
 
-       if (td_table && td_table->length > 3 && td_table->list) {
+         // SIZE
          myhtml_tree_node_t *child = myhtml_node_child(td_table->list[3]);
          if (child) {
            sizestr = myhtml_node_text(child,NULL);   
          }
          if (options::debug_level > 1) {
-           if (name) fprintf(stderr,"sizestr %s \n",sizestr);
+           if (sizestr) fprintf(stderr,"sizestr %s \n",sizestr);
          }
+
+         // DATE
+         child = myhtml_node_child(td_table->list[4]);
+         if (child) {
+           datestr = myhtml_node_text(child,NULL);   
+         }
+         if (options::debug_level > 1) {
+           if (datestr) fprintf(stderr,"datestr %s \n",datestr);
+         }
+
        }
 
        if (sizestr) {
@@ -243,11 +286,12 @@ inline HOMURA_ERRCODE nyaasi_extractor::getTorrents(std::string URL,
 
        myhtml_collection_destroy(td_table);
   
-       if (!magnet || !name) {
+       if (!magnet || !title || !sizestr || !datestr) {
          fprintf(stderr,"No torrent found at index %zu \n",i);    
          continue;
        }
-       result.push_back({name,magnet,sizestr,size,"",URL});
+
+       result.push_back({combinedname, magnet, sizestr, size, datestr, URL});
      }
    }
    myhtml_collection_destroy(table);
