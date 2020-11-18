@@ -11,9 +11,8 @@ Dependencies:
 
 * libcurl 
 * myHTML (https://github.com/lexborisov/myhtml)
-* sqlite3
-* pthreads
 * boost (serialization)
+* pthreads
 
 
 libcurl is expected to be compiled with openSSL.
