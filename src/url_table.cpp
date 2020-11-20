@@ -241,13 +241,6 @@ void url_table_base::print()
         });
     }
 
-    if (options::sort_by_size) {
-      std::sort(queries.second.begin(),queries.second.end(),
-        [](const generic_torrent_result &a, const generic_torrent_result &b) -> bool {
-          return a.sizebytes > b.sizebytes; 
-        });
-    }
-
     for (auto &entry : queries.second) {
       if (options::print.test(1)) {
         fprintf(stdout,"\n%s\n\n",entry.name.c_str());

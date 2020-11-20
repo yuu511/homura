@@ -30,7 +30,7 @@ HOMURA_ERRCODE homura_instance::crawl()
 
 HOMURA_ERRCODE homura_instance::query_nyaasi(std::string searchtag) 
 {
-  HOMURA_ERRCODE ret = ERRCODE::SUCCESS;
+  HOMURA_ERRCODE Status = ERRCODE::SUCCESS;
   static const std::string key= "nyaa.si";
   std::chrono::milliseconds delay(5000);
   int num_retries = 5;
@@ -41,9 +41,9 @@ HOMURA_ERRCODE homura_instance::query_nyaasi(std::string searchtag)
   nyaasi_extractor extractor = tablePtr->parser;
 
   std::vector<generic_torrent_result> firstPageResults;
-  ret = extractor.downloadFirstPage(searchtag,firstPageResults);
+  Status = extractor.downloadFirstPage(searchtag,firstPageResults);
 
-  if (ret != ERRCODE::SUCCESS) return ret; 
+  if (Status != ERRCODE::SUCCESS) return Status; 
 
   tablePtr->addNewResults(searchtag,firstPageResults);
   tablePtr->addURLs(searchtag, extractor.getURLs());
@@ -51,7 +51,7 @@ HOMURA_ERRCODE homura_instance::query_nyaasi(std::string searchtag)
                                 (size_t) extractor.getExpectedResults(),
                                 (size_t) extractor.getResultsPerPage());
 
-  return ret;
+  return Status;
 }
 
 void homura_instance::print_tables() 
