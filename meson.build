@@ -5,13 +5,12 @@ cc = meson.get_compiler('cpp')
 dep_thread = dependency('threads')
 dep_curl = dependency('libcurl')
 dep_boost = dependency('boost', modules : ['serialization'])
-dep_leveldb = dependency('leveldb', method : 'cmake')
 # note : myhtml is usually not found in package repositories,
 # install here: https://github.com/lexborisov/myhtml/blob/master/INSTALL.md 
 dep_myhtml = cc.find_library('myhtml',dirs:['/usr/local/lib/'])
 inc_myhtml = include_directories('/usr/local/lib')
 
-all_dep = [ dep_thread, dep_curl, dep_myhtml, dep_boost, dep_leveldb ]
+all_dep = [ dep_thread, dep_curl, dep_myhtml, dep_boost ]
 
 # homura assumes libcurl is built with OpenSSL.
 # If you are using libcurl built with GNUTLS, pass the option -D GNUTLS=true.
