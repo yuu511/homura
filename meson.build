@@ -32,14 +32,16 @@ endif
 generic_flags = ['-g','-Wall']
 
 # Sources
-homura_sources = ['src/main.cpp', 'src/homura.cpp', 'src/errlib.cpp', 'src/curl_container.cpp'
-, 'src/tree_container.cpp', 'src/url_table.cpp','src/url_scheduler.cpp', 'src/nyaasi_extractor.cpp']
+homura_sources = ['src/homura.cpp', 'src/errlib.cpp', 'src/curl_container.cpp'
+                   , 'src/tree_container.cpp', 'src/url_table.cpp','src/url_scheduler.cpp', 'src/nyaasi_extractor.cpp']
+
+homura_client = homura_sources + ['src/main.cpp']
 
 homura_include = include_directories('include')
 all_includes = [homura_include,inc_myhtml]
 
 e = executable('homura' ,
-               sources: homura_sources,
+               sources: homura_client,
                dependencies: all_dep,
                include_directories: all_includes, 
                c_args: generic_flags)

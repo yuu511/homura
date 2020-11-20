@@ -25,10 +25,10 @@ namespace homura
         return std::dynamic_pointer_cast<url_table<extractor>>(find->second);
       }
 
-      std::shared_ptr<url_table_base> table = 
-      hashed_url_tables.emplace(std::make_pair( key,
-                                std::make_shared<url_table<extractor>>
-                                (key,delay,_num_retries,extractor()))).first->second;
+      std::shared_ptr<url_table<extractor>> newtable = 
+        std::make_shared<url_table<extractor>> (key, delay, _num_retries, extractor());
+
+      hashed_url_tables.emplace(std::make_pair (key, newtable));
 
       auto itor = sorted_url_tables.begin();
       while (itor != sorted_url_tables.end()) {
@@ -37,9 +37,9 @@ namespace homura
         }
         ++itor;
       }
-      sorted_url_tables.insert(itor,table);
+      sorted_url_tables.insert(itor,newtable);
 
-      return std::dynamic_pointer_cast<url_table<extractor>>(table);
+      return newtable; 
    }
 
     urlvector return_table();

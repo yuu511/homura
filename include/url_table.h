@@ -121,13 +121,11 @@ namespace homura
       last_request = std::chrono::steady_clock::now();
 
       auto found = results.find(lastElement->first);
-      if (found != results.end()) {
-       Status = parser.downloadPage(lastElement->second.front() , found->second);
-      }
-      else {
+      if (found == results.end()) {
         found = results.emplace(std::make_pair(lastElement->first,std::vector<generic_torrent_result>())).first;
-        Status = parser.downloadPage(lastElement->second.front() , found->second);
       }
+
+      Status = parser.downloadPage(lastElement->second.front() , found->second);
 
       if (Status == ERRCODE::SUCCESS) {
         lastElement->second.pop_front();
