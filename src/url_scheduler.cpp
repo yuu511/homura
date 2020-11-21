@@ -19,7 +19,9 @@ HOMURA_ERRCODE url_scheduler::crawl()
     finished = true;
     for (auto &table: sorted_url_tables) {
       if (table->empty()) {
+        homura::error_handler::cache = true;
         table->do_caching_operations();
+        homura::error_handler::cache = false;
         continue;
       }
       finished = false;

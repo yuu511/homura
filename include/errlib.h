@@ -43,6 +43,7 @@ namespace homura
   namespace error_handler {
     void set_error_exitcode(int code);
     extern int exit_code;  
+    extern bool cache;
   }
 
   void parse_error_exitcode(int code);

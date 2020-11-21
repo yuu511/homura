@@ -26,6 +26,7 @@ namespace homura {
 
 /* error */
 int homura::error_handler::exit_code = ERRCODE::SUCCESS;
+bool homura::error_handler::cache = false;
 
 void homura::error_handler::set_error_exitcode(int code) 
 {

@@ -36,16 +36,23 @@ homura_sources = ['src/homura.cpp', 'src/errlib.cpp', 'src/curl_container.cpp'
                    , 'src/tree_container.cpp', 'src/url_table.cpp','src/url_scheduler.cpp', 'src/nyaasi_extractor.cpp']
 
 homura_client = homura_sources + ['src/main.cpp']
+homura_daemon = homura_sources + ['src/daemon_main.cpp']
 
 homura_include = include_directories('include')
 all_includes = [homura_include,inc_myhtml]
 
-e = executable('homura' ,
-               sources: homura_client,
-               dependencies: all_dep,
-               include_directories: all_includes, 
-               c_args: generic_flags)
+homurac = executable('homura' ,
+                      sources: homura_client,
+                      dependencies: all_dep,
+                      include_directories: all_includes, 
+                      c_args: generic_flags)
+
+homurad = executable('homurad' ,
+                      sources: homura_daemon,
+                      dependencies: all_dep,
+                      include_directories: all_includes, 
+                      c_args: generic_flags)
 
 # Tests
-test ('default' , e, args : ['-v','search','dumbbell nan kilo moteru'])
+test ('default' , homurac, args : ['-v','search','dumbbell nan kilo moteru'])
 
