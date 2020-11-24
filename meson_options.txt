@@ -1,1 +1,3 @@
 option('GNUTLS', type : 'boolean', value : 'false', description : 'Build with GNUTLS instead.')
+option('DEBUG', type : 'boolean', value : 'false', description : 'Debug print.')
+option('DEBUG_VERBOSE', type : 'boolean', value : 'false', description : 'Debug print (more verbose).')

@@ -86,7 +86,7 @@ HOMURA_ERRCODE nyaasi_extractor::generateURLs()
   }
   for (int i = 2; i <= num_pages; ++i) {
     URLs.emplace_back(ref_page + "&p=" + std::to_string(i)) ;  
-    if (options::debug_level) {
+    if (options::verbose_mode) {
       fprintf(stderr,"Adding url %s\n",((ref_page + "&p=" + std::to_string(i)).c_str()));
     }
   }
@@ -123,9 +123,7 @@ inline std::uint64_t convertToNumber(const char *str)
       base *= 10;
       factor *= 10;
 
-      if (options::debug_level > 1) {
-        fprintf(stderr, "base %lf\n",base);
-      }
+      DEBUG("base %lf\n",base);
     }
 
     if (token) {
@@ -153,9 +151,7 @@ inline std::uint64_t convertToNumber(const char *str)
     }
   }
 
-  if (options::debug_level > 1) {
-    fprintf(stderr, "size in bytes 0x%lx\n",ret);
-  }
+  DEBUG("size in bytes 0x%lx\n",ret);
 
   return ret;
 }
@@ -227,9 +223,7 @@ inline HOMURA_ERRCODE nyaasi_extractor::getTorrents(std::string URL,
               title = myhtml_node_text(child,NULL);
               if (title) {
                 combinedname.append(title);
-              }
-              if (options::debug_level > 1) {
-                if (title) fprintf(stderr,"title %s \n",title);
+                DEBUG("title %s \n",title);
               }
           }
         }
@@ -247,11 +241,11 @@ inline HOMURA_ERRCODE nyaasi_extractor::getTorrents(std::string URL,
            for (size_t i = 0; i < magnets->length; i++){
              myhtml_tree_attr_t *attr = myhtml_node_attribute_first(magnets->list[i]);
              magnet = myhtml_attribute_value(attr,NULL);
-             if (options::debug_level > 1) {
-               if (magnet) {
-                 fprintf(stderr,"magnet : %s \n\n",magnet);
-               }
+             #ifdef DEBUG
+             if (magnet) {
+               DEBUG("magnet : %s \n\n",magnet);
              }
+             #endif
            }
          }
          myhtml_collection_destroy(magnets);
@@ -262,19 +256,22 @@ inline HOMURA_ERRCODE nyaasi_extractor::getTorrents(std::string URL,
          if (child) {
            sizestr = myhtml_node_text(child,NULL);   
          }
-         if (options::debug_level > 1) {
-           if (sizestr) fprintf(stderr,"sizestr %s \n",sizestr);
+         #ifdef DEBUG
+         if (sizestr) { 
+           DEBUG("sizestr %s \n",sizestr);
          }
+         #endif
 
          // DATE
          child = myhtml_node_child(td_table->list[4]);
          if (child) {
            datestr = myhtml_node_text(child,NULL);   
          }
-         if (options::debug_level > 1) {
-           if (datestr) fprintf(stderr,"datestr %s \n",datestr);
+         #ifdef DEBUG
+         if (datestr) {
+           DEBUG("datestr %s \n",datestr);
          }
-
+         #endif
        }
 
        if (sizestr) {

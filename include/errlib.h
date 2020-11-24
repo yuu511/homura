@@ -5,6 +5,15 @@
 #include <vector>
 #include <bitset>
 
+#ifdef DEBUG
+#define DEBUG(fmt, ...) \
+  do { if (DEBUG) fprintf(stderr, fmt, __VA_ARGS__); } while (0)
+#else
+#define DEBUG(fmt,...) \
+  do {} while(0)
+#endif
+
+
 // small error and option handling module
 
 typedef int HOMURA_ERRCODE;
@@ -29,7 +38,7 @@ namespace homura
 
   /* options */
   namespace options {
-    extern int debug_level;
+    extern bool verbose_mode;
     extern int number_pages;
     extern bool force_refresh_cache;
     extern bool wait_end;

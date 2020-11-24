@@ -10,7 +10,7 @@
 /* options */
 namespace homura {
   namespace options {
-    int debug_level = 0;
+    bool verbose_mode = false;
     int number_pages = 0;
     bool force_refresh_cache = false;
     bool wait_end = false;

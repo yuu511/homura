@@ -30,8 +30,7 @@ int main ()
 
   homura_instance homuhomu = homura_instance();
   for(;;) {
-    printf("start!\n"); 
-    std::this_thread::sleep_for(std::chrono::minutes(1));
+    std::this_thread::sleep_for(std::chrono::minutes(60));
   }
 
 }

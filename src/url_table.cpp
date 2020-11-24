@@ -75,15 +75,11 @@ std::filesystem::path get_basedir()
     homedir = getpwuid(getuid())->pw_dir;
   }
 
-  if (options::debug_level > 1) {
-    fprintf(stderr,"homedir %s\n",homedir);
-  }
+  DEBUG("homedir %s\n",homedir);
 
   std::filesystem::path basedir = std::filesystem::path(homedir);
   basedir /= ".homura";
-  if (options::debug_level > 1) {
-    fprintf(stderr,"basedir %s\n",basedir.string().c_str());
-  }
+  DEBUG("basedir %s\n",basedir.string().c_str());
   if (!std::filesystem::is_directory(basedir) && !std::filesystem::exists(basedir)) {
     bool made = std::filesystem::create_directory(basedir);
     if (!made) return std::filesystem::path();
@@ -99,9 +95,7 @@ std::filesystem::path url_table_base::get_cache_dir()
   if (cachedir.empty()) return std::filesystem::path();
 
   cachedir /= "homuracache";
-  if (options::debug_level > 1) {
-    fprintf(stderr,"cachedir %s\n",cachedir.string().c_str());
-  }
+  DEBUG("cachedir %s\n",cachedir.string().c_str());
 
   if (!std::filesystem::is_directory(cachedir) && !std::filesystem::exists(cachedir)) {
     bool made = std::filesystem::create_directory(cachedir);
@@ -159,9 +153,7 @@ void url_table_base::findAndProcessCache(std::string query, size_t expected_resu
     boost::archive::text_iarchive ia(cachefile);
     ia >> cachedresults;
 
-    if (options::debug_level) {
-      fprintf(stderr,"size of cache %zu expected results %zu \n", cachedresults.size(), expected_results);
-    }
+    DEBUG("size of cache %zu expected results %zu \n", cachedresults.size(), expected_results);
 
     if (cachedresults.size() == expected_results) {
       fprintf(stderr,"Amount of expected results same as last time, "
@@ -196,23 +188,18 @@ void url_table_base::findAndProcessCache(std::string query, size_t expected_resu
     }
   }
   else {
-    if (options::debug_level) {
-      fprintf(stderr,"cachefile %s not found\n",cachepath.c_str());
-    }
+    DEBUG("cachefile %s not found\n",cachepath.c_str());
   }
 }
 
 void url_table_base::decache()
 {
-  if (options::debug_level) {
-    fprintf(stderr,"decaching \n");
-  }
+  DEBUG("decaching \n");
   for (auto &itor : results) {
     auto find = cached_results.find(itor.first);
     if (find != cached_results.end()) {
-      if (options::debug_level) {
-        fprintf(stderr,"Number downloaded results %zu\nNumber cached results used %zu\n",itor.second.size(),find->second.size());
-      }
+      DEBUG("Number downloaded results %zu\nNumber cached results used %zu\n",
+        itor.second.size(),find->second.size());
       itor.second.insert(itor.second.end(),find->second.begin(),find->second.end());
     }
   }
@@ -232,13 +219,6 @@ void url_table_base::print()
   for (auto &queries : results) {
     if (options::print.test(1)) {
       fprintf (stdout, "=== Searchterm %s ===\n\n", queries.first.c_str());
-    }
-
-    if (options::sort_by_size) {
-      std::sort(queries.second.begin(),queries.second.end(),
-        [](const generic_torrent_result &a, const generic_torrent_result &b) -> bool {
-          return a.sizebytes > b.sizebytes; 
-        });
     }
 
     if (options::sort_by_size) {

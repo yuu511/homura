@@ -25,7 +25,6 @@ namespace homura
     void wait_at_end();
   private:
     url_scheduler scheduler;
-    bool crawling;
   };
 }
 

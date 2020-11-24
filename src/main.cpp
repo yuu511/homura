@@ -34,7 +34,6 @@ void print_usage()
   fprintf(stderr,"\n");
   println(5,"FLAGS:");
   printopt(5,"[-v,--verbose]"," : logging, prints out actions as they are preformed");
-  printopt(5,"[-d,--debug]"," : more extensive logging, prints out full html files");
   printopt(5,"[-c,--refresh_cache]"," : Force homura to not use cache.");
   printopt(5,"[-r,--regex] REGEX"," : Filter results by regular expression [REGEX]");
   printopt(5,"[-t,--torrents_only] "," : Print magnets only");
@@ -81,7 +80,6 @@ HOMURA_ERRCODE parse_flags (int argc, char **argv)
      static struct option long_options[] = 
      {
        { "verbose" , no_argument       ,  0    , 'v' },
-       { "debug"   , no_argument       ,  0    , 'd' },
        { "help"    , no_argument       ,  0    , 'h' },
        { "regex" , required_argument ,  0      , 'r' },
        { "refresh_cache" , no_argument ,  0    , 'c' },
@@ -97,10 +95,7 @@ HOMURA_ERRCODE parse_flags (int argc, char **argv)
        break;
      switch (opt) {
        case 'v':
-         options::debug_level = 1;
-         break;
-       case 'd':
-         options::debug_level = 2;
+         options::verbose_mode = true;
          break;
        case 'h':
 	     print_usage();
@@ -123,9 +118,7 @@ HOMURA_ERRCODE parse_flags (int argc, char **argv)
                      "(accepts a -positive- decimal number) %s\n",optarg);
            return ERRCODE::FAILED_ARGPARSE;
          }
-         if (options::debug_level) {
-           fprintf (stderr,"print settings set to %s\n",options::print.to_string().c_str());
-         }
+         DEBUG(stderr,"print settings set to %s\n",options::print.to_string().c_str());
          options::number_pages = n_opts;
          break;
        case 'w':
@@ -190,7 +183,7 @@ int main (int argc, char **argv)
     Status = execute_command(argc,argv);
   }
 
-  if (options::debug_level) {
+  if (options::verbose_mode) {
     parse_error_exitcode(Status);
   }
 

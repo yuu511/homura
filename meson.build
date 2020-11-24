@@ -28,6 +28,14 @@ else
   all_dep += dep_OPENSSL
 endif
 
+if get_option('DEBUG')
+  add_project_arguments('-DDEBUG=1', language: 'cpp')
+endif
+
+if get_option('DEBUG_VERBOSE')
+  add_project_arguments('-DDEBUG=2', language: 'cpp')
+endif
+
 # FLAGS
 generic_flags = ['-g','-Wall']
 
