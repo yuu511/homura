@@ -1,2 +1,2 @@
 option('GNUTLS', type : 'boolean', value : 'false', description : 'Build with GNUTLS instead.')
-option('DBG', type : 'integer', min : 0, max : 2, value : 0 , description : 'Debug print.')
+option('DEBUG', type : 'integer', min : 0, max : 2, value : 0 , description : 'Debug print.')

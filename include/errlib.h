@@ -20,6 +20,19 @@ typedef int HOMURA_ERRCODE;
 
 namespace homura 
 {
+  /* options */
+  struct homura_settings {
+    homura_settings();
+    bool verbose_mode;
+    int number_pages;
+    bool force_refresh_cache;
+    bool wait_end;
+    bool sort_by_size;
+    // Bit 0 (LSB) : print magnet, default = 1
+    // Bit 1 : print name, default = 1
+    std::bitset<2> print_opts;
+  };
+
   /* error */
   enum ERRCODE {
     SUCCESS,
@@ -35,16 +48,6 @@ namespace homura
     FAILED_INVALID_COMMAND,
     FAILED_CACHE_CREATION
   };
-
-  /* options */
-  namespace options {
-    extern bool verbose_mode;
-    extern int number_pages;
-    extern bool force_refresh_cache;
-    extern bool wait_end;
-    extern bool sort_by_size;
-    extern std::bitset<2> print;
-  }
 
   namespace error_handler {
     void set_error_exitcode(int code);

@@ -35,7 +35,6 @@ void print_usage()
   println(5,"FLAGS:");
   printopt(5,"[-v,--verbose]"," : logging, prints out actions as they are preformed");
   printopt(5,"[-c,--refresh_cache]"," : Force homura to not use cache.");
-  printopt(5,"[-r,--regex] REGEX"," : Filter results by regular expression [REGEX]");
   printopt(5,"[-t,--torrents_only] "," : Print magnets only");
   printopt(5,"","   e.g. 0x3 to print both, 0x2 for torrent titles only (default 0x1)");
   printopt(5,"[-p,--num_pages] NUMBER"," : load up to [NUMBER] pages ");
@@ -67,7 +66,7 @@ void print_usage()
   fprintf (stderr,"\n");
 }
 
-HOMURA_ERRCODE parse_flags (int argc, char **argv) 
+HOMURA_ERRCODE parse_flags (int argc, char **argv, homura_settings &settings) 
 {
    int opt;
    int n_opts;
@@ -75,6 +74,8 @@ HOMURA_ERRCODE parse_flags (int argc, char **argv)
    std::regex ishex("0x\\d+");
    std::regex validzero("(0x)?0+");
    std::string cast;
+   (void) settings;
+
    while (1) {  
      int option_index = 0;
      static struct option long_options[] = 
@@ -94,17 +95,17 @@ HOMURA_ERRCODE parse_flags (int argc, char **argv)
        break;
      switch (opt) {
        case 'v':
-         options::verbose_mode = true;
+         settings.verbose_mode = true;
          break;
        case 'h':
 	     print_usage();
          exit(ERRCODE::SUCCESS);
        case 'c':
-         options::force_refresh_cache = true;
+         settings.force_refresh_cache = true;
          break;
        case 't':
-         options::print.set(0,1);
-         options::print.set(1,0);
+         settings.print_opts.set(0,1);
+         settings.print_opts.set(1,0);
          break;
        case 'p':
          cast = optarg;
@@ -114,14 +115,14 @@ HOMURA_ERRCODE parse_flags (int argc, char **argv)
                      "(accepts a -positive- decimal number) %s\n",optarg);
            return ERRCODE::FAILED_ARGPARSE;
          }
-         DBG("print settings set to %s\n",options::print.to_string().c_str());
-         options::number_pages = n_opts;
+         DBG("print settings set to %s\n",settings.print_opts.to_string().c_str());
+         settings.number_pages = n_opts;
          break;
        case 'w':
-         options::wait_end = true;
+         settings.wait_end = true;
          break;
        case 's':
-         options::sort_by_size = true;
+         settings.sort_by_size = true;
          break;
        case '?':
          errprintf(ERRCODE::FAILED_ARGPARSE,"incorrect option %c\n",optopt);
@@ -133,7 +134,7 @@ HOMURA_ERRCODE parse_flags (int argc, char **argv)
    return ERRCODE::SUCCESS;
 }
 
-HOMURA_ERRCODE execute_command(int argc, char **argv) 
+HOMURA_ERRCODE execute_command(int argc, char **argv, homura_settings &settings) 
 {
  if (optind + 1 > argc) {
    errprintf (ERRCODE::FAILED_ARGPARSE,"No command provided.\n");
@@ -141,8 +142,9 @@ HOMURA_ERRCODE execute_command(int argc, char **argv)
    return ERRCODE::FAILED_ARGPARSE;
  }
  std::string command = std::string(argv[optind]);
- homura_instance homuhomu = homura_instance();
-  if (command == "search") {
+ homura_instance homuhomu = homura_instance(settings);
+ if (!homuhomu.get_settings()) return ERRCODE::FAILED_ARGPARSE;
+ if (command == "search") {
     int search_index = optind + 1;
     if (optind + 1 >= argc) {
       errprintf(ERRCODE::FAILED_ARGPARSE,"Incorrect # of options for search\n"); 
@@ -157,7 +159,7 @@ HOMURA_ERRCODE execute_command(int argc, char **argv)
     if (Status != ERRCODE::SUCCESS) return Status;
 
     homuhomu.print_tables();
-    if (options::wait_end) {
+    if (homuhomu.get_settings()->wait_end) {
       homuhomu.wait_at_end();
     }
   }
@@ -172,13 +174,15 @@ HOMURA_ERRCODE execute_command(int argc, char **argv)
 int main (int argc, char **argv) 
 {
   HOMURA_ERRCODE Status;
-  Status = parse_flags(argc,argv);
+  homura_settings hsettings = homura_settings();
+
+  Status = parse_flags(argc,argv,hsettings);
 
   if (Status == ERRCODE::SUCCESS) { 
-    Status = execute_command(argc,argv);
+    Status = execute_command(argc,argv,hsettings);
   }
 
-  if (options::verbose_mode) {
+  if (hsettings.verbose_mode) {
     parse_error_exitcode(Status);
   }
 

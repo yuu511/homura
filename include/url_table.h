@@ -57,9 +57,11 @@ namespace homura
   using urlpair = std::pair <std::string, std::deque<std::string>>; // search query, URLs generated
 
   struct url_table_base {
-    url_table_base(std::string _website,
+    url_table_base(homura_settings *_settings,
+                   std::string _website,
                    std::chrono::milliseconds _delay);
-    url_table_base(std::string _website,
+    url_table_base(homura_settings *_settings, 
+                   std::string _website,
                    std::chrono::milliseconds _delay,
                    int _num_retries);
     virtual ~url_table_base();
@@ -81,6 +83,7 @@ namespace homura
     void print(); 
 
     //vars
+    homura_settings *settings;
     std::string website;
     std::chrono::milliseconds delay;
     std::chrono::steady_clock::time_point last_request;
@@ -100,17 +103,19 @@ namespace homura
 
   template <typename extractor>
   struct url_table : public url_table_base {
-    url_table(std::string _website,
+    url_table(homura_settings *_settings,
+              std::string _website,
               std::chrono::milliseconds _delay,
               extractor _parser)
-    : url_table_base(_website,_delay),
+    : url_table_base(_settings,_website,_delay),
       parser(_parser){}
 
-    url_table(std::string _website,
+    url_table(homura_settings *_settings,
+              std::string _website,
               std::chrono::milliseconds _delay,
               int _numRetries,
               extractor _parser)
-    : url_table_base(_website,_delay,_numRetries),
+    : url_table_base(_settings,_website,_delay,_numRetries),
       parser(_parser){}
 
     HOMURA_ERRCODE download_next_URL()
@@ -125,6 +130,10 @@ namespace homura
         found = results.emplace(std::make_pair(lastElement->first,std::vector<generic_torrent_result>())).first;
       }
 
+      if (settings->verbose_mode) {
+        fprintf(stderr,"Downloading URL %s...",lastElement->second.front().c_str()); 
+      }
+
       Status = parser.downloadPage(lastElement->second.front() , found->second);
 
       if (Status == ERRCODE::SUCCESS) {
@@ -137,10 +146,15 @@ namespace homura
           if (lastElement->second.empty()) remainingURLs.pop_back();  
           return Status;
         }
-        fprintf (stderr, "Failed at %s, num_retries left = %d\n", lastElement->second.front().c_str(),
+        fprintf (stderr, "\nFailed at %s, num_retries left = %d\n", lastElement->second.front().c_str(),
                                                                   num_retries);
         --num_retries;
       }
+
+      if (settings->verbose_mode) {
+        fprintf(stderr,"Complete!\nWaiting for crawl delay...\n"); 
+      }
+
       return ERRCODE::SUCCESS;
     }
 

@@ -107,9 +107,6 @@ HOMURA_ERRCODE curl_container::perform_curl(const std::string url)
   bool pass = check_curlcode(curl_easy_perform(easyhandle));
 
   if (pass) {
-    if (options::verbose_mode) {
-      fprintf (stderr, "Downloading page %s\n",url.c_str());
-    }
     DBG("== Size of string ==\n");
     DBG("sizeof string %zd\n\n", buffer->size());
     #ifdef DEBUG
@@ -121,10 +118,6 @@ HOMURA_ERRCODE curl_container::perform_curl(const std::string url)
   else {
     errprintf(ERRCODE::FAILED_CURL,"Curl failed at url %s\n",url.c_str());
     return ERRCODE::FAILED_CURL;
-  }
-
-  if (options::verbose_mode) {
-    fprintf (stderr, "Page %s downloaded sucessfully.\n",url.c_str());
   }
 
   return ERRCODE::SUCCESS;

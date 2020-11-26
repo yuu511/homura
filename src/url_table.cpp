@@ -4,9 +4,11 @@ using namespace homura;
 
 url_table_base::~url_table_base(){}
 
-url_table_base::url_table_base(std::string _website,
+url_table_base::url_table_base(homura_settings *_settings,
+                               std::string _website,
                                std::chrono::milliseconds _delay)
-: website(_website),
+: settings(_settings),
+  website(_website),
   delay(_delay),
   last_request(std::chrono::steady_clock::now()),
   num_retries(0),
@@ -15,10 +17,12 @@ url_table_base::url_table_base(std::string _website,
 }
 
 
-url_table_base::url_table_base(std::string _website,
+url_table_base::url_table_base(homura_settings *_settings,
+                               std::string _website,
                                std::chrono::milliseconds _delay,
                                int _num_retries)
-: website(_website),
+: settings(_settings),
+  website(_website),
   delay(_delay),
   last_request(std::chrono::steady_clock::now()),
   num_retries(_num_retries),
@@ -124,13 +128,21 @@ HOMURA_ERRCODE url_table_base::cache()
 
 void url_table_base::addURLs(std::string query, std::deque<std::string> URLs) 
 {
-  if (!URLs.empty())
+  if (!URLs.empty()) {
+    if (settings->number_pages && (size_t)settings->number_pages < URLs.size()) {
+      if (settings->verbose_mode) {
+        fprintf(stderr,"Reduced number of URLs to download to %d",
+                          settings->number_pages);
+      }
+      URLs.resize((size_t)settings->number_pages);    
+    }
     remainingURLs.push_back(std::make_pair(query,URLs)); 
+  }
 }
 
 void url_table_base::findAndProcessCache(std::string query, size_t expected_results, size_t results_per_page)
 {
-  if (options::force_refresh_cache || results_per_page == 0 || !expected_results || !results_per_page) {
+  if (settings->force_refresh_cache || results_per_page == 0 || !expected_results || !results_per_page) {
     return;
   }
 
@@ -207,7 +219,7 @@ void url_table_base::decache()
 
 void url_table_base::do_caching_operations()
 {
-  if (!cache_done || (options::number_pages != 0)) {
+  if (!cache_done || (settings->number_pages != 0)) {
     decache();
     cache();
     cache_done = true;
@@ -217,11 +229,11 @@ void url_table_base::do_caching_operations()
 void url_table_base::print()
 {
   for (auto &queries : results) {
-    if (options::print.test(1)) {
+    if (settings->print_opts.test(1)) {
       fprintf (stdout, "=== Searchterm %s ===\n\n", queries.first.c_str());
     }
 
-    if (options::sort_by_size) {
+    if (settings->sort_by_size) {
       std::sort(queries.second.begin(),queries.second.end(),
         [](const generic_torrent_result &a, const generic_torrent_result &b) -> bool {
           return a.sizebytes > b.sizebytes; 
@@ -229,16 +241,16 @@ void url_table_base::print()
     }
 
     for (auto &entry : queries.second) {
-      if (options::print.test(1)) {
+      if (settings->print_opts.test(1)) {
         fprintf(stdout,"\n%s\n\n",entry.name.c_str());
         fprintf(stdout,"%s // %s\n\n",entry.sizestring.c_str(),entry.date.c_str());
       }
-      if (options::print.test(0)) {
+      if (settings->print_opts.test(0)) {
         fprintf(stdout,"%s\n",entry.magnet.c_str());
       }
     }
 
-    if (options::print.test(1)) {
+    if (settings->print_opts.test(1)) {
       fprintf (stdout, "\n\n=====================\n\n");
     }
   }

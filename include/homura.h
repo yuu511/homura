@@ -16,6 +16,7 @@ namespace homura
   class homura_instance {
   public:
     homura_instance();
+    homura_instance(homura_settings _settings);
     ~homura_instance();
     
     HOMURA_ERRCODE query_nyaasi(std::string args);
@@ -23,8 +24,10 @@ namespace homura
     HOMURA_ERRCODE crawl();
     void print_tables();
     void wait_at_end();
+    homura_settings *get_settings();
   private:
     url_scheduler scheduler;
+    std::unique_ptr<homura_settings> settings;
   };
 }
 

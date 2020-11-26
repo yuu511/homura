@@ -55,11 +55,11 @@ homurac = executable('homura' ,
                       include_directories: all_includes, 
                       c_args: generic_flags)
 
-homurad = executable('homurad' ,
-                      sources: homura_daemon,
-                      dependencies: all_dep,
-                      include_directories: all_includes, 
-                      c_args: generic_flags)
+# homurad = executable('homurad' ,
+#                       sources: homura_daemon,
+#                       dependencies: all_dep,
+#                       include_directories: all_includes, 
+#                       c_args: generic_flags)
 
 # Tests
 test ('default' , homurac, args : ['-v','search','dumbbell nan kilo moteru'])

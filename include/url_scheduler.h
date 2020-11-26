@@ -16,7 +16,8 @@ namespace homura
     url_scheduler();
 
     template <typename extractor> 
-    std::shared_ptr<url_table<extractor>> getTable(std::string key,
+    std::shared_ptr<url_table<extractor>> getTable(homura_settings *settings,
+                                                   std::string key,
                                                    std::chrono::milliseconds delay,
                                                    int _num_retries = 0)
     {
@@ -26,7 +27,9 @@ namespace homura
       }
 
       std::shared_ptr<url_table<extractor>> newtable = 
-        std::make_shared<url_table<extractor>> (key, delay, _num_retries, extractor());
+        std::make_shared<url_table<extractor>> (settings,
+                                                key, delay,
+                                                _num_retries, extractor());
 
       hashed_url_tables.emplace(std::make_pair (key, newtable));
 

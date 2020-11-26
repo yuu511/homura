@@ -81,14 +81,8 @@ HOMURA_ERRCODE nyaasi_extractor::generateURLs()
     return ERRCODE::FAILED_NO_RESULTS;
   }
   int num_pages = ( total + (per_page - 1) ) / per_page;
-  if (options::number_pages > 0 && options::number_pages < num_pages) {
-    num_pages = options::number_pages;
-  }
   for (int i = 2; i <= num_pages; ++i) {
     URLs.emplace_back(ref_page + "&p=" + std::to_string(i)) ;  
-    if (options::verbose_mode) {
-      fprintf(stderr,"Adding url %s\n",((ref_page + "&p=" + std::to_string(i)).c_str()));
-    }
   }
   return ERRCODE::SUCCESS;
 }

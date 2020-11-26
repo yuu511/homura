@@ -12,13 +12,16 @@ namespace homura {
   namespace options {
     bool verbose_mode = false;
     int number_pages = 0;
-    bool force_refresh_cache = false;
-    bool wait_end = false;
-    bool sort_by_size = false;
-    // Bit 0 (LSB) : print magnet, default = 1
-    // Bit 1 : print name, default = 1
-    std::bitset<2> print(0x3);
   }
+
+  homura_settings::homura_settings() 
+  : verbose_mode(false),
+    number_pages(0),
+    force_refresh_cache(false),
+    wait_end(false),
+    sort_by_size(false),
+    print_opts(std::bitset<2>(0x3))
+  {}
 }
 
 /* error */
