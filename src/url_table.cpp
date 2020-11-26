@@ -75,11 +75,11 @@ std::filesystem::path get_basedir()
     homedir = getpwuid(getuid())->pw_dir;
   }
 
-  DEBUG("homedir %s\n",homedir);
+  DBG("homedir %s\n",homedir);
 
   std::filesystem::path basedir = std::filesystem::path(homedir);
   basedir /= ".homura";
-  DEBUG("basedir %s\n",basedir.string().c_str());
+  DBG("basedir %s\n",basedir.string().c_str());
   if (!std::filesystem::is_directory(basedir) && !std::filesystem::exists(basedir)) {
     bool made = std::filesystem::create_directory(basedir);
     if (!made) return std::filesystem::path();
@@ -95,7 +95,7 @@ std::filesystem::path url_table_base::get_cache_dir()
   if (cachedir.empty()) return std::filesystem::path();
 
   cachedir /= "homuracache";
-  DEBUG("cachedir %s\n",cachedir.string().c_str());
+  DBG("cachedir %s\n",cachedir.string().c_str());
 
   if (!std::filesystem::is_directory(cachedir) && !std::filesystem::exists(cachedir)) {
     bool made = std::filesystem::create_directory(cachedir);
@@ -153,7 +153,7 @@ void url_table_base::findAndProcessCache(std::string query, size_t expected_resu
     boost::archive::text_iarchive ia(cachefile);
     ia >> cachedresults;
 
-    DEBUG("size of cache %zu expected results %zu \n", cachedresults.size(), expected_results);
+    DBG("size of cache %zu expected results %zu \n", cachedresults.size(), expected_results);
 
     if (cachedresults.size() == expected_results) {
       fprintf(stderr,"Amount of expected results same as last time, "
@@ -188,17 +188,17 @@ void url_table_base::findAndProcessCache(std::string query, size_t expected_resu
     }
   }
   else {
-    DEBUG("cachefile %s not found\n",cachepath.c_str());
+    DBG("cachefile %s not found\n",cachepath.c_str());
   }
 }
 
 void url_table_base::decache()
 {
-  DEBUG("decaching \n");
+  DBG("decaching \n");
   for (auto &itor : results) {
     auto find = cached_results.find(itor.first);
     if (find != cached_results.end()) {
-      DEBUG("Number downloaded results %zu\nNumber cached results used %zu\n",
+      DBG("Number downloaded results %zu\nNumber cached results used %zu\n",
         itor.second.size(),find->second.size());
       itor.second.insert(itor.second.end(),find->second.begin(),find->second.end());
     }

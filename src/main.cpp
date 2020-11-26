@@ -81,7 +81,6 @@ HOMURA_ERRCODE parse_flags (int argc, char **argv)
      {
        { "verbose" , no_argument       ,  0    , 'v' },
        { "help"    , no_argument       ,  0    , 'h' },
-       { "regex" , required_argument ,  0      , 'r' },
        { "refresh_cache" , no_argument ,  0    , 'c' },
        { "torrents_only" , no_argument ,  0    , 't' },
        { "num_pages" , required_argument ,  0  , 'p' },
@@ -89,7 +88,7 @@ HOMURA_ERRCODE parse_flags (int argc, char **argv)
        { "size"      , no_argument ,  0        , 's' },
        {  NULL     , 0                 , NULL  ,  0  }
      };
-     opt = getopt_long(argc,argv, "vdhr:ctp:ws",
+     opt = getopt_long(argc,argv, "vhctp:ws",
                  long_options, &option_index);
      if (opt == -1)		 
        break;
@@ -100,9 +99,6 @@ HOMURA_ERRCODE parse_flags (int argc, char **argv)
        case 'h':
 	     print_usage();
          exit(ERRCODE::SUCCESS);
-       case 'r':
-         options::regex = std::string(optarg);
-         break;
        case 'c':
          options::force_refresh_cache = true;
          break;
@@ -118,7 +114,7 @@ HOMURA_ERRCODE parse_flags (int argc, char **argv)
                      "(accepts a -positive- decimal number) %s\n",optarg);
            return ERRCODE::FAILED_ARGPARSE;
          }
-         DEBUG(stderr,"print settings set to %s\n",options::print.to_string().c_str());
+         DBG("print settings set to %s\n",options::print.to_string().c_str());
          options::number_pages = n_opts;
          break;
        case 'w':
@@ -144,18 +140,17 @@ HOMURA_ERRCODE execute_command(int argc, char **argv)
    errprintf (ERRCODE::FAILED_ARGPARSE,"for usage: homura --help \n");
    return ERRCODE::FAILED_ARGPARSE;
  }
- options::command = std::string(argv[optind]);
+ std::string command = std::string(argv[optind]);
  homura_instance homuhomu = homura_instance();
-  if (options::command == "search") {
+  if (command == "search") {
     int search_index = optind + 1;
     if (optind + 1 >= argc) {
       errprintf(ERRCODE::FAILED_ARGPARSE,"Incorrect # of options for search\n"); 
       return ERRCODE::FAILED_ARGPARSE;
     }
     HOMURA_ERRCODE Status; 
-    options::search_term = std::string(argv[search_index]);
 
-    Status = homuhomu.query_nyaasi(options::search_term);
+    Status = homuhomu.query_nyaasi(std::string(argv[search_index]));
     if (Status != ERRCODE::SUCCESS) return Status;
 
     Status = homuhomu.crawl();
@@ -168,7 +163,7 @@ HOMURA_ERRCODE execute_command(int argc, char **argv)
   }
   else {
     errprintf(ERRCODE::FAILED_INVALID_COMMAND,"Invalid command \"%s\""
-    ", use homura --help for all possible options\n",options::command.c_str());
+    ", use homura --help for all possible options\n",command.c_str());
     return ERRCODE::FAILED_INVALID_COMMAND;
   }
   return ERRCODE::SUCCESS;

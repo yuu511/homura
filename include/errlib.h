@@ -6,10 +6,10 @@
 #include <bitset>
 
 #ifdef DEBUG
-#define DEBUG(fmt, ...) \
-  do { if (DEBUG) fprintf(stderr, fmt, __VA_ARGS__); } while (0)
+#define DBG(fmt, ...) \
+  do { if (DEBUG) fprintf(stderr, fmt, ##__VA_ARGS__); } while (0)
 #else
-#define DEBUG(fmt,...) \
+#define DBG(fmt,...) \
   do {} while(0)
 #endif
 
@@ -44,9 +44,6 @@ namespace homura
     extern bool wait_end;
     extern bool sort_by_size;
     extern std::bitset<2> print;
-    extern std::string regex;
-    extern std::string search_term;
-    extern std::string command;
   }
 
   namespace error_handler {

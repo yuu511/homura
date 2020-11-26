@@ -123,7 +123,7 @@ inline std::uint64_t convertToNumber(const char *str)
       base *= 10;
       factor *= 10;
 
-      DEBUG("base %lf\n",base);
+      DBG("base %lf\n",base);
     }
 
     if (token) {
@@ -151,7 +151,7 @@ inline std::uint64_t convertToNumber(const char *str)
     }
   }
 
-  DEBUG("size in bytes 0x%lx\n",ret);
+  DBG("size in bytes 0x%lx\n",ret);
 
   return ret;
 }
@@ -223,7 +223,7 @@ inline HOMURA_ERRCODE nyaasi_extractor::getTorrents(std::string URL,
               title = myhtml_node_text(child,NULL);
               if (title) {
                 combinedname.append(title);
-                DEBUG("title %s \n",title);
+                DBG("title %s \n",title);
               }
           }
         }
@@ -243,7 +243,7 @@ inline HOMURA_ERRCODE nyaasi_extractor::getTorrents(std::string URL,
              magnet = myhtml_attribute_value(attr,NULL);
              #ifdef DEBUG
              if (magnet) {
-               DEBUG("magnet : %s \n\n",magnet);
+               DBG("magnet : %s \n\n",magnet);
              }
              #endif
            }
@@ -258,7 +258,7 @@ inline HOMURA_ERRCODE nyaasi_extractor::getTorrents(std::string URL,
          }
          #ifdef DEBUG
          if (sizestr) { 
-           DEBUG("sizestr %s \n",sizestr);
+           DBG("sizestr %s \n",sizestr);
          }
          #endif
 
@@ -269,7 +269,7 @@ inline HOMURA_ERRCODE nyaasi_extractor::getTorrents(std::string URL,
          }
          #ifdef DEBUG
          if (datestr) {
-           DEBUG("datestr %s \n",datestr);
+           DBG("datestr %s \n",datestr);
          }
          #endif
        }

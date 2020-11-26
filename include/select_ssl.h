@@ -9,7 +9,7 @@ GCRY_THREAD_OPTION_PTHREAD_IMPL;
 void init_locks(void) 
 {
   gcry_control(GCRYCTL_SET_THREAD_CBS);
-  DEBUG("curl with GNUTLS selected\n");
+  DBG("curl with GNUTLS selected\n");
 }
 
 #else // the default, openssl
@@ -41,7 +41,7 @@ static void init_locks()
   locks.resize(CRYPTO_num_locks());
   CRYPTO_set_id_callback(&thread_id);
   CRYPTO_set_locking_callback(&lock_callback);
-  DEBUG("curl with OpenSSL selected\n");
+  DBG("curl with OpenSSL selected\n");
 }
 #endif
 

@@ -110,9 +110,13 @@ HOMURA_ERRCODE curl_container::perform_curl(const std::string url)
     if (options::verbose_mode) {
       fprintf (stderr, "Downloading page %s\n",url.c_str());
     }
-    DEBUG("== Size of string ==\n");
-    DEBUG("sizeof string %zd\n\n", buffer->size());
-    DEBUG("%s\n\n", get_HTML_aschar());
+    DBG("== Size of string ==\n");
+    DBG("sizeof string %zd\n\n", buffer->size());
+    #ifdef DEBUG
+    #if DEBUG > 1
+    DBG("%s\n\n", get_HTML_aschar());
+    #endif
+    #endif
   }
   else {
     errprintf(ERRCODE::FAILED_CURL,"Curl failed at url %s\n",url.c_str());

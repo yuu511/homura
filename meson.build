@@ -28,11 +28,11 @@ else
   all_dep += dep_OPENSSL
 endif
 
-if get_option('DEBUG')
-  add_project_arguments('-DDEBUG=1', language: 'cpp')
-endif
+DEBUG = get_option('DEBUG')
 
-if get_option('DEBUG_VERBOSE')
+if (DEBUG == 1)
+  add_project_arguments('-DDEBUG=1', language: 'cpp')
+elif (DEBUG == 2)
   add_project_arguments('-DDEBUG=2', language: 'cpp')
 endif
 

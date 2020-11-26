@@ -18,9 +18,6 @@ namespace homura {
     // Bit 0 (LSB) : print magnet, default = 1
     // Bit 1 : print name, default = 1
     std::bitset<2> print(0x3);
-    std::string regex = "";
-    std::string search_term = "";
-    std::string command = "";
   }
 }
 
