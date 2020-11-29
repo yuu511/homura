@@ -4,3 +4,4 @@ tags
 *.swo
 automation_scripts/download.py
 automation_scripts/shows_to_download_kuro.csv
+automation_scripts/automation_logs
