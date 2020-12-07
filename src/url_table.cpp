@@ -186,7 +186,7 @@ void url_table_base::findAndProcessCache(std::string query, size_t expected_resu
               remaining_cache -= tail_page;
           }
 
-          while (remaining_cache > results_per_page && !it->second.empty()) {
+          while ((remaining_cache > results_per_page) && !it->second.empty()) {
             it->second.pop_back();
             remaining_cache -= results_per_page;
           }
