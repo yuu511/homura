@@ -11,4 +11,4 @@ requests==2.25.0
 Routes==2.5.1
 six==1.15.0
 transmission-clutch==5.0.2
-urllib3==1.26.2
+urllib3==1.26.3
