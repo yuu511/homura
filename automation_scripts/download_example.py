@@ -8,6 +8,10 @@ import signal
 import requests
 import datetime
 import getopt,sys
+import torch
+import gc
+import whisper
+from whisper.utils import get_writer
 from pathlib import Path
 from clutch import Client
 
@@ -24,6 +28,7 @@ def scrape_nyaasi(client):
       search_term = row['Search_Term']
       save_dest = row['Save_Destination']
       renamefmt = row['OPTIONAL_rename']
+      whisper = row['OPTIONAL_whisper']
 
       basedir = os.path.join(base_path,save_dest)
       copydir = os.path.join(copy_path,save_dest)
@@ -65,6 +70,11 @@ def scrape_nyaasi(client):
               else:
                 tuple["rename_fmt"] = None
 
+              if (whisper != ""):
+                tuple["whisper"] = whisper
+              else:
+                tuple["whisper"] = None
+
               torrents_to_check.append(tuple)
       else:
         output = subprocess.check_output((['head','-n1']),stdin=proc.stdout)
@@ -87,11 +97,17 @@ def scrape_nyaasi(client):
             tuple["rename_fmt"] = renamefmt
           else:
             tuple["rename_fmt"] = None
+
+          if (whisper != ""):
+            tuple["whisper"] = whisper
+          else:
+            tuple["whisper"] = None
+
           torrents_to_check.append(tuple)
 
   return torrents_to_check
 
-def wait_download_complete(client, torrents_to_check):
+def wait_download_complete(client, torrents_to_check,model):
   if torrents_to_check:
     i = 0
     while torrents_to_check:  
@@ -116,8 +132,15 @@ def wait_download_complete(client, torrents_to_check):
             output = proc.communicate()
             if (proc.returncode == 0):
               # file_format = 's/\[.*\][_ *](.*)[_\- ]+ *(\d+).*(\.\w+)/$1 s01e$2$3/'
+              fullpath = os.path.join(tuple["copy_dir"],name)
+
+              if (tuple["whisper"] != None):
+                print("Creating subs by whisper")
+                result = model.transcribe(fullpath, language="ja",condition_on_previous_text=False)
+                writer = get_writer("srt", tuple["copy_dir"])
+                writer(result, fullpath)
+
               if (tuple["rename_fmt"] != None):
-                fullpath = os.path.join(tuple["copy_dir"],name)
                 print ("Linking to %s" % fullpath)
                 print ("rename_fmt %s" % tuple["rename_fmt"])
 
@@ -135,6 +158,10 @@ def wait_download_complete(client, torrents_to_check):
                 cmdstring = "rename " + tuple["rename_fmt"] + " " + "*.mp4"
                 print ( "%s" % cmdstring)
                 os.system(cmdstring)
+                cmdstring = "rename " + tuple["rename_fmt"] + " " + "*.srt"
+                print ( "%s" % cmdstring)
+                os.system(cmdstring)
+
           del torrents_to_check[i] 
           if (torrents_to_check and i >= len(torrents_to_check)):
             i = 0
@@ -146,7 +173,13 @@ def download(download_all):
   client = Client(address="http://localhost:9091/transmission/rpc",username='transmission',password='transmission')
   torrents_to_check = scrape_nyaasi(client)
   if torrents_to_check:
-    wait_download_complete(client, torrents_to_check)
+    model = whisper.load_model("medium")
+    wait_download_complete(client, torrents_to_check,model)
+    # whisper delete cache
+    del model
+    torch.cuda.empty_cache()
+    #
+    gc.collect()
     plexhooks()
 
 if __name__ == "__main__":
