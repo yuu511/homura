@@ -70,7 +70,7 @@ def scrape_nyaasi(client):
               else:
                 tuple["rename_fmt"] = None
 
-              if (whisper != ""):
+              if (whisper == "TRUE"):
                 tuple["whisper"] = whisper
               else:
                 tuple["whisper"] = None
